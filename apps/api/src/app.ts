@@ -51,7 +51,7 @@ import {
   revokeSession,
   setResponsibleGamingLimit,
   submitKycDocument,
-  updatePlayerProfile,
+  updateUserProfile,
   updateTicketStatus,
 } from "@vladfsbet/db";
 import { evaluateTransactionRisk } from "@vladfsbet/db";
@@ -415,7 +415,7 @@ export function createApp() {
     const category = c.req.query("category");
     const search = c.req.query("search");
 
-    const where: Parameters<typeof prisma.game.findMany>[0]["where"] = {
+    const where: Record<string, any> = {
       active: true,
       demoAvailable: true,
     };

@@ -308,7 +308,7 @@ export async function postJournal(db: PrismaClient, input: PostJournalInput) {
           transaction: {
             create: {
               userId: input.userId,
-              type: input.type,
+              type: (input.type === "TRANSFER" ? "ADJUSTMENT" : input.type) as any,
               status: "COMPLETED",
               currency: input.currency,
               amount: dec(input.amount),
