@@ -7383,23 +7383,21 @@ var coerce = {
 };
 var NEVER = INVALID;
 
-// ../../packages/db/src/index.ts
-import { PrismaClient as PrismaClient8 } from "@prisma/client";
-import { PrismaClient as PrismaClient9 } from "@prisma/client";
+// ../../packages/db/dist/index.js
+import { PrismaClient } from "@prisma/client";
+import { PrismaClient as PrismaClient2 } from "@prisma/client";
 
-// ../../packages/db/src/ledger.ts
-import {
-  Prisma
-} from "@prisma/client";
+// ../../packages/db/dist/ledger.js
+import { Prisma } from "@prisma/client";
 var HOUSE_EMAIL = "house@internal.vladfsbet";
 var ACCOUNT_TYPES = ["AVAILABLE", "BONUS", "LOCKED", "PENDING"];
 var LedgerError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "LedgerError";
   }
-  code;
 };
 function dec(value) {
   return new Prisma.Decimal(value);
@@ -7525,9 +7523,7 @@ async function getWalletSnapshot(db, userId, currency) {
   if (!wallet) {
     return null;
   }
-  const byType = Object.fromEntries(
-    wallet.accounts.map((account) => [account.type, money(account.cachedBalance)])
-  );
+  const byType = Object.fromEntries(wallet.accounts.map((account) => [account.type, money(account.cachedBalance)]));
   return {
     walletId: wallet.id,
     currency: wallet.currency,
@@ -7837,19 +7833,19 @@ async function adminRejectWithdrawal(db, withdrawalId, adminUserId, reason) {
   return updated;
 }
 
-// ../../packages/db/src/auth.ts
+// ../../packages/db/dist/auth.js
 import { createHash, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 var scrypt = promisify(scryptCb);
 var SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1e3;
 var DEMO_CREDIT = "1000";
 var AuthError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "AuthError";
   }
-  code;
 };
 function normalizeEmail(email) {
   return email.trim().toLowerCase();
@@ -8122,26 +8118,27 @@ async function updateUserProfile(db, userId, data) {
   return profile;
 }
 
-// ../../packages/db/src/play.ts
+// ../../packages/db/dist/play.js
 import { randomBytes as randomBytes2, randomUUID } from "node:crypto";
 import { Prisma as Prisma4 } from "@prisma/client";
 
-// ../../packages/db/src/rg.ts
+// ../../packages/db/dist/rg.js
 import { Prisma as Prisma2 } from "@prisma/client";
 var RgError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "RgError";
   }
-  code;
 };
 async function checkPlayerEligibleToPlay(db, userId) {
   const user = await db.user.findUnique({
     where: { id: userId },
     select: { status: true, selfExcludedUntil: true }
   });
-  if (!user) return;
+  if (!user)
+    return;
   if (user.status === "SELF_EXCLUDED") {
     if (user.selfExcludedUntil && user.selfExcludedUntil.getTime() <= Date.now()) {
       await db.user.update({
@@ -8169,7 +8166,8 @@ async function checkWagerLimit(db, userId, betAmount) {
     }
   });
   for (const limit of limits) {
-    if (!limit.amount) continue;
+    if (!limit.amount)
+      continue;
     const since = new Date(now.getTime() - limit.periodHours * 60 * 60 * 1e3);
     const aggregate = await db.gameRound.aggregate({
       where: {
@@ -8180,10 +8178,7 @@ async function checkWagerLimit(db, userId, betAmount) {
     });
     const currentWagered = aggregate._sum.betAmount ?? new Prisma2.Decimal(0);
     if (currentWagered.add(bet).gt(limit.amount)) {
-      throw new RgError(
-        "WAGER_LIMIT_EXCEEDED",
-        `Wager limit of ${limit.amount.toString()} for ${limit.periodHours}h would be exceeded. Current total: ${currentWagered.toString()}`
-      );
+      throw new RgError("WAGER_LIMIT_EXCEEDED", `Wager limit of ${limit.amount.toString()} for ${limit.periodHours}h would be exceeded. Current total: ${currentWagered.toString()}`);
     }
   }
 }
@@ -8323,15 +8318,15 @@ async function getPlayerRgSummary(db, userId) {
   };
 }
 
-// ../../packages/db/src/bonuses.ts
+// ../../packages/db/dist/bonuses.js
 import { Prisma as Prisma3 } from "@prisma/client";
 var BonusError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "BonusError";
   }
-  code;
 };
 async function claimBonusTemplate(db, userId, templateSlug) {
   const user = await db.user.findUniqueOrThrow({
@@ -8435,7 +8430,8 @@ async function processBonusWagering(db, userId, betAmount) {
     },
     include: { bonusWallet: true, user: true }
   });
-  if (!activeBonus || !activeBonus.bonusWallet) return;
+  if (!activeBonus || !activeBonus.bonusWallet)
+    return;
   const bw = activeBonus.bonusWallet;
   const newWagered = bw.wagered.add(betAmount);
   if (newWagered.gte(bw.wageringRequired)) {
@@ -8475,7 +8471,8 @@ async function recordVipWager(db, userId, betAmount) {
   });
   if (!progress) {
     const bronze = await db.vipLevel.findUnique({ where: { slug: "bronze" } });
-    if (!bronze) return;
+    if (!bronze)
+      return;
     progress = await db.vipProgress.create({
       data: { userId, levelId: bronze.id },
       include: { level: true }
@@ -8538,14 +8535,14 @@ async function claimVipCashback(db, userId) {
   return { amount: cashbackAmount.toFixed(2), tier: progress.level.name };
 }
 
-// ../../packages/db/src/play.ts
+// ../../packages/db/dist/play.js
 var PlayError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "PlayError";
   }
-  code;
 };
 function money2(value) {
   return value.toFixed(8);
@@ -8574,9 +8571,7 @@ function simulateSlots(randFloat) {
   for (let r = 0; r < 5; r++) {
     const reel = [];
     for (let row = 0; row < 3; row++) {
-      const idx = Math.floor(
-        (randFloat * 1e3 + r * 13 + row * 7) % SLOT_SYMBOLS.length
-      );
+      const idx = Math.floor((randFloat * 1e3 + r * 13 + row * 7) % SLOT_SYMBOLS.length);
       reel.push(SLOT_SYMBOLS[idx]);
     }
     reels.push(reel);
@@ -8726,7 +8721,8 @@ function simulatePlinko(gameData, serverSeed, clientSeed, nonce) {
     const val = parseInt(hash.substring(0, 8), 16) / 4294967296;
     const dir = val >= 0.5 ? 1 : 0;
     path.push(dir);
-    if (dir === 1) rightMoves++;
+    if (dir === 1)
+      rightMoves++;
   }
   const binIndex = rightMoves;
   const multipliers = PLINKO_PAYOUT_TABLE[rows]?.[risk] || PLINKO_PAYOUT_TABLE[16].MEDIUM;
@@ -8741,9 +8737,11 @@ function simulatePlinko(gameData, serverSeed, clientSeed, nonce) {
   };
 }
 function calculateMinesMult(mineCount, revealedCount) {
-  if (revealedCount <= 0) return 1;
+  if (revealedCount <= 0)
+    return 1;
   const safeCount = 25 - mineCount;
-  if (revealedCount > safeCount) return 0;
+  if (revealedCount > safeCount)
+    return 0;
   let mult = 0.99;
   for (let i = 0; i < revealedCount; i++) {
     mult *= (25 - i) / (safeCount - i);
@@ -9033,15 +9031,15 @@ async function playDemoGame(db, input) {
   };
 }
 
-// ../../packages/db/src/sports.ts
+// ../../packages/db/dist/sports.js
 import { Prisma as Prisma5 } from "@prisma/client";
 var SportsError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "SportsError";
   }
-  code;
 };
 async function placeSportBet(db, input) {
   const stake = new Prisma5.Decimal(input.stake);
@@ -9109,15 +9107,15 @@ async function getPlayerSportBets(db, userId) {
   });
 }
 
-// ../../packages/db/src/kyc.ts
+// ../../packages/db/dist/kyc.js
 import { createHash as createHash2 } from "node:crypto";
 var KycError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "KycError";
   }
-  code;
 };
 async function getOrCreatePlayerKycCase(db, userId) {
   let kycCase = await db.kycCase.findFirst({
@@ -9218,15 +9216,15 @@ async function adminReviewKycCase(db, caseId, adminUserId, decision, reviewNote)
   return updated;
 }
 
-// ../../packages/db/src/risk.ts
+// ../../packages/db/dist/risk.js
 import { Prisma as Prisma6 } from "@prisma/client";
 var RiskError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "RiskError";
   }
-  code;
 };
 async function evaluateTransactionRisk(db, userId, type, amount) {
   const decAmount = new Prisma6.Decimal(amount);
@@ -9332,14 +9330,14 @@ async function resolveAmlAlert(db, alertId, adminUserId, notes) {
   return updated;
 }
 
-// ../../packages/db/src/support.ts
+// ../../packages/db/dist/support.js
 var SupportError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "SupportError";
   }
-  code;
 };
 async function createPlayerTicket(db, input) {
   const ticket = await db.supportTicket.create({
@@ -9415,16 +9413,16 @@ async function getAdminTickets(db, statusFilter) {
   });
 }
 
-// ../../packages/db/src/admin.ts
+// ../../packages/db/dist/admin.js
 import { Prisma as Prisma7 } from "@prisma/client";
 import { randomBytes as randomBytes3 } from "node:crypto";
 var AdminError = class extends Error {
+  code;
   constructor(code, message) {
     super(message);
     this.code = code;
     this.name = "AdminError";
   }
-  code;
 };
 async function loginAdmin(db, input) {
   const admin = await db.adminUser.findUnique({
@@ -9479,16 +9477,7 @@ async function loginAdmin(db, input) {
   };
 }
 async function getAdminStatsOverview(db) {
-  const [
-    totalPlayers,
-    activePlayers,
-    roundsAgg,
-    depositsAgg,
-    withdrawalsAgg,
-    pendingWithdrawals,
-    openKyc,
-    activeAlerts
-  ] = await Promise.all([
+  const [totalPlayers, activePlayers, roundsAgg, depositsAgg, withdrawalsAgg, pendingWithdrawals, openKyc, activeAlerts] = await Promise.all([
     db.user.count({ where: { email: { not: "house@internal.vladfsbet" } } }),
     db.user.count({
       where: {
@@ -9603,9 +9592,9 @@ async function adminManualBalanceAdjustment(db, input) {
   return result;
 }
 
-// ../../packages/db/src/index.ts
+// ../../packages/db/dist/index.js
 var globalForPrisma = globalThis;
-var prisma = globalForPrisma.prisma ?? new PrismaClient8({
+var prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]
 });
 if (process.env.NODE_ENV !== "production") {
