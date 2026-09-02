@@ -5,7 +5,8 @@
   "description": "VladfsBET - Full Production Online Casino Platform",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "services/*"
   ],
   "scripts": {
     "dev": "turbo run dev",
