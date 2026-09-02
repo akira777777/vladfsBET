@@ -188,8 +188,10 @@ export function createApp() {
   app.use(
     "*",
     cors({
-      origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001"],
+      origin: (origin) => origin || "*",
       credentials: true,
+      allowHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     }),
   );
 
@@ -212,14 +214,34 @@ export function createApp() {
       return c.json({ error: error.code, message: error.message }, 400);
     }
     console.error("API error:", error);
-    return c.json({ error: "INTERNAL", message: "Unexpected error" }, 500);
+    return c.json({ error: "INTERNAL", message: (error as Error)?.message ?? "Unexpected error" }, 500);
   });
 
-  // Health checks
+  // Root & Health checks
+  app.get("/", (c) =>
+    c.json({
+      name: "VladfsBET API",
+      version: "1.0.0",
+      status: "operational",
+      environment: process.env.NODE_ENV ?? "production",
+      endpoints: {
+        health: "/health",
+        ready: "/ready",
+        games: "/api/games",
+        me: "/api/auth/me",
+        wallet: "/api/wallet",
+      },
+    }),
+  );
+  app.get("/favicon.ico", (c) => c.text("", 204));
   app.get("/health", (c) => c.json({ ok: true, service: "vladfsbet-api", timestamp: new Date() }));
   app.get("/ready", async (c) => {
-    await prisma.$queryRaw`SELECT 1`;
-    return c.json({ ok: true, database: "connected" });
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      return c.json({ ok: true, database: "connected" });
+    } catch (err) {
+      return c.json({ ok: false, database: "disconnected", error: (err as Error)?.message }, 503);
+    }
   });
 
   // ----------------------------------------------------
