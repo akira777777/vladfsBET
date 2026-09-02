@@ -233,7 +233,7 @@ export function createApp() {
       },
     }),
   );
-  app.get("/favicon.ico", (c) => c.text("", 204));
+  app.get("/favicon.ico", (c) => c.body(null, 204));
   app.get("/health", (c) => c.json({ ok: true, service: "vladfsbet-api", timestamp: new Date() }));
   app.get("/ready", async (c) => {
     try {
