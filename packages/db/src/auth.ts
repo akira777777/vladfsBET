@@ -228,6 +228,7 @@ export async function registerPlayer(db: PrismaClient, input: RegisterInput) {
       entity: "User",
       entityId: user.id,
       ip: input.ip,
+      payload: { email: user.email },
     },
   });
   return { user: publicUser(user), sessionToken };
@@ -242,6 +243,17 @@ export async function loginPlayer(db: PrismaClient, input: LoginInput) {
     if (user) {
       await db.loginEvent.create({
         data: { userId: user.id, success: false, ip: input.ip, userAgent: input.userAgent, reason: "bad_password" },
+      });
+      await db.auditLog.create({
+        data: {
+          actorType: "PLAYER",
+          subjectId: user.id,
+          action: "PLAYER_LOGIN_FAILED",
+          entity: "User",
+          entityId: user.id,
+          ip: input.ip,
+          payload: { email, reason: "bad_password" },
+        },
       });
     }
     throw new AuthError("INVALID_CREDENTIALS", "Invalid email or password");
@@ -269,6 +281,7 @@ export async function loginPlayer(db: PrismaClient, input: LoginInput) {
       entity: "User",
       entityId: user.id,
       ip: input.ip,
+      payload: { email },
     },
   });
 

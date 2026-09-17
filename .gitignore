@@ -8,3 +8,5 @@ dist
 coverage
 .next
 generated
+.vercel
+.env*

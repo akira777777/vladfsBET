@@ -405,6 +405,21 @@ export async function processDeposit(db: PrismaClient, input: CreateDepositInput
     include: { provider: true },
   });
 
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: input.userId,
+      action: "DEPOSIT_COMPLETED",
+      entity: "Deposit",
+      entityId: deposit.id,
+      payload: {
+        amount: money(amount),
+        currency: input.currency,
+        method: input.method,
+      },
+    },
+  });
+
   return { deposit, journal };
 }
 
@@ -454,6 +469,21 @@ export async function requestWithdrawal(db: PrismaClient, input: RequestWithdraw
       idempotencyKey: input.idempotencyKey,
     },
     include: { provider: true },
+  });
+
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: input.userId,
+      action: "WITHDRAWAL_REQUESTED",
+      entity: "Withdrawal",
+      entityId: withdrawal.id,
+      payload: {
+        amount: money(amount),
+        currency: input.currency,
+        method: input.method,
+      },
+    },
   });
 
   return { withdrawal, journal };

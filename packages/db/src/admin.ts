@@ -128,6 +128,7 @@ export async function loginAdmin(db: PrismaClient, input: AdminLoginInput) {
       entity: "AdminUser",
       entityId: admin.id,
       ip: input.ip,
+      payload: { email: admin.email },
     },
   });
 

@@ -7,6 +7,7 @@ import { ProvablyFairDialog } from "./provably-fair-dialog";
 import { RealityCheckBar } from "./reality-check-bar";
 import { api } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
+import { formatMoney } from "@/lib/format";
 
 interface RouletteGameProps {
   game: { slug: string; title: string; minBet?: string | null; maxBet?: string | null };
@@ -18,7 +19,8 @@ const WHEEL_NUMBERS = [
 ];
 
 export function RouletteGame({ game }: RouletteGameProps) {
-  const { refreshWallet } = useAuth();
+  const { refreshWallet, wallet, user } = useAuth();
+  const currency = wallet?.currency ?? user?.currency ?? "USD";
   const [selectedBet, setSelectedBet] = useState<{ type: string; value?: number; label: string }>({
     type: "RED",
     label: "RED (1:1)",
@@ -147,7 +149,7 @@ export function RouletteGame({ game }: RouletteGameProps) {
             <div className="absolute inset-[6px] rounded-full bg-[#0b0d12]" />
             <div
               className="relative h-[92%] w-[92%] rounded-full transition-transform duration-[3500ms] ease-out flex items-center justify-center"
-              style={{ transform: `rotate(${wheelRotation}deg)` }}
+              style={{ transform: `rotate(${wheelRotation}deg)`, transformOrigin: "50% 50%" }}
             >
               <svg viewBox="0 0 100 100" className="h-full w-full">
                 <circle cx="50" cy="50" r="49" fill="#111827" stroke="#d4af37" strokeWidth="1.2" />
@@ -166,12 +168,12 @@ export function RouletteGame({ game }: RouletteGameProps) {
                       />
                       <text
                         x="50"
-                        y="11.5"
-                        fontSize="3.6"
+                        y="10.8"
+                        fontSize="3.5"
                         fontWeight="bold"
                         fill="#ffffff"
                         textAnchor="middle"
-                        transform={`rotate(180 50 11.5)`}
+                        dominantBaseline="middle"
                       >
                         {num}
                       </text>
@@ -217,7 +219,7 @@ export function RouletteGame({ game }: RouletteGameProps) {
                 Number: {lastResult.winningNumber} ({lastResult.color})
               </div>
               <p className={`mt-1 text-sm font-semibold ${lastResult.won ? "text-emerald-400" : "text-muted-foreground"}`}>
-                {lastResult.won ? `🎉 You Won $${lastResult.winAmount}!` : "No Win this round"}
+                {lastResult.won ? `You won ${formatMoney(lastResult.winAmount, currency)}!` : "No win this round"}
               </p>
             </div>
           )}

@@ -1,0 +1,232 @@
+- generic [active] [ref=f12e1]:
+  - banner [ref=f12e2]:
+    - generic [ref=f12e3]:
+      - link "VLADFSBET Demo" [ref=f12e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f12e5]: VLADFSBET
+        - generic [ref=f12e6]: Demo
+      - navigation [ref=f12e7]:
+        - link "Casino" [ref=f12e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=f12e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=f12e21] [cursor=pointer]:
+          - /url: /sports
+        - link "VIP" [ref=f12e29] [cursor=pointer]:
+          - /url: /vip
+        - button "More" [ref=f12e34]
+      - button "Search" [ref=f12e38]
+  - main [ref=f12e40]:
+    - generic [ref=f12e41]:
+      - generic [ref=f12e42]:
+        - link "Lobby" [ref=f12e43] [cursor=pointer]:
+          - /url: /casino
+        - heading "European Roulette Deluxe" [level=1] [ref=f12e46]
+        - generic [ref=f12e47]: Demo
+      - generic [ref=f12e48]:
+        - generic [ref=f12e49]:
+          - generic [ref=f12e50]:
+            - generic [ref=f12e55]:
+              - text: "Session:"
+              - strong [ref=f12e56]: 00:00
+            - generic [ref=f12e58]: Demo Mode • 18+ Play Responsibly
+          - link "Set Gaming Limits" [ref=f12e60] [cursor=pointer]:
+            - /url: /responsible-gaming
+        - generic [ref=f12e64]:
+          - generic [ref=f12e65]:
+            - generic [ref=f12e66]:
+              - generic [ref=f12e67]: European Wheel
+              - generic [ref=f12e68]:
+                - generic [ref=f12e69]: "14"
+                - generic [ref=f12e70]: "22"
+                - generic [ref=f12e71]: "0"
+                - generic [ref=f12e72]: "7"
+                - generic [ref=f12e73]: "33"
+            - img [ref=f12e78]:
+              - generic [ref=f12e80]: "0"
+              - generic [ref=f12e83]: "32"
+              - generic [ref=f12e86]: "15"
+              - generic [ref=f12e89]: "19"
+              - generic [ref=f12e92]: "4"
+              - generic [ref=f12e95]: "21"
+              - generic [ref=f12e98]: "2"
+              - generic [ref=f12e101]: "25"
+              - generic [ref=f12e104]: "17"
+              - generic [ref=f12e107]: "34"
+              - generic [ref=f12e110]: "6"
+              - generic [ref=f12e113]: "27"
+              - generic [ref=f12e116]: "13"
+              - generic [ref=f12e119]: "36"
+              - generic [ref=f12e122]: "11"
+              - generic [ref=f12e125]: "30"
+              - generic [ref=f12e128]: "8"
+              - generic [ref=f12e131]: "23"
+              - generic [ref=f12e134]: "10"
+              - generic [ref=f12e137]: "5"
+              - generic [ref=f12e140]: "24"
+              - generic [ref=f12e143]: "16"
+              - generic [ref=f12e146]: "33"
+              - generic [ref=f12e149]: "1"
+              - generic [ref=f12e152]: "20"
+              - generic [ref=f12e155]: "14"
+              - generic [ref=f12e158]: "31"
+              - generic [ref=f12e161]: "9"
+              - generic [ref=f12e164]: "22"
+              - generic [ref=f12e167]: "18"
+              - generic [ref=f12e170]: "29"
+              - generic [ref=f12e173]: "7"
+              - generic [ref=f12e176]: "28"
+              - generic [ref=f12e179]: "12"
+              - generic [ref=f12e182]: "35"
+              - generic [ref=f12e185]: "3"
+              - generic [ref=f12e188]: "26"
+          - generic [ref=f12e195]:
+            - generic [ref=f12e196]:
+              - generic [ref=f12e197]:
+                - generic [ref=f12e198]:
+                  - heading "European Roulette Deluxe" [level=3] [ref=f12e199]
+                  - paragraph [ref=f12e200]: Select bet type or single number, pick chip amount and spin!
+                - button "🛡️ Provably Fair" [ref=f12e201]
+              - generic [ref=f12e202]:
+                - button "RED (1:1)" [ref=f12e203]
+                - button "BLACK (1:1)" [ref=f12e204]
+                - button "EVEN (1:1)" [ref=f12e205]
+                - button "ODD (1:1)" [ref=f12e206]
+                - button "1–18 (1:1)" [ref=f12e207]
+                - button "19–36 (1:1)" [ref=f12e208]
+              - generic [ref=f12e209]:
+                - button "1st 12 (2:1)" [ref=f12e210]
+                - button "2nd 12 (2:1)" [ref=f12e211]
+                - button "3rd 12 (2:1)" [ref=f12e212]
+              - generic [ref=f12e213]:
+                - generic [ref=f12e214]: Direct Number Bet (35:1 Payout)
+                - generic [ref=f12e215]:
+                  - button "0" [ref=f12e216]
+                  - button "1" [ref=f12e217]
+                  - button "2" [ref=f12e218]
+                  - button "3" [ref=f12e219]
+                  - button "4" [ref=f12e220]
+                  - button "5" [ref=f12e221]
+                  - button "6" [ref=f12e222]
+                  - button "7" [ref=f12e223]
+                  - button "8" [ref=f12e224]
+                  - button "9" [ref=f12e225]
+                  - button "10" [ref=f12e226]
+                  - button "11" [ref=f12e227]
+                  - button "12" [ref=f12e228]
+                  - button "13" [ref=f12e229]
+                  - button "14" [ref=f12e230]
+                  - button "15" [ref=f12e231]
+                  - button "16" [ref=f12e232]
+                  - button "17" [ref=f12e233]
+                  - button "18" [ref=f12e234]
+                  - button "19" [ref=f12e235]
+                  - button "20" [ref=f12e236]
+                  - button "21" [ref=f12e237]
+                  - button "22" [ref=f12e238]
+                  - button "23" [ref=f12e239]
+                  - button "24" [ref=f12e240]
+                  - button "25" [ref=f12e241]
+                  - button "26" [ref=f12e242]
+                  - button "27" [ref=f12e243]
+                  - button "28" [ref=f12e244]
+                  - button "29" [ref=f12e245]
+                  - button "30" [ref=f12e246]
+                  - button "31" [ref=f12e247]
+                  - button "32" [ref=f12e248]
+                  - button "33" [ref=f12e249]
+                  - button "34" [ref=f12e250]
+                  - button "35" [ref=f12e251]
+                  - button "36" [ref=f12e252]
+              - generic [ref=f12e253]:
+                - generic [ref=f12e254]: "Chip Bet:"
+                - button "$1" [ref=f12e255]
+                - button "$5" [ref=f12e256]
+                - button "$25" [ref=f12e257]
+                - button "$100" [ref=f12e258]
+                - button "$250" [ref=f12e259]
+            - generic [ref=f12e260]:
+              - generic [ref=f12e261]:
+                - generic [ref=f12e262]: "Active Bet:"
+                - strong [ref=f12e263]: RED (1:1) • $5
+              - button "SPIN WHEEL" [ref=f12e264]
+  - contentinfo [ref=f12e265]:
+    - generic [ref=f12e266]:
+      - generic [ref=f12e267]:
+        - generic [ref=f12e268]:
+          - text: VLADFSBET
+          - paragraph [ref=f12e269]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f12e270]:
+            - generic [ref=f12e271]: 18+ ONLY
+            - generic [ref=f12e272]: PROVABLY FAIR
+            - generic [ref=f12e273]: SANDBOX DEMO
+        - generic [ref=f12e274]:
+          - heading "Gaming" [level=3] [ref=f12e275]
+          - list [ref=f12e276]:
+            - listitem [ref=f12e277]:
+              - link "Casino Lobby" [ref=f12e278] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f12e279]:
+              - link "Originals" [ref=f12e280] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f12e281]:
+              - link "Live Casino" [ref=f12e282] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f12e283]:
+              - link "Sportsbook" [ref=f12e284] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f12e285]:
+              - link "Promotions" [ref=f12e286] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f12e287]:
+              - link "VIP Club" [ref=f12e288] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f12e289]:
+          - heading "Protection" [level=3] [ref=f12e290]
+          - list [ref=f12e291]:
+            - listitem [ref=f12e292]:
+              - link "Responsible Gaming" [ref=f12e293] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f12e294]:
+              - link "Provably Fair" [ref=f12e295] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f12e296]:
+              - link "Terms of Service" [ref=f12e297] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f12e298]:
+              - link "Privacy Policy" [ref=f12e299] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f12e300]:
+              - link "Cookie Preferences" [ref=f12e301] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f12e302]:
+              - link "AML Policy" [ref=f12e303] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f12e304]:
+              - link "KYC Policy" [ref=f12e305] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f12e306]:
+          - heading "Support" [level=3] [ref=f12e307]
+          - list [ref=f12e308]:
+            - listitem [ref=f12e309]:
+              - link "About" [ref=f12e310] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f12e311]:
+              - link "Help Center" [ref=f12e312] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f12e313]:
+              - link "Contact" [ref=f12e314] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f12e315]:
+              - link "Account" [ref=f12e316] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f12e317]:
+              - link "Cashier" [ref=f12e318] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f12e319]:
+        - generic [ref=f12e320]: Responsible Gaming
+        - paragraph [ref=f12e324]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f12e325]:
+        - paragraph [ref=f12e326]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f12e327]: HMAC-SHA256 provably fair originals.
+  - button "Open Next.js Dev Tools" [ref=f12e333] [cursor=pointer]

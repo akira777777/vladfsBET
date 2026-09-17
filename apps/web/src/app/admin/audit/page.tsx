@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { api } from "@/lib/api";
-import { ScrollText, Shield } from "lucide-react";
+import { ScrollText } from "lucide-react";
 
 interface AuditLogItem {
   id: string;
@@ -14,18 +14,26 @@ interface AuditLogItem {
   entity: string;
   entityId?: string;
   ip?: string;
-  payload?: Record<string, unknown>;
+  payload?: Record<string, unknown> | null;
   createdAt: string;
+  admin?: { email: string; name: string } | null;
 }
 
 export default function AdminAuditPage() {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api<{ items: AuditLogItem[] }>("/api/admin/audit-logs")
-      .then((data) => setLogs(data.items || []))
-      .catch(() => setLogs([]))
+      .then((data) => {
+        setLogs(data.items || []);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        setLogs([]);
+        setError(err instanceof Error ? err.message : "Failed to load audit logs");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -54,6 +62,12 @@ export default function AdminAuditPage() {
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-muted-foreground">
                     Loading audit trail…
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-red-400">
+                    {error}
                   </td>
                 </tr>
               ) : logs.length === 0 ? (

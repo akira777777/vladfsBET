@@ -563,6 +563,24 @@ export async function playDemoGame(db: PrismaClient, input: PlayDemoInput) {
     data: { status: "CLOSED", closedAt: new Date() },
   });
 
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: user.id,
+      action: "GAME_PLAY",
+      entity: "GameRound",
+      entityId: round.id,
+      payload: {
+        slug: game.slug,
+        title: game.title,
+        betAmount: money(bet),
+        winAmount: money(win),
+        multiplier,
+        currency: user.currency,
+      },
+    },
+  });
+
   // 7. Process VIP & Bonus Wagering
   await Promise.all([
     recordVipWager(db, user.id, bet).catch(() => {}),
