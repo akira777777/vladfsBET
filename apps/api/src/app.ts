@@ -370,13 +370,16 @@ export function createApp() {
     if (!user) {
       return c.json({ error: "UNAUTHENTICATED", message: "Sign in required" }, 401);
     }
-    const fullUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: {
-        profile: true,
-        vipProgress: { include: { level: true } },
-      },
-    });
+    const [fullUser, snapshot] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          profile: true,
+          vipProgress: { include: { level: true } },
+        },
+      }),
+      getWalletSnapshot(prisma, user.id, user.currency),
+    ]);
 
     return c.json({
       user: {
@@ -392,6 +395,7 @@ export function createApp() {
             }
           : undefined,
       },
+      wallet: snapshot,
     });
   });
 

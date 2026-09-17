@@ -37,6 +37,7 @@ interface Ball {
   path: number[];
   step: number;
   trail: { x: number; y: number }[];
+  landedAt: number | null;
 }
 
 interface Peg {
@@ -46,6 +47,35 @@ interface Peg {
   row: number;
   col: number;
   highlightTime: number;
+}
+
+type BoardLayout = {
+  w: number;
+  h: number;
+  rowCount: number;
+  binCount: number;
+  topY: number;
+  lastPegY: number;
+  binY: number;
+  binH: number;
+  spacing: number;
+  startX: number;
+  verticalSpacing: number;
+};
+
+function plinkoLayout(w: number, h: number, rowCount: number): BoardLayout {
+  const pegsInLastRow = rowCount + 2;
+  const binCount = rowCount + 1;
+  const padX = 16;
+  const binH = 30;
+  const binY = h - 12 - binH;
+  const topY = 30;
+  const lastPegY = binY - 20;
+  const verticalSpacing = (lastPegY - topY) / Math.max(1, rowCount - 1);
+  const spacing = Math.min(40, (w - padX * 2) / (pegsInLastRow - 1));
+  const lastRowWidth = (pegsInLastRow - 1) * spacing;
+  const startX = (w - lastRowWidth) / 2;
+  return { w, h, rowCount, binCount, topY, lastPegY, binY, binH, spacing, startX, verticalSpacing };
 }
 
 export function PlinkoGame({ game }: PlinkoGameProps) {
@@ -80,6 +110,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ballsRef = useRef<Ball[]>([]);
   const pegsRef = useRef<Peg[]>([]);
+  const layoutRef = useRef<BoardLayout>(plinkoLayout(680, 520, 16));
   const animIdRef = useRef<number | null>(null);
 
   const multipliers = getPlinkoMultipliers(rows, risk);
@@ -89,25 +120,18 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
     setIsMuted(next);
   };
 
-  // Re-generate peg board layout whenever canvas size or row count changes
-  const buildPegs = (w: number, h: number, rowCount: number) => {
+  const buildPegs = (layout: BoardLayout) => {
     const pegs: Peg[] = [];
-    const topY = 40;
-    const bottomY = h - 65;
-    const verticalSpacing = (bottomY - topY) / rowCount;
-
-    for (let r = 0; r < rowCount; r++) {
+    for (let r = 0; r < layout.rowCount; r++) {
       const pegsInRow = r + 3;
-      const rowY = topY + r * verticalSpacing;
-      const horizontalSpacing = Math.min(38, (w * 0.85) / (rowCount + 3));
-      const rowWidth = (pegsInRow - 1) * horizontalSpacing;
-      const startX = (w - rowWidth) / 2;
-
+      const rowY = layout.topY + r * layout.verticalSpacing;
+      const rowWidth = (pegsInRow - 1) * layout.spacing;
+      const rowStartX = (layout.w - rowWidth) / 2;
       for (let c = 0; c < pegsInRow; c++) {
         pegs.push({
-          x: startX + c * horizontalSpacing,
+          x: rowStartX + c * layout.spacing,
           y: rowY,
-          radius: 3.5,
+          radius: Math.max(2.6, Math.min(4, layout.spacing * 0.11)),
           row: r,
           col: c,
           highlightTime: 0,
@@ -115,6 +139,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       }
     }
     pegsRef.current = pegs;
+    layoutRef.current = layout;
   };
 
   // Trigger a single drop
@@ -159,19 +184,17 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       multiplier = multipliers[targetBin] ?? 1.0;
     }
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
+    const layout = layoutRef.current;
     const ballColors = ["#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6", "#10b981", "#06b6d4"];
     const chosenColor = ballColors[Math.floor(Math.random() * ballColors.length)];
 
     const newBall: Ball = {
       id: `ball-${Date.now()}-${Math.random()}`,
-      x: canvas.width / 2 + (Math.random() * 6 - 3),
-      y: 15,
+      x: layout.w / 2 + (Math.random() * 6 - 3),
+      y: 12,
       vx: (Math.random() - 0.5) * 0.8,
       vy: 1.5,
-      radius: 6,
+      radius: Math.max(5, Math.min(7, layout.spacing * 0.18)),
       color: chosenColor,
       targetBin,
       targetMultiplier: multiplier,
@@ -181,6 +204,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       path,
       step: 0,
       trail: [],
+      landedAt: null,
     };
 
     ballsRef.current.push(newBall);
@@ -193,16 +217,33 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
 
-    buildPegs(canvas.width, canvas.height, rows);
+    const syncSize = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const cssW = Math.max(320, parent.clientWidth);
+      const cssH = Math.max(240, parent.clientHeight);
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildPegs(plinkoLayout(cssW, cssH, rows));
+    };
+
+    syncSize();
+    const observer = new ResizeObserver(syncSize);
+    observer.observe(parent);
 
     const gravity = 0.22;
     const restitution = 0.55;
     const damping = 0.985;
 
     const animate = () => {
-      const w = canvas.width;
-      const h = canvas.height;
+      const layout = layoutRef.current;
+      const w = layout.w;
+      const h = layout.h;
       ctx.clearRect(0, 0, w, h);
 
       const pegs = pegsRef.current;
@@ -274,7 +315,10 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
         }
 
         if (ball.path.length > 0) {
-          const currentStep = Math.min(rows - 1, Math.floor((ball.y - 35) / ((h - 100) / rows)));
+          const currentStep = Math.min(
+            rows - 1,
+            Math.floor((ball.y - layout.topY) / Math.max(1, layout.verticalSpacing)),
+          );
           if (currentStep >= 0 && currentStep > ball.step && currentStep < ball.path.length) {
             ball.step = currentStep;
             const desiredDirection = ball.path[currentStep] === 1 ? 1 : -1;
@@ -309,23 +353,20 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
           }
         });
 
-        if (ball.y > h - 130) {
-          const binCount = rows + 1;
-          const binWidth = Math.min(36, (w * 0.88) / binCount);
-          const totalBinsWidth = binCount * binWidth;
-          const startBinX = (w - totalBinsWidth) / 2;
-          const targetX = startBinX + ball.targetBin * binWidth + binWidth / 2;
-          ball.x += (targetX - ball.x) * 0.18;
-          ball.vx *= 0.72;
+        const binCenterX = layout.startX + ball.targetBin * layout.spacing + layout.spacing / 2;
+        if (ball.y > layout.lastPegY) {
+          ball.x += (binCenterX - ball.x) * 0.22;
+          ball.vx *= 0.7;
+          if (ball.vy < 0) ball.vy = Math.abs(ball.vy) * 0.4;
         }
 
-        // Bottom Landing Detection
-        if (ball.y >= h - 65) {
-          ball.completed = true;
-          completedIndices.push(idx);
-
-          const finalBin = ball.targetBin;
-          setHighlightedBin(finalBin);
+        if (ball.y + ball.radius >= layout.binY + 4 && !ball.landedAt) {
+          ball.x = binCenterX;
+          ball.y = layout.binY + layout.binH * 0.42;
+          ball.vx = 0;
+          ball.vy = 0;
+          ball.landedAt = Date.now();
+          setHighlightedBin(ball.targetBin);
           setTimeout(() => setHighlightedBin(null), 350);
 
           const winPayout = Math.round(ball.betAmount * ball.targetMultiplier * 100) / 100;
@@ -344,6 +385,11 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
               }, 300);
             }
           }
+        }
+
+        if (ball.landedAt && Date.now() - ball.landedAt > 280) {
+          ball.completed = true;
+          completedIndices.push(idx);
         }
 
         for (let t = 0; t < ball.trail.length; t++) {
@@ -375,15 +421,12 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
         setActiveBallsCount(ballsRef.current.length);
       }
 
-      // Draw Bottom Multiplier Bins
-      const binCount = rows + 1;
-      const binWidth = Math.min(36, (w * 0.88) / binCount);
-      const totalBinsWidth = binCount * binWidth;
-      const startBinX = (w - totalBinsWidth) / 2;
+      const binWidth = layout.spacing;
+      const startBinX = layout.startX;
+      const by = layout.binY;
 
-      for (let i = 0; i < binCount; i++) {
+      for (let i = 0; i < layout.binCount; i++) {
         const bx = startBinX + i * binWidth;
-        const by = h - 55;
         const mult = multipliers[i] ?? 1.0;
         const isLit = highlightedBin === i;
 
@@ -409,7 +452,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
         }
 
         ctx.beginPath();
-        ctx.roundRect(bx + 1, by + (isLit ? 4 : 0), binWidth - 2, 28, 6);
+        ctx.roundRect(bx + 1, by + (isLit ? 3 : 0), binWidth - 2, layout.binH, 6);
         ctx.fillStyle = isLit ? "#ffffff" : binColor;
         if (isLit) {
           ctx.shadowColor = binColor;
@@ -422,8 +465,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
         ctx.font = binWidth > 28 ? "bold 10px sans-serif" : "bold 8px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        const label = mult >= 100 ? `${mult}x` : `${mult}x`;
-        ctx.fillText(label, bx + binWidth / 2, by + 14 + (isLit ? 4 : 0));
+        ctx.fillText(`${mult}x`, bx + binWidth / 2, by + layout.binH / 2 + (isLit ? 3 : 0));
       }
 
       animIdRef.current = requestAnimationFrame(animate);
@@ -431,6 +473,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
 
     animIdRef.current = requestAnimationFrame(animate);
     return () => {
+      observer.disconnect();
       if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
     };
   }, [rows, risk, multipliers, highlightedBin, mode, autoConfig.active]);
@@ -658,8 +701,8 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
             )}
           </div>
 
-          <div className="relative aspect-[4/3] sm:aspect-[16/11] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0a0d14] via-[#0d121c] to-[#07090f] shadow-2xl">
-            <canvas ref={canvasRef} width={680} height={520} className="h-full w-full object-cover" />
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0a0d14] via-[#0d121c] to-[#07090f] shadow-2xl">
+            <canvas ref={canvasRef} className="block h-full w-full" />
           </div>
         </div>
       </div>

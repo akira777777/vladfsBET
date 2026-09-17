@@ -1,8 +1,8 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { GameRail } from "@/components/game-rail";
+import { HeroAuthCta } from "@/components/hero-auth-cta";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,14 +16,46 @@ import {
   Zap,
   CheckCircle2,
 } from "lucide-react";
-import { useAuth } from "@/components/auth-provider";
 import { LIVE_SLUGS, ORIGINALS_SLUGS, SLOT_SLUGS } from "@/lib/games-catalog";
-import { JackpotTicker } from "@/components/jackpot-ticker";
-import { LiveBetsTable } from "@/components/live-bets-table";
+
+const JackpotTicker = dynamic(
+  () => import("@/components/jackpot-ticker").then((mod) => mod.JackpotTicker),
+);
+const LiveBetsTable = dynamic(
+  () => import("@/components/live-bets-table").then((mod) => mod.LiveBetsTable),
+);
+
+const CATEGORIES = [
+  { label: "Slots", href: "/casino?category=SLOTS", icon: Sparkles, image: "/games/gates-of-vladfs.jpg", desc: "Studio reels" },
+  { label: "Live", href: "/live-casino", icon: Radio, image: "/games/lightning-roulette.jpg", desc: "Tables & studios" },
+  { label: "Sports", href: "/sports", icon: Trophy, image: "/hero.jpg", desc: "Live odds" },
+  { label: "VIP", href: "/vip", icon: Crown, image: "/games/quantum-blackjack.jpg", desc: "Sandbox cashback" },
+] as const;
+
+const ADVANTAGES = [
+  {
+    icon: Shield,
+    title: "Double-entry ledger",
+    body: "Available, bonus, locked, and pending balances post as immutable journals. The client never owns the balance.",
+  },
+  {
+    icon: Zap,
+    title: "Provably fair RNG",
+    body: "HMAC-SHA256 with a published server-seed hash. Verify any original round in the fairness dialog.",
+  },
+  {
+    icon: Award,
+    title: "AML monitoring",
+    body: "Velocity rules and risk scoring on sandbox flows so the operator console can be exercised end to end.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Responsible gaming",
+    body: "Deposit, loss, and wager limits, reality checks, cooling-off, and self-exclusion — self-service.",
+  },
+] as const;
 
 export default function HomePage() {
-  const { user } = useAuth();
-
   return (
     <div className="space-y-16 pb-16">
       <section className="relative isolate min-h-[75vh] overflow-hidden">
@@ -55,27 +87,14 @@ export default function HomePage() {
             <Button size="lg" variant="gold" className="h-12 px-8 text-base" asChild>
               <Link href="/casino">Play now</Link>
             </Button>
-            {!user ? (
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/20 bg-black/40 text-white font-bold backdrop-blur-sm hover:bg-white/10" asChild>
-                <Link href="/register">Create demo account</Link>
-              </Button>
-            ) : (
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/20 bg-black/40 text-white font-bold backdrop-blur-sm hover:bg-white/10" asChild>
-                <Link href="/wallet">Cashier</Link>
-              </Button>
-            )}
+            <HeroAuthCta />
           </div>
         </div>
       </section>
 
       <div className="mx-auto max-w-7xl space-y-16 px-4">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[
-            { label: "Slots", href: "/casino?category=SLOTS", icon: Sparkles, image: "/games/gates-of-vladfs.jpg", desc: "Studio reels" },
-            { label: "Live", href: "/live-casino", icon: Radio, image: "/games/lightning-roulette.jpg", desc: "Tables & studios" },
-            { label: "Sports", href: "/sports", icon: Trophy, image: "/hero.jpg", desc: "Live odds" },
-            { label: "VIP", href: "/vip", icon: Crown, image: "/games/quantum-blackjack.jpg", desc: "Sandbox cashback" },
-          ].map((cat) => {
+          {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
@@ -83,7 +102,13 @@ export default function HomePage() {
                 href={cat.href}
                 className="group relative overflow-hidden rounded-2xl border border-white/10 min-h-[140px]"
               >
-                <Image src={cat.image} alt="" fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                <Image
+                  src={cat.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
                 <div className="relative z-10 flex h-full flex-col justify-end p-5">
                   <div className="mb-2 h-9 w-9 rounded-lg bg-gold/20 flex items-center justify-center text-gold">
@@ -97,14 +122,12 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* Live Progressive Jackpot Vault */}
         <JackpotTicker />
 
         <GameRail title="VladfsBET Originals" href="/casino?category=ORIGINALS" slugs={[...ORIGINALS_SLUGS]} />
         <GameRail title="Featured slots" href="/casino?category=SLOTS" slugs={[...SLOT_SLUGS]} />
         <GameRail title="Live tables" href="/live-casino" slugs={[...LIVE_SLUGS]} />
 
-        {/* Live Community Bets Feed */}
         <LiveBetsTable />
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -144,28 +167,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: Shield,
-                title: "Double-entry ledger",
-                body: "Available, bonus, locked, and pending balances post as immutable journals. The client never owns the balance.",
-              },
-              {
-                icon: Zap,
-                title: "Provably fair RNG",
-                body: "HMAC-SHA256 with a published server-seed hash. Verify any original round in the fairness dialog.",
-              },
-              {
-                icon: Award,
-                title: "AML monitoring",
-                body: "Velocity rules and risk scoring on sandbox flows so the operator console can be exercised end to end.",
-              },
-              {
-                icon: CheckCircle2,
-                title: "Responsible gaming",
-                body: "Deposit, loss, and wager limits, reality checks, cooling-off, and self-exclusion — self-service.",
-              },
-            ].map((item) => {
+            {ADVANTAGES.map((item) => {
               const Icon = item.icon;
               return (
                 <Card key={item.title} className="border-white/10 bg-[#0A0E17] p-6 text-white space-y-3">

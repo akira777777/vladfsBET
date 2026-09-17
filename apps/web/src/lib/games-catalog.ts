@@ -93,7 +93,20 @@ export const CATALOG_FALLBACK: Game[] = [
     provider: "VladfsBET Studio",
     demo: true,
   },
-
+  {
+    slug: "cyber-neon-777",
+    title: "Cyber Neon 777",
+    category: "SLOTS",
+    provider: "VladfsBET Studio",
+    demo: true,
+  },
+  {
+    slug: "sandbox-slots",
+    title: "Sandbox Slots",
+    category: "SLOTS",
+    provider: "VladfsBET Studio",
+    demo: true,
+  },
   {
     slug: "pharaoh-gold-deluxe",
     title: "Pharaoh's Gold & Scarabs",
@@ -191,6 +204,24 @@ export const CATALOG_FALLBACK: Game[] = [
 
 export function isOriginal(slug: string): boolean {
   return (ORIGINALS_SLUGS as readonly string[]).includes(slug);
+}
+
+export function selectRailGames(
+  games: Game[],
+  options: { slugs?: string[]; category?: string },
+): Game[] {
+  const { slugs, category } = options;
+  if (slugs?.length) {
+    const order = new Map(slugs.map((slug, index) => [slug, index]));
+    return games
+      .filter((game) => order.has(game.slug))
+      .sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
+  }
+  if (category) {
+    const filtered = games.filter((game) => game.category === category);
+    return filtered.length > 0 ? filtered : games;
+  }
+  return games;
 }
 
 export function mergeCatalog(apiItems: Game[]): Game[] {

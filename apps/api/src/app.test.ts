@@ -49,6 +49,11 @@ describe("api", () => {
     expect(cookie.startsWith("vladfsbet_session=")).toBe(true);
 
     const me = await app.request("/api/auth/me", { headers: { cookie } });
+    expect(me.status).toBe(200);
+    const meBody = await me.json();
+    expect(meBody.user.email).toBeTruthy();
+    expect(meBody.wallet.available).toBe("1000.00000000");
+
     const wallet = await app.request("/api/wallet", { headers: { cookie } });
     const walletBody = await wallet.json();
     expect(walletBody.realMoney).toBe(false);

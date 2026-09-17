@@ -22,8 +22,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const me = await api<{ user: User }>("/api/auth/me");
+      const me = await api<{ user: User; wallet?: Wallet | null }>("/api/auth/me");
       setUser(me.user);
+      if (me.wallet !== undefined) {
+        setWallet(me.wallet);
+        return;
+      }
     } catch {
       setUser(null);
       setWallet(null);
@@ -51,8 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let active = true;
     const initAuth = async () => {
       try {
-        const me = await api<{ user: User }>("/api/auth/me");
-        if (active) setUser(me.user);
+        const me = await api<{ user: User; wallet?: Wallet | null }>("/api/auth/me");
+        if (!active) return;
+        setUser(me.user);
+        if (me.wallet !== undefined) {
+          setWallet(me.wallet);
+          return;
+        }
         const snapshot = await api<{ wallet: Wallet | null }>("/api/wallet");
         if (active) setWallet(snapshot.wallet);
       } catch {
