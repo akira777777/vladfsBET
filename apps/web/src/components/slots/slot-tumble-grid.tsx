@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Grid, SymbolCell, SymbolId } from "@/lib/slots/slot-engine";
 import { SlotTheme } from "@/lib/slots/slot-themes";
 import { SlotSymbolIcon } from "./slot-symbols";
@@ -47,42 +48,60 @@ function CollectingOrbShell({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [delta, setDelta] = useState({ dx: 0, dy: -90 });
-  const [ready, setReady] = useState(false);
+  const [fly, setFly] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    dx: number;
+    dy: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     if (!active) {
-      setReady(false);
+      setFly(null);
       return;
     }
     const cell = ref.current;
-    const hud = hudTargetRef?.current;
     if (!cell) return;
     const a = cell.getBoundingClientRect();
-    if (hud) {
-      const b = hud.getBoundingClientRect();
-      setDelta({
-        dx: b.left + b.width / 2 - (a.left + a.width / 2),
-        dy: b.top + b.height / 2 - (a.top + a.height / 2),
-      });
-    } else {
-      setDelta({ dx: 0, dy: -90 });
-    }
-    setReady(true);
+    const hud = hudTargetRef?.current?.getBoundingClientRect();
+    setFly({
+      left: a.left,
+      top: a.top,
+      width: a.width,
+      height: a.height,
+      dx: hud ? hud.left + hud.width / 2 - (a.left + a.width / 2) : 0,
+      dy: hud ? hud.top + hud.height / 2 - (a.top + a.height / 2) : -90,
+    });
   }, [active, hudTargetRef]);
 
   return (
-    <div
-      ref={ref}
-      className={active && ready ? "animate-orb-collect" : ""}
-      style={
-        active
-          ? ({ "--orb-dx": `${delta.dx}px`, "--orb-dy": `${delta.dy}px` } as React.CSSProperties)
-          : undefined
-      }
-    >
-      {children}
-    </div>
+    <>
+      <div ref={ref} className={active ? "opacity-0" : ""}>
+        {children}
+      </div>
+      {active &&
+        fly &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-[60] flex items-center justify-center animate-orb-collect"
+            style={
+              {
+                left: fly.left,
+                top: fly.top,
+                width: fly.width,
+                height: fly.height,
+                "--orb-dx": `${fly.dx}px`,
+                "--orb-dy": `${fly.dy}px`,
+              } as React.CSSProperties
+            }
+          >
+            {children}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 

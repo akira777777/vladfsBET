@@ -477,7 +477,9 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
 
       {/* Main Luxury Slot Cabinet */}
       <div
-        className={`relative rounded-3xl p-3 sm:p-6 border-2 transition-all duration-700 ${theme.frameStyle}`}
+        className={`relative rounded-3xl p-3 sm:p-6 border-2 transition-all duration-700 ${theme.frameStyle} ${
+          spinningColumns.some(Boolean) ? "animate-cabinet-pulse" : ""
+        } ${shatteredPositions.length > 0 ? "animate-cabinet-hit" : ""}`}
         style={{ background: theme.backgroundGradient }}
       >
         {/* Pragmatic 4-Tier Jackpot Tickers Banner */}
@@ -490,11 +492,17 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           ].map((jp) => (
             <div
               key={jp.name}
-              className={`flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-2xl bg-black/70 border-2 ${jp.border} shadow-lg text-center transition-transform duration-200 hover:scale-105 ${jp.name === "GRAND" ? "relative overflow-hidden" : ""}`}
+              className={`relative overflow-hidden flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-2xl bg-black/70 border-2 ${jp.border} shadow-lg text-center transition-transform duration-200 hover:scale-105`}
             >
-              {jp.name === "GRAND" && (
-                <div className="absolute inset-0 animate-win-shimmer pointer-events-none rounded-2xl opacity-40" />
-              )}
+              <div
+                className="absolute inset-0 animate-jackpot-shimmer pointer-events-none rounded-2xl opacity-40"
+                style={{
+                  backgroundImage:
+                    jp.name === "GRAND"
+                      ? "linear-gradient(90deg, transparent 15%, rgba(253,224,71,0.35) 50%, transparent 85%)"
+                      : "linear-gradient(90deg, transparent 20%, rgba(255,255,255,0.14) 50%, transparent 80%)",
+                }}
+              />
               <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-gradient-to-r ${jp.color} bg-clip-text text-transparent relative z-10`}>
                 ★ {jp.name} ★
               </span>
@@ -523,7 +531,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           </div>
 
           {/* Center Multiplier / Tumble Status */}
-          <div className="flex flex-col items-center">
+          <div ref={multiplierHudRef} className="flex min-h-[2rem] flex-col items-center">
             {accumulatedMultiplier > 1 ? (
               <div
                 key={`mult-hud-${accumulatedMultiplier}`}
@@ -569,6 +577,9 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 winHoldPositions={winHoldPositions}
                 spinningColumns={spinningColumns}
                 anticipatingColumns={anticipatingColumns}
+                flashingColumns={flashingColumns}
+                collectingOrbs={collectingOrbs}
+                hudTargetRef={multiplierHudRef}
                 currentMultiplier={accumulatedMultiplier}
                 tumbleStepIndex={tumbleStepIndex}
                 isTurbo={isTurbo}
@@ -579,6 +590,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 theme={theme}
                 isSpinning={isSpinning}
                 spinningColumns={spinningColumns}
+                flashingColumns={flashingColumns}
                 isTurbo={isTurbo}
               />
             )}
@@ -591,7 +603,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
               isSpinning={isSpinning}
               isBonus={inFreeSpins}
               lastWin={roundWinDisplay}
-              scatterCount={0}
+              scatterCount={scatterCount}
             />
           </div>
         </div>

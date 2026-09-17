@@ -103,10 +103,11 @@ npm run db:seed
 ```powershell
 # Run both API and Web concurrently (`npm start` does the same)
 npm run dev
+# `npm run dev` stops leftover processes on ports 3000/4000 first.
 
-# If ports 3000/4000 are already taken, or `prisma generate` hits EPERM:
+# If prisma generate hits EPERM (Windows file lock):
 npm run dev:stop
-npm run dev
+npm run db:generate
 
 # Or run separately:
 npm run api:dev    # API on http://127.0.0.1:4000

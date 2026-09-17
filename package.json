@@ -11,6 +11,7 @@
   "scripts": {
     "postinstall": "node scripts/prisma-generate.mjs",
     "start": "npm run dev",
+    "predev": "node scripts/stop-dev.mjs",
     "dev": "turbo run dev",
     "dev:stop": "node scripts/stop-dev.mjs",
     "build": "turbo run build",
@@ -18,7 +19,7 @@
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "db:validate": "npm run db:validate -w @vladfsbet/db",
-    "db:generate": "npm run db:generate -w @vladfsbet/db",
+    "db:generate": "node scripts/prisma-generate.mjs",
     "db:migrate": "npm run db:migrate -w @vladfsbet/db",
     "db:seed": "npm run db:seed -w @vladfsbet/db",
     "docker:up": "docker compose up -d",
