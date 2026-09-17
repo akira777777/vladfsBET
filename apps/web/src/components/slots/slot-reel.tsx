@@ -32,7 +32,7 @@ export function SlotReel({
   const [stripSymbols, setStripSymbols] = useState<SymbolId[]>(() =>
     generateReelStrip(currentSymbols, STRIP_LENGTH),
   );
-  const [animState, setAnimState] = useState<"IDLE" | "SPINNING" | "STOPPING">("IDLE");
+  const [animState, setAnimState] = useState<"IDLE" | "SPINNING" | "STOPPING" | "BOUNCING">("IDLE");
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
