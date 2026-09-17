@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/components/auth-provider";
-import { Crown, Sparkles } from "lucide-react";
+import { Crown, Sparkles, CheckCircle2 } from "lucide-react";
 
 const VIP_TIERS = [
   {
