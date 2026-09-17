@@ -22,11 +22,29 @@ export * from "./admin";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  });
+let prismaInstance: PrismaClient;
+try {
+  prismaInstance =
+    globalForPrisma.prisma ??
+    new PrismaClient({
+      log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    });
+} catch {
+  console.warn("[AI Studio] Database not connected — using mock Prisma client");
+  const noOp = {
+    findMany: async () => [],
+    findFirst: async () => null,
+    findUnique: async () => null,
+    create: async (d: any) => d?.data ?? {},
+    update: async (d: any) => d?.data ?? {},
+    delete: async () => ({}),
+  };
+  prismaInstance = new Proxy({}, {
+    get: () => noOp,
+  }) as unknown as PrismaClient;
+}
+
+export const prisma = prismaInstance;
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

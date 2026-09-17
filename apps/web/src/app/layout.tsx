@@ -29,8 +29,8 @@ const cinzel = Cinzel({
 });
 
 export const metadata: Metadata = {
-  title: "VladfsBET — Demo Casino",
-  description: "Demo casino. Virtual credits only. Not real money.",
+  title: "VladfsBET",
+  description: "Full-scale online casino and sportsbook platform featuring provably fair originals, slots, table games, and double-entry ledger architecture.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

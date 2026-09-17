@@ -429,7 +429,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   return (
     <div className="relative mx-auto max-w-6xl w-full px-2 sm:px-4 py-6 space-y-6">
       {/* Top Header & Engine Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-card/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-neutral-950/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="relative w-12 h-12 overflow-hidden rounded-2xl ring-1 ring-gold/40 shadow-[0_0_20px_rgba(251,191,36,0.35)]">
             <Image src={gameArt(selectedSlug)} alt="" fill className="object-cover" sizes="48px" />
