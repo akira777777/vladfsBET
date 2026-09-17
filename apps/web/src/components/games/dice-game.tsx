@@ -23,7 +23,7 @@ function getFallbackDiceRoll(): number {
 }
 
 export function DiceGame({ game }: DiceGameProps) {
-  const { user, wallet, refreshWallet } = useAuth();
+  const { user, wallet, refreshWallet, applyWallet } = useAuth();
   const currency = wallet?.currency ?? user?.currency ?? "USD";
 
   // Game Settings
@@ -78,6 +78,7 @@ export function DiceGame({ game }: DiceGameProps) {
         multiplier: number;
         gameResult: { rolledNumber: number; won: boolean; multiplier: number };
         provablyFair?: { serverSeedHash: string; clientSeed: string; nonce: number };
+        wallet?: { walletId: string; currency: string; status: string; available: string; bonus: string; locked: string; pending: string };
       }>(`/api/games/${game.slug}/play`, {
         method: "POST",
         body: JSON.stringify({
@@ -93,6 +94,7 @@ export function DiceGame({ game }: DiceGameProps) {
       if (res.provablyFair) {
         setProvablyFairData(res.provablyFair);
       }
+      if (res.wallet) applyWallet(res.wallet);
     } catch {}
 
     if (scrambleRef.current) cancelAnimationFrame(scrambleRef.current);

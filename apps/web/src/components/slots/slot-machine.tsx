@@ -37,7 +37,7 @@ function prefersReducedMotion() {
 }
 
 export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProps) {
-  const { user, wallet, refreshWallet } = useAuth();
+  const { user, wallet, refreshWallet, applyWallet } = useAuth();
 
   // Active theme
   const [selectedSlug] = useState<string>(initialSlug);
@@ -222,13 +222,18 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           setDemoBalance((prev) => Math.max(0, prev - effectiveStake));
         } else {
           try {
-            await api(`/api/games/${selectedSlug}/play`, {
-              method: "POST",
-              body: JSON.stringify({ betAmount: effectiveStake.toString() }),
-            });
-            void refreshWallet();
+            const settled = await api<{ wallet?: { walletId: string; currency: string; status: string; available: string; bonus: string; locked: string; pending: string } }>(
+              `/api/games/${selectedSlug}/play`,
+              {
+                method: "POST",
+                body: JSON.stringify({ betAmount: effectiveStake.toString() }),
+              },
+            );
+            if (settled.wallet) applyWallet(settled.wallet);
+            else void refreshWallet();
           } catch {
             setDemoBalance((prev) => Math.max(0, prev - effectiveStake));
+            void refreshWallet();
           }
         }
       }
@@ -354,6 +359,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       theme.symbols,
       wallet,
       refreshWallet,
+      applyWallet,
     ],
   );
 

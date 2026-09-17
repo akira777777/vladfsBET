@@ -9,6 +9,7 @@ type AuthState = {
   wallet: Wallet | null;
   refresh: () => Promise<void>;
   refreshWallet: () => Promise<void>;
+  applyWallet: (next: Wallet) => void;
   logout: () => Promise<void>;
 };
 
@@ -29,6 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setWallet(null);
     }
+  }, []);
+
+  const applyWallet = useCallback((next: Wallet) => {
+    setWallet(next);
   }, []);
 
   const logout = useCallback(async () => {
@@ -63,8 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ ready, user, wallet, refresh, refreshWallet: refresh, logout }),
-    [ready, user, wallet, refresh, logout],
+    () => ({ ready, user, wallet, refresh, refreshWallet: refresh, applyWallet, logout }),
+    [ready, user, wallet, refresh, applyWallet, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

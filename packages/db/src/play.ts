@@ -1,4 +1,4 @@
-import { randomBytes, randomInt, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomInt, randomUUID } from "node:crypto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { LedgerError, postJournal } from "./ledger";
 import { checkPlayerEligibleToPlay, checkWagerLimit } from "./rg";
@@ -33,7 +33,6 @@ function money(value: Prisma.Decimal): string {
 
 // Provably Fair Calculation helpers
 function generateProvablyFair(serverSeed: string, clientSeed: string, nonce: number) {
-  const { createHmac, createHash } = require("node:crypto");
   const serverSeedHash = createHash("sha256").update(serverSeed).digest("hex");
   const hmac = createHmac("sha256", serverSeed).update(`${clientSeed}:${nonce}`).digest("hex");
   const intVal = parseInt(hmac.substring(0, 8), 16);
@@ -159,7 +158,6 @@ function simulateBlackjack(randFloat: number) {
 }
 
 function simulateCrash(gameData: Record<string, unknown> | undefined, serverSeed: string, clientSeed: string, nonce: number) {
-  const { createHmac } = require("node:crypto");
   const hash = createHmac("sha256", serverSeed).update(`${clientSeed}:${nonce}`).digest("hex");
   const intVal = parseInt(hash.substring(0, 8), 16);
   const randFloat = intVal / 0x100000000;
@@ -230,7 +228,6 @@ const PLINKO_PAYOUT_TABLE: Record<number, Record<"LOW" | "MEDIUM" | "HIGH", numb
 };
 
 function simulatePlinko(gameData: Record<string, unknown> | undefined, serverSeed: string, clientSeed: string, nonce: number) {
-  const { createHmac } = require("node:crypto");
   const rows = typeof gameData?.rows === "number" ? Math.min(16, Math.max(8, gameData.rows)) : 16;
   const risk = (["LOW", "MEDIUM", "HIGH"].includes(gameData?.risk as string) ? gameData?.risk : "MEDIUM") as "LOW" | "MEDIUM" | "HIGH";
   
@@ -270,7 +267,6 @@ function calculateMinesMult(mineCount: number, revealedCount: number): number {
 }
 
 function simulateMines(gameData: Record<string, unknown> | undefined, serverSeed: string, clientSeed: string, nonce: number) {
-  const { createHmac } = require("node:crypto");
   const mineCount = typeof gameData?.mineCount === "number" ? Math.min(24, Math.max(1, gameData.mineCount)) : 3;
   const revealedTiles = Array.isArray(gameData?.revealedTiles) ? (gameData?.revealedTiles as number[]) : [];
   
