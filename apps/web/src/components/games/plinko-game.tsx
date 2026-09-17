@@ -166,7 +166,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       });
 
       if (res.gameResult) {
-        targetBin = res.gameResult.binIndex;
+        targetBin = Math.max(0, Math.min(multipliers.length - 1, res.gameResult.binIndex));
         multiplier = res.gameResult.multiplier;
         path = res.gameResult.path;
       }
@@ -297,6 +297,12 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       balls.forEach((ball, idx) => {
         if (ball.completed) return;
 
+        if (ball.landedAt) {
+          if (Date.now() - ball.landedAt > 280) {
+            ball.completed = true;
+            completedIndices.push(idx);
+          }
+        } else {
         ball.vy += gravity;
         ball.vx *= damping;
         ball.vy *= damping;
@@ -387,9 +393,6 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
           }
         }
 
-        if (ball.landedAt && Date.now() - ball.landedAt > 280) {
-          ball.completed = true;
-          completedIndices.push(idx);
         }
 
         for (let t = 0; t < ball.trail.length; t++) {
