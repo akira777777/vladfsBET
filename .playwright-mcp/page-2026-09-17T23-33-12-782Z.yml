@@ -1,0 +1,100 @@
+- generic [active] [ref=f9e1]:
+  - banner [ref=f9e2]:
+    - generic [ref=f9e3]:
+      - link "VLADFSBET Demo" [ref=f9e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f9e5]: VLADFSBET
+        - generic [ref=f9e6]: Demo
+      - navigation [ref=f9e7]:
+        - link "Casino" [ref=f9e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=f9e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=f9e21] [cursor=pointer]:
+          - /url: /sports
+        - link "VIP" [ref=f9e29] [cursor=pointer]:
+          - /url: /vip
+        - button "More" [ref=f9e34]
+      - button "Search" [ref=f9e38]
+  - main [ref=f9e40]:
+    - generic [ref=f9e41]: Loading wallet…
+  - contentinfo [ref=f9e42]:
+    - generic [ref=f9e43]:
+      - generic [ref=f9e44]:
+        - generic [ref=f9e45]:
+          - text: VLADFSBET
+          - paragraph [ref=f9e46]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f9e47]:
+            - generic [ref=f9e48]: 18+ ONLY
+            - generic [ref=f9e49]: PROVABLY FAIR
+            - generic [ref=f9e50]: SANDBOX DEMO
+        - generic [ref=f9e51]:
+          - heading "Gaming" [level=3] [ref=f9e52]
+          - list [ref=f9e53]:
+            - listitem [ref=f9e54]:
+              - link "Casino Lobby" [ref=f9e55] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f9e56]:
+              - link "Originals" [ref=f9e57] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f9e58]:
+              - link "Live Casino" [ref=f9e59] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f9e60]:
+              - link "Sportsbook" [ref=f9e61] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f9e62]:
+              - link "Promotions" [ref=f9e63] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f9e64]:
+              - link "VIP Club" [ref=f9e65] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f9e66]:
+          - heading "Protection" [level=3] [ref=f9e67]
+          - list [ref=f9e68]:
+            - listitem [ref=f9e69]:
+              - link "Responsible Gaming" [ref=f9e70] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f9e71]:
+              - link "Provably Fair" [ref=f9e72] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f9e73]:
+              - link "Terms of Service" [ref=f9e74] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f9e75]:
+              - link "Privacy Policy" [ref=f9e76] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f9e77]:
+              - link "Cookie Preferences" [ref=f9e78] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f9e79]:
+              - link "AML Policy" [ref=f9e80] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f9e81]:
+              - link "KYC Policy" [ref=f9e82] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f9e83]:
+          - heading "Support" [level=3] [ref=f9e84]
+          - list [ref=f9e85]:
+            - listitem [ref=f9e86]:
+              - link "About" [ref=f9e87] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f9e88]:
+              - link "Help Center" [ref=f9e89] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f9e90]:
+              - link "Contact" [ref=f9e91] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f9e92]:
+              - link "Account" [ref=f9e93] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f9e94]:
+              - link "Cashier" [ref=f9e95] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f9e96]:
+        - generic [ref=f9e97]: Responsible Gaming
+        - paragraph [ref=f9e101]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f9e102]:
+        - paragraph [ref=f9e103]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f9e104]: HMAC-SHA256 provably fair originals.
+  - button "Open Next.js Dev Tools" [ref=f9e110] [cursor=pointer]

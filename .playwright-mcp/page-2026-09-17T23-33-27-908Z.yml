@@ -1,0 +1,516 @@
+- generic [active] [ref=f10e1]:
+  - banner [ref=f10e2]:
+    - link "VLADFSBET" [ref=f10e4] [cursor=pointer]:
+      - /url: /
+  - main [ref=f10e8]:
+    - generic [ref=f10e9]:
+      - generic [ref=f10e12]:
+        - generic [ref=f10e13]: DEMO CASINO · VIRTUAL CREDITS
+        - heading "THE GAME STARTS HERE" [level=1] [ref=f10e18]
+        - paragraph [ref=f10e19]: Premium casino entertainment. Built around you. Provably fair originals, live tables, and a global sportsbook — sandbox only.
+        - generic [ref=f10e20]:
+          - link "Play now" [ref=f10e21] [cursor=pointer]:
+            - /url: /casino
+          - link "Create demo account" [ref=f10e22] [cursor=pointer]:
+            - /url: /register
+      - generic [ref=f10e23]:
+        - generic [ref=f10e24]:
+          - link [ref=f10e25] [cursor=pointer]:
+            - /url: /casino?category=SLOTS
+            - generic [ref=f10e27]:
+              - heading "Slots" [level=2] [ref=f10e32]
+              - paragraph [ref=f10e33]: Studio reels
+          - link [ref=f10e34] [cursor=pointer]:
+            - /url: /live-casino
+            - generic [ref=f10e36]:
+              - heading "Live" [level=2] [ref=f10e44]
+              - paragraph [ref=f10e45]: Tables & studios
+          - link [ref=f10e46] [cursor=pointer]:
+            - /url: /sports
+            - generic [ref=f10e48]:
+              - heading "Sports" [level=2] [ref=f10e56]
+              - paragraph [ref=f10e57]: Live odds
+          - link [ref=f10e58] [cursor=pointer]:
+            - /url: /vip
+            - generic [ref=f10e60]:
+              - heading "VIP" [level=2] [ref=f10e64]
+              - paragraph [ref=f10e65]: Sandbox cashback
+        - generic [ref=f10e66]:
+          - generic [ref=f10e67]:
+            - generic [ref=f10e68]: VLADFSBET PROGRESSIVE JACKPOT VAULT
+            - generic [ref=f10e72]: LIVE COMMUNITY ACCUMULATOR
+          - generic [ref=f10e75]:
+            - generic [ref=f10e76]:
+              - generic [ref=f10e77]:
+                - generic [ref=f10e78]: 👑
+                - generic [ref=f10e79]: MEGA GRAND
+              - paragraph [ref=f10e80]: $1,284,592.45
+            - generic [ref=f10e81]:
+              - generic [ref=f10e82]:
+                - generic [ref=f10e83]: 💎
+                - generic [ref=f10e84]: MAJOR
+              - paragraph [ref=f10e85]: $148,231.10
+            - generic [ref=f10e86]:
+              - generic [ref=f10e87]:
+                - generic [ref=f10e88]: ⚡
+                - generic [ref=f10e89]: MINOR
+              - paragraph [ref=f10e90]: $12,480.25
+            - generic [ref=f10e91]:
+              - generic [ref=f10e92]:
+                - generic [ref=f10e93]: 🪙
+                - generic [ref=f10e94]: MINI
+              - paragraph [ref=f10e95]: $1,890.60
+        - generic [ref=f10e96]:
+          - generic [ref=f10e97]:
+            - heading "VladfsBET Originals" [level=2] [ref=f10e98]
+            - link "View all" [ref=f10e99] [cursor=pointer]:
+              - /url: /casino?category=ORIGINALS
+          - generic [ref=f10e101]:
+            - link "Demo Originals CRASH Play Aero Crash VladfsBET Originals" [ref=f10e103] [cursor=pointer]:
+              - /url: /casino/aero-crash
+              - generic [ref=f10e104]:
+                - generic [ref=f10e106]: Demo
+                - generic [ref=f10e107]:
+                  - generic [ref=f10e108]: Originals
+                  - generic [ref=f10e109]: CRASH
+                - generic [ref=f10e110]: Play
+                - generic [ref=f10e113]:
+                  - paragraph [ref=f10e114]: Aero Crash
+                  - paragraph [ref=f10e115]: VladfsBET Originals
+            - link "Demo Originals POPULAR Play Physics Plinko Apex VladfsBET Originals" [ref=f10e117] [cursor=pointer]:
+              - /url: /casino/plinko
+              - generic [ref=f10e118]:
+                - generic [ref=f10e120]: Demo
+                - generic [ref=f10e121]:
+                  - generic [ref=f10e122]: Originals
+                  - generic [ref=f10e123]: POPULAR
+                - generic [ref=f10e124]: Play
+                - generic [ref=f10e127]:
+                  - paragraph [ref=f10e128]: Physics Plinko Apex
+                  - paragraph [ref=f10e129]: VladfsBET Originals
+            - link "Demo Originals POPULAR Play Cyber Mines 5x5 VladfsBET Originals" [ref=f10e131] [cursor=pointer]:
+              - /url: /casino/mines
+              - generic [ref=f10e132]:
+                - generic [ref=f10e134]: Demo
+                - generic [ref=f10e135]:
+                  - generic [ref=f10e136]: Originals
+                  - generic [ref=f10e137]: POPULAR
+                - generic [ref=f10e138]: Play
+                - generic [ref=f10e141]:
+                  - paragraph [ref=f10e142]: Cyber Mines 5x5
+                  - paragraph [ref=f10e143]: VladfsBET Originals
+            - link "Demo Originals TABLE GAMES Play Quantum Dice VladfsBET Originals" [ref=f10e145] [cursor=pointer]:
+              - /url: /casino/dice
+              - generic [ref=f10e146]:
+                - generic [ref=f10e148]: Demo
+                - generic [ref=f10e149]:
+                  - generic [ref=f10e150]: Originals
+                  - generic [ref=f10e151]: TABLE GAMES
+                - generic [ref=f10e152]: Play
+                - generic [ref=f10e155]:
+                  - paragraph [ref=f10e156]: Quantum Dice
+                  - paragraph [ref=f10e157]: VladfsBET Originals
+            - link "Demo Originals CRASH Play Limbo Neon Rocket VladfsBET Originals" [ref=f10e159] [cursor=pointer]:
+              - /url: /casino/limbo
+              - generic [ref=f10e160]:
+                - generic [ref=f10e162]: Demo
+                - generic [ref=f10e163]:
+                  - generic [ref=f10e164]: Originals
+                  - generic [ref=f10e165]: CRASH
+                - generic [ref=f10e166]: Play
+                - generic [ref=f10e169]:
+                  - paragraph [ref=f10e170]: Limbo Neon Rocket
+                  - paragraph [ref=f10e171]: VladfsBET Originals
+            - link "Demo Originals TABLE GAMES Play Royal Hilo Cards VladfsBET Originals" [ref=f10e173] [cursor=pointer]:
+              - /url: /casino/hilo
+              - generic [ref=f10e174]:
+                - generic [ref=f10e176]: Demo
+                - generic [ref=f10e177]:
+                  - generic [ref=f10e178]: Originals
+                  - generic [ref=f10e179]: TABLE GAMES
+                - generic [ref=f10e180]: Play
+                - generic [ref=f10e183]:
+                  - paragraph [ref=f10e184]: Royal Hilo Cards
+                  - paragraph [ref=f10e185]: VladfsBET Originals
+        - generic [ref=f10e186]:
+          - generic [ref=f10e187]:
+            - heading "Featured slots" [level=2] [ref=f10e188]
+            - link "View all" [ref=f10e189] [cursor=pointer]:
+              - /url: /casino?category=SLOTS
+          - generic [ref=f10e191]:
+            - link "Demo SLOTS Play Gates of Vladfs VladfsBET Studio" [ref=f10e193] [cursor=pointer]:
+              - /url: /casino/gates-of-vladfs
+              - generic [ref=f10e194]:
+                - generic [ref=f10e196]: Demo
+                - generic [ref=f10e197]: SLOTS
+                - generic [ref=f10e199]: Play
+                - generic [ref=f10e202]:
+                  - paragraph [ref=f10e203]: Gates of Vladfs
+                  - paragraph [ref=f10e204]: VladfsBET Studio
+            - link "Demo SLOTS Play Neon Cyber 777 Deluxe VladfsBET Studio" [ref=f10e206] [cursor=pointer]:
+              - /url: /casino/neon-cyber-slots
+              - generic [ref=f10e207]:
+                - generic [ref=f10e209]: Demo
+                - generic [ref=f10e210]: SLOTS
+                - generic [ref=f10e212]: Play
+                - generic [ref=f10e215]:
+                  - paragraph [ref=f10e216]: Neon Cyber 777 Deluxe
+                  - paragraph [ref=f10e217]: VladfsBET Studio
+            - link "Demo SLOTS Play Cyber Neon 777 VladfsBET Studio" [ref=f10e219] [cursor=pointer]:
+              - /url: /casino/cyber-neon-777
+              - generic [ref=f10e220]:
+                - generic [ref=f10e222]: Demo
+                - generic [ref=f10e223]: SLOTS
+                - generic [ref=f10e225]: Play
+                - generic [ref=f10e228]:
+                  - paragraph [ref=f10e229]: Cyber Neon 777
+                  - paragraph [ref=f10e230]: VladfsBET Studio
+            - link "Demo SLOTS Play Pharaoh's Gold & Scarabs VladfsBET Studio" [ref=f10e232] [cursor=pointer]:
+              - /url: /casino/pharaoh-gold-deluxe
+              - generic [ref=f10e233]:
+                - generic [ref=f10e235]: Demo
+                - generic [ref=f10e236]: SLOTS
+                - generic [ref=f10e238]: Play
+                - generic [ref=f10e241]:
+                  - paragraph [ref=f10e242]: Pharaoh's Gold & Scarabs
+                  - paragraph [ref=f10e243]: VladfsBET Studio
+            - link "Demo SLOTS Play Sweet Sugar Frenzy VladfsBET Studio" [ref=f10e245] [cursor=pointer]:
+              - /url: /casino/sugar-rush-frenzy
+              - generic [ref=f10e246]:
+                - generic [ref=f10e248]: Demo
+                - generic [ref=f10e249]: SLOTS
+                - generic [ref=f10e251]: Play
+                - generic [ref=f10e254]:
+                  - paragraph [ref=f10e255]: Sweet Sugar Frenzy
+                  - paragraph [ref=f10e256]: VladfsBET Studio
+            - link "Demo SLOTS Play Dragon Fortune 888 VladfsBET Studio" [ref=f10e258] [cursor=pointer]:
+              - /url: /casino/dragon-fortune-888
+              - generic [ref=f10e259]:
+                - generic [ref=f10e261]: Demo
+                - generic [ref=f10e262]: SLOTS
+                - generic [ref=f10e264]: Play
+                - generic [ref=f10e267]:
+                  - paragraph [ref=f10e268]: Dragon Fortune 888
+                  - paragraph [ref=f10e269]: VladfsBET Studio
+            - link "Demo SLOTS Play Dead Man's Vault VladfsBET Studio" [ref=f10e271] [cursor=pointer]:
+              - /url: /casino/dead-mans-vault
+              - generic [ref=f10e272]:
+                - generic [ref=f10e274]: Demo
+                - generic [ref=f10e275]: SLOTS
+                - generic [ref=f10e277]: Play
+                - generic [ref=f10e280]:
+                  - paragraph [ref=f10e281]: Dead Man's Vault
+                  - paragraph [ref=f10e282]: VladfsBET Studio
+            - link "Demo SLOTS Play Sandbox Slots VladfsBET Studio" [ref=f10e284] [cursor=pointer]:
+              - /url: /casino/sandbox-slots
+              - generic [ref=f10e285]:
+                - generic [ref=f10e287]: Demo
+                - generic [ref=f10e288]: SLOTS
+                - generic [ref=f10e290]: Play
+                - generic [ref=f10e293]:
+                  - paragraph [ref=f10e294]: Sandbox Slots
+                  - paragraph [ref=f10e295]: VladfsBET Studio
+        - generic [ref=f10e296]:
+          - generic [ref=f10e297]:
+            - heading "Live tables" [level=2] [ref=f10e298]
+            - link "View all" [ref=f10e299] [cursor=pointer]:
+              - /url: /live-casino
+          - generic [ref=f10e301]:
+            - link "Demo ROULETTE Play Lightning Roulette VladfsBET Live" [ref=f10e303] [cursor=pointer]:
+              - /url: /casino/lightning-roulette
+              - generic [ref=f10e304]:
+                - generic [ref=f10e306]: Demo
+                - generic [ref=f10e307]: ROULETTE
+                - generic [ref=f10e309]: Play
+                - generic [ref=f10e312]:
+                  - paragraph [ref=f10e313]: Lightning Roulette
+                  - paragraph [ref=f10e314]: VladfsBET Live
+            - link "Demo BLACKJACK Play Infinite Blackjack Elite VladfsBET Live" [ref=f10e316] [cursor=pointer]:
+              - /url: /casino/infinite-blackjack
+              - generic [ref=f10e317]:
+                - generic [ref=f10e319]: Demo
+                - generic [ref=f10e320]: BLACKJACK
+                - generic [ref=f10e322]: Play
+                - generic [ref=f10e325]:
+                  - paragraph [ref=f10e326]: Infinite Blackjack Elite
+                  - paragraph [ref=f10e327]: VladfsBET Live
+            - link "Demo BACCARAT Play Dragon Speed Baccarat VladfsBET Originals" [ref=f10e329] [cursor=pointer]:
+              - /url: /casino/dragon-baccarat
+              - generic [ref=f10e330]:
+                - generic [ref=f10e332]: Demo
+                - generic [ref=f10e333]: BACCARAT
+                - generic [ref=f10e335]: Play
+                - generic [ref=f10e338]:
+                  - paragraph [ref=f10e339]: Dragon Speed Baccarat
+                  - paragraph [ref=f10e340]: VladfsBET Originals
+            - link "Demo LIVE CASINO Play Crazy Time Deluxe VladfsBET Live" [ref=f10e342] [cursor=pointer]:
+              - /url: /casino/crazy-time-deluxe
+              - generic [ref=f10e343]:
+                - generic [ref=f10e345]: Demo
+                - generic [ref=f10e346]: LIVE CASINO
+                - generic [ref=f10e348]: Play
+                - generic [ref=f10e351]:
+                  - paragraph [ref=f10e352]: Crazy Time Deluxe
+                  - paragraph [ref=f10e353]: VladfsBET Live
+            - link "Demo LIVE CASINO Play Studio Wheel Live VladfsBET Live" [ref=f10e355] [cursor=pointer]:
+              - /url: /casino/monopoly-live-studio
+              - generic [ref=f10e356]:
+                - generic [ref=f10e358]: Demo
+                - generic [ref=f10e359]: LIVE CASINO
+                - generic [ref=f10e361]: Play
+                - generic [ref=f10e364]:
+                  - paragraph [ref=f10e365]: Studio Wheel Live
+                  - paragraph [ref=f10e366]: VladfsBET Live
+        - generic [ref=f10e367]:
+          - generic [ref=f10e368]:
+            - generic [ref=f10e369]:
+              - heading "Live Platform Bets" [level=2] [ref=f10e371]
+              - generic [ref=f10e372]: Real-Time Community Activity
+            - generic [ref=f10e373]:
+              - button "All Bets" [ref=f10e374]
+              - button "High Rollers" [ref=f10e375]
+              - button "Lucky Wins (10x+)" [ref=f10e378]
+              - button "My Bets" [ref=f10e385]
+          - table [ref=f10e388]:
+            - rowgroup [ref=f10e389]:
+              - row [ref=f10e390]:
+                - columnheader "Game" [ref=f10e391]
+                - columnheader "Player" [ref=f10e392]
+                - columnheader "Bet Amount" [ref=f10e393]
+                - columnheader "Multiplier" [ref=f10e394]
+                - columnheader "Payout" [ref=f10e395]
+                - columnheader "Action" [ref=f10e396]
+            - rowgroup [ref=f10e397]:
+              - row [ref=f10e398]:
+                - cell [ref=f10e399]:
+                  - link "🚀 Aero Crash" [ref=f10e400] [cursor=pointer]:
+                    - /url: /casino/aero-crash
+                    - generic [ref=f10e401]: 🚀
+                    - generic [ref=f10e402]: Aero Crash
+                - cell "Platinum Alex_Vip" [ref=f10e403]:
+                  - generic [ref=f10e404]:
+                    - generic [ref=f10e405]: Platinum
+                    - generic [ref=f10e406]: Alex_Vip
+                - cell "$150.00" [ref=f10e407]
+                - cell "4.85x" [ref=f10e408]
+                - cell "+$727.50" [ref=f10e410]
+                - cell [ref=f10e412]:
+                  - link "Play Game" [ref=f10e413] [cursor=pointer]:
+                    - /url: /casino/aero-crash
+              - row [ref=f10e418]:
+                - cell [ref=f10e419]:
+                  - link "⚡ Physics Plinko" [ref=f10e420] [cursor=pointer]:
+                    - /url: /casino/plinko
+                    - generic [ref=f10e421]: ⚡
+                    - generic [ref=f10e422]: Physics Plinko
+                - cell "Diamond CryptoWhale" [ref=f10e423]:
+                  - generic [ref=f10e424]:
+                    - generic [ref=f10e425]: Diamond
+                    - generic [ref=f10e426]: CryptoWhale
+                - cell "$500.00" [ref=f10e427]
+                - cell "26.00x" [ref=f10e428]
+                - cell "+$13000.00" [ref=f10e430]
+                - cell [ref=f10e432]:
+                  - link "Play Game" [ref=f10e433] [cursor=pointer]:
+                    - /url: /casino/plinko
+              - row [ref=f10e438]:
+                - cell [ref=f10e439]:
+                  - link "💎 Cyber Mines" [ref=f10e440] [cursor=pointer]:
+                    - /url: /casino/mines
+                    - generic [ref=f10e441]: 💎
+                    - generic [ref=f10e442]: Cyber Mines
+                - cell "Gold LuckyNeko" [ref=f10e443]:
+                  - generic [ref=f10e444]:
+                    - generic [ref=f10e445]: Gold
+                    - generic [ref=f10e446]: LuckyNeko
+                - cell "$25.00" [ref=f10e447]
+                - cell "8.44x" [ref=f10e448]
+                - cell "+$211.00" [ref=f10e450]
+                - cell [ref=f10e452]:
+                  - link "Play Game" [ref=f10e453] [cursor=pointer]:
+                    - /url: /casino/mines
+              - row [ref=f10e458]:
+                - cell [ref=f10e459]:
+                  - link "⚡ Gates of Vladfs" [ref=f10e460] [cursor=pointer]:
+                    - /url: /casino/gates-of-vladfs
+                    - generic [ref=f10e461]: ⚡
+                    - generic [ref=f10e462]: Gates of Vladfs
+                - cell "Silver ZeusGamer" [ref=f10e463]:
+                  - generic [ref=f10e464]:
+                    - generic [ref=f10e465]: Silver
+                    - generic [ref=f10e466]: ZeusGamer
+                - cell "$20.00" [ref=f10e467]
+                - cell "125.00x" [ref=f10e468]
+                - cell "+$2500.00" [ref=f10e470]
+                - cell [ref=f10e472]:
+                  - link "Play Game" [ref=f10e473] [cursor=pointer]:
+                    - /url: /casino/gates-of-vladfs
+              - row [ref=f10e478]:
+                - cell [ref=f10e479]:
+                  - link "🎲 Quantum Dice" [ref=f10e480] [cursor=pointer]:
+                    - /url: /casino/dice
+                    - generic [ref=f10e481]: 🎲
+                    - generic [ref=f10e482]: Quantum Dice
+                - cell "Bronze Satoshi_Roll" [ref=f10e483]:
+                  - generic [ref=f10e484]:
+                    - generic [ref=f10e485]: Bronze
+                    - generic [ref=f10e486]: Satoshi_Roll
+                - cell "$10.00" [ref=f10e487]
+                - cell "1.98x" [ref=f10e488]
+                - cell "+$19.80" [ref=f10e490]
+                - cell [ref=f10e492]:
+                  - link "Play Game" [ref=f10e493] [cursor=pointer]:
+                    - /url: /casino/dice
+              - row [ref=f10e498]:
+                - cell [ref=f10e499]:
+                  - link "🎯 Limbo Rocket" [ref=f10e500] [cursor=pointer]:
+                    - /url: /casino/limbo
+                    - generic [ref=f10e501]: 🎯
+                    - generic [ref=f10e502]: Limbo Rocket
+                - cell "Gold Astronaut99" [ref=f10e503]:
+                  - generic [ref=f10e504]:
+                    - generic [ref=f10e505]: Gold
+                    - generic [ref=f10e506]: Astronaut99
+                - cell "$50.00" [ref=f10e507]
+                - cell "50.00x" [ref=f10e508]
+                - cell "+$2500.00" [ref=f10e510]
+                - cell [ref=f10e512]:
+                  - link "Play Game" [ref=f10e513] [cursor=pointer]:
+                    - /url: /casino/limbo
+              - row [ref=f10e518]:
+                - cell [ref=f10e519]:
+                  - link "🃏 Royal Hilo" [ref=f10e520] [cursor=pointer]:
+                    - /url: /casino/hilo
+                    - generic [ref=f10e521]: 🃏
+                    - generic [ref=f10e522]: Royal Hilo
+                - cell "Silver KingOfCards" [ref=f10e523]:
+                  - generic [ref=f10e524]:
+                    - generic [ref=f10e525]: Silver
+                    - generic [ref=f10e526]: KingOfCards
+                - cell "$30.00" [ref=f10e527]
+                - cell "3.25x" [ref=f10e528]
+                - cell "+$97.50" [ref=f10e530]
+                - cell [ref=f10e532]:
+                  - link "Play Game" [ref=f10e533] [cursor=pointer]:
+                    - /url: /casino/hilo
+        - generic [ref=f10e538]:
+          - generic [ref=f10e539]:
+            - generic [ref=f10e540]: WELCOME
+            - heading "100% match up to $500 virtual" [level=2] [ref=f10e546]
+            - paragraph [ref=f10e547]: First sandbox deposit is matched in bonus credits. 30x wagering on eligible slots. Terms before activation.
+            - link "View offers" [ref=f10e548] [cursor=pointer]:
+              - /url: /promotions
+          - generic [ref=f10e549]:
+            - generic [ref=f10e550]: VIP
+            - heading "VladfsBET VIP Club" [level=2] [ref=f10e554]
+            - paragraph [ref=f10e555]: Points on every sandbox bet. Bronze to Diamond. Weekly cashback is virtual and not payable in cash.
+            - link "Explore tiers" [ref=f10e556] [cursor=pointer]:
+              - /url: /vip
+        - generic [ref=f10e557]:
+          - generic [ref=f10e558]:
+            - text: The VladfsBET Advantage
+            - heading "Engineered for transparency" [level=2] [ref=f10e559]
+          - generic [ref=f10e560]:
+            - generic [ref=f10e561]:
+              - heading "Double-entry ledger" [level=3] [ref=f10e565]
+              - paragraph [ref=f10e566]: Available, bonus, locked, and pending balances post as immutable journals. The client never owns the balance.
+            - generic [ref=f10e567]:
+              - heading "Provably fair RNG" [level=3] [ref=f10e571]
+              - paragraph [ref=f10e572]: HMAC-SHA256 with a published server-seed hash. Verify any original round in the fairness dialog.
+            - generic [ref=f10e573]:
+              - heading "AML monitoring" [level=3] [ref=f10e578]
+              - paragraph [ref=f10e579]: Velocity rules and risk scoring on sandbox flows so the operator console can be exercised end to end.
+            - generic [ref=f10e580]:
+              - heading "Responsible gaming" [level=3] [ref=f10e585]
+              - paragraph [ref=f10e586]: Deposit, loss, and wager limits, reality checks, cooling-off, and self-exclusion — self-service.
+  - contentinfo [ref=f10e587]:
+    - generic [ref=f10e588]:
+      - generic [ref=f10e589]:
+        - generic [ref=f10e590]:
+          - text: VLADFSBET
+          - paragraph [ref=f10e591]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f10e592]:
+            - generic [ref=f10e593]: 18+ ONLY
+            - generic [ref=f10e594]: PROVABLY FAIR
+            - generic [ref=f10e595]: SANDBOX DEMO
+        - generic [ref=f10e596]:
+          - heading "Gaming" [level=3] [ref=f10e597]
+          - list [ref=f10e598]:
+            - listitem [ref=f10e599]:
+              - link "Casino Lobby" [ref=f10e600] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f10e601]:
+              - link "Originals" [ref=f10e602] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f10e603]:
+              - link "Live Casino" [ref=f10e604] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f10e605]:
+              - link "Sportsbook" [ref=f10e606] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f10e607]:
+              - link "Promotions" [ref=f10e608] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f10e609]:
+              - link "VIP Club" [ref=f10e610] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f10e611]:
+          - heading "Protection" [level=3] [ref=f10e612]
+          - list [ref=f10e613]:
+            - listitem [ref=f10e614]:
+              - link "Responsible Gaming" [ref=f10e615] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f10e616]:
+              - link "Provably Fair" [ref=f10e617] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f10e618]:
+              - link "Terms of Service" [ref=f10e619] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f10e620]:
+              - link "Privacy Policy" [ref=f10e621] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f10e622]:
+              - link "Cookie Preferences" [ref=f10e623] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f10e624]:
+              - link "AML Policy" [ref=f10e625] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f10e626]:
+              - link "KYC Policy" [ref=f10e627] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f10e628]:
+          - heading "Support" [level=3] [ref=f10e629]
+          - list [ref=f10e630]:
+            - listitem [ref=f10e631]:
+              - link "About" [ref=f10e632] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f10e633]:
+              - link "Help Center" [ref=f10e634] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f10e635]:
+              - link "Contact" [ref=f10e636] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f10e637]:
+              - link "Account" [ref=f10e638] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f10e639]:
+              - link "Cashier" [ref=f10e640] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f10e641]:
+        - generic [ref=f10e642]: Responsible Gaming
+        - paragraph [ref=f10e646]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f10e647]:
+        - paragraph [ref=f10e648]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f10e649]: HMAC-SHA256 provably fair originals.
+  - navigation [ref=f10e650]:
+    - link "Home" [ref=f10e651] [cursor=pointer]:
+      - /url: /
+    - link "Casino" [ref=f10e656] [cursor=pointer]:
+      - /url: /casino
+    - link "Sports" [ref=f10e661] [cursor=pointer]:
+      - /url: /sports
+    - link "Wallet" [ref=f10e669] [cursor=pointer]:
+      - /url: /wallet
+    - link "Account" [ref=f10e674] [cursor=pointer]:
+      - /url: /account
+  - button "Open Next.js Dev Tools" [ref=f10e684] [cursor=pointer]
