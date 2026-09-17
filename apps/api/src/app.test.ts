@@ -96,6 +96,13 @@ describe("api", () => {
     expect(body2).toEqual(body1);
   });
 
+  it("rejects unsupported game categories before querying the database", async () => {
+    const response = await app.request("/api/games?category=NOT_A_CATEGORY");
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "INVALID_INPUT" });
+  });
+
   it("echoes x-request-id and rejects unauthenticated admin routes", async () => {
     const health = await app.request("/health", { headers: { "x-request-id": "req-test-1" } });
     expect(health.headers.get("x-request-id")).toBe("req-test-1");
@@ -150,5 +157,43 @@ describe("api", () => {
     });
     expect(forbidden.status).toBe(403);
     expect(await forbidden.json()).toMatchObject({ error: "FORBIDDEN" });
+  });
+
+  it("rejects unsupported player statuses for authorized staff", async () => {
+    const email = `staff-${randomUUID()}@vladfsbet.local`;
+    const admin = await prisma.adminUser.create({
+      data: {
+        email,
+        passwordHash: await hashPassword("Admin123456!"),
+        name: "API Player Manager",
+        active: true,
+      },
+    });
+    const role = await prisma.role.create({
+      data: { slug: `api-role-${randomUUID()}`, name: "Player Managers" },
+    });
+    const permission = await prisma.permission.upsert({
+      where: { key: "players.write" },
+      update: {},
+      create: { key: "players.write", description: "Update players" },
+    });
+    await prisma.rolePermission.create({
+      data: { roleId: role.id, permissionId: permission.id },
+    });
+    await prisma.adminUserRole.create({ data: { adminUserId: admin.id, roleId: role.id } });
+
+    const login = await app.request("/api/admin/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password: "Admin123456!" }),
+    });
+    const response = await app.request("/api/admin/players/not-a-user/status", {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie: cookieFrom(login) },
+      body: JSON.stringify({ status: "NOT_A_STATUS", reason: "invalid status test" }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "INVALID_INPUT" });
   });
 });

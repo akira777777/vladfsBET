@@ -9,6 +9,7 @@ import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./midd
 import {
   AdminError,
   type AdminActor,
+  type Prisma,
   assertAdminPermission,
   AuthError,
   BonusError,
@@ -174,6 +175,30 @@ const ticketSchema = z.object({
 
 const ticketMessageSchema = z.object({
   body: z.string().min(1),
+});
+
+const gameCategorySchema = z.enum([
+  "SLOTS",
+  "NEW",
+  "POPULAR",
+  "JACKPOTS",
+  "TABLE_GAMES",
+  "ROULETTE",
+  "BLACKJACK",
+  "BACCARAT",
+  "POKER",
+  "CRASH",
+  "LIVE_CASINO",
+]);
+
+const gamesQuerySchema = z.object({
+  category: z.union([z.literal("ALL"), gameCategorySchema]).default("ALL"),
+  search: z.string().trim().max(100).default(""),
+});
+
+const updatePlayerStatusSchema = z.object({
+  status: z.enum(["ACTIVE", "SUSPENDED", "LOCKED"]),
+  reason: z.string().trim().min(3).max(500),
 });
 
 function clientMeta(c: { req: { header: (name: string) => string | undefined } }) {
@@ -506,8 +531,7 @@ export function createApp() {
   // ----------------------------------------------------
   app.get("/api/games", async (c) => {
     c.header("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
-    const category = c.req.query("category") ?? "ALL";
-    const search = (c.req.query("search") ?? "").trim();
+    const { category, search } = gamesQuerySchema.parse(c.req.query());
     const cacheKey = `games:${category}:${search}`;
 
     const cached = getCached<unknown>(cacheKey);
@@ -515,16 +539,12 @@ export function createApp() {
       return c.json(cached);
     }
 
-    const where: Record<string, any> = {
+    const where: Prisma.GameWhereInput = {
       active: true,
       demoAvailable: true,
+      category: category === "ALL" ? undefined : category,
+      title: search ? { contains: search, mode: "insensitive" } : undefined,
     };
-    if (category && category !== "ALL") {
-      where.category = category as any;
-    }
-    if (search) {
-      where.title = { contains: search, mode: "insensitive" };
-    }
 
     const games = await prisma.game.findMany({
       where,
@@ -894,7 +914,7 @@ export function createApp() {
 
   app.post("/api/admin/players/:id/status", async (c) => {
     const admin = requireAdminPermission(c, "players.write");
-    const body = z.object({ status: z.any(), reason: z.string() }).parse(await c.req.json());
+    const body = updatePlayerStatusSchema.parse(await c.req.json());
     const updated = await adminUpdatePlayerStatus(prisma, admin.id, c.req.param("id"), body.status, body.reason);
     return c.json({ player: updated });
   });
