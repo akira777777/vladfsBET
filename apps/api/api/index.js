@@ -10312,6 +10312,9 @@ async function adminUpdatePlayerStatus(db, adminUserId, targetUserId, newStatus,
 }
 
 // ../../packages/db/dist/index.js
+if (process.env.DATABASE_URL_UNPOOLED) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
+}
 var globalForPrisma = globalThis;
 var prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]

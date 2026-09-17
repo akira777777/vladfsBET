@@ -1,7 +1,7 @@
 import { createHash, randomBytes, scrypt as scryptCb, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { PrismaClient } from "@prisma/client";
-import { creditDemo, ensurePlayerWallets } from "./ledger";
+import { ensurePlayerWallets } from "./ledger";
 
 const scrypt = promisify(scryptCb);
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -194,7 +194,10 @@ export async function registerPlayer(db: PrismaClient, input: RegisterInput) {
   }
 
   await ensurePlayerWallets(db, user.id, user.currency);
-  await creditDemo(db, user.id, user.currency, DEMO_CREDIT, `welcome-demo:${user.id}`);
+  await db.walletAccount.updateMany({
+    where: { wallet: { userId: user.id, currency: user.currency }, type: "AVAILABLE" },
+    data: { cachedBalance: DEMO_CREDIT },
+  });
 
   const bronze = await db.vipLevel.findUnique({ where: { slug: "bronze" } });
   if (bronze) {
