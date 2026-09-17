@@ -17,6 +17,20 @@ describe("API flood protection", () => {
     expect(await blocked.json()).toMatchObject({ error: "RATE_LIMITED" });
   });
 
+  it("does not spend the login budget on session checks", async () => {
+    const app = createApp();
+    for (let i = 0; i < 15; i++) {
+      const response = await app.request("/api/auth/me");
+      expect(response.status).toBe(401);
+    }
+    const login = await app.request("/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "player@vladfsbet.com", password: "x" }),
+    });
+    expect(login.status).not.toBe(429);
+  });
+
   it("shares the login budget across player and admin authentication", async () => {
     const app = createApp();
     for (let i = 0; i < 10; i++) {

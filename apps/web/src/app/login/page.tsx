@@ -47,14 +47,19 @@ export default function LoginPage() {
       <div className="px-6 py-12 sm:px-10">
       <h1 className="font-heading text-3xl font-semibold tracking-tight">Log in</h1>
       <p className="mt-2 text-sm text-muted-foreground">Demo accounts only. No real-money wallet.</p>
+      <p className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-muted-foreground">
+        Demo: <span className="font-mono text-foreground">player@vladfsbet.com</span>
+        {" / "}
+        <span className="font-mono text-foreground">Player123456!</span>
+      </p>
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
         <label className="block text-sm">
           Email
-          <Input className="mt-1 h-11" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input className="mt-1 h-11" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label className="block text-sm">
           Password
-          <Input className="mt-1 h-11" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input className="mt-1 h-11" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <Button type="submit" size="lg" variant="gold" className="h-11 w-full" disabled={pending}>

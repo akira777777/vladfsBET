@@ -87,15 +87,15 @@ export default function RegisterPage() {
           <Input className="mt-1 h-11" type="date" required value={form.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} />
         </label>
         <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" className="mt-1 size-4" checked={form.termsAccepted} onChange={(e) => set("termsAccepted", e.target.checked)} />
+          <input type="checkbox" required className="mt-1 size-4" checked={form.termsAccepted} onChange={(e) => set("termsAccepted", e.target.checked)} />
           I accept the terms of use
         </label>
         <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" className="mt-1 size-4" checked={form.privacyAccepted} onChange={(e) => set("privacyAccepted", e.target.checked)} />
+          <input type="checkbox" required className="mt-1 size-4" checked={form.privacyAccepted} onChange={(e) => set("privacyAccepted", e.target.checked)} />
           I accept the privacy notice
         </label>
         <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" className="mt-1 size-4" checked={form.rgAcknowledged} onChange={(e) => set("rgAcknowledged", e.target.checked)} />
+          <input type="checkbox" required className="mt-1 size-4" checked={form.rgAcknowledged} onChange={(e) => set("rgAcknowledged", e.target.checked)} />
           I understand this is gambling, even in demo, and I can set play limits
         </label>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}

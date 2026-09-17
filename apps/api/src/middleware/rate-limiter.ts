@@ -167,7 +167,13 @@ export function createRateLimiters() {
   return {
     burst: limiter({ keyPrefix: "burst", windowMs: 10_000, limit: 40, message: "Request burst limit exceeded." }),
     global: limiter({ keyPrefix: "global", windowMs: 60_000, limit: 240 }),
-    auth: limiter({ keyPrefix: "auth", windowMs: 60_000, limit: 10, message: "Too many authentication attempts." }),
+    auth: limiter({
+      keyPrefix: "auth",
+      windowMs: 60_000,
+      limit: 10,
+      message: "Too many authentication attempts.",
+      skip: (c) => c.req.method === "GET" || c.req.path.endsWith("/logout"),
+    }),
     wallet: limiter({ keyPrefix: "wallet", windowMs: 60_000, limit: 30, message: "Too many wallet requests." }),
     gameplay: limiter({ keyPrefix: "gameplay", windowMs: 60_000, limit: 60, message: "Action velocity limit reached." }),
     reset: local.reset,
