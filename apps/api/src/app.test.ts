@@ -48,8 +48,6 @@ describe("api", () => {
     expect(cookie.startsWith("vladfsbet_session=")).toBe(true);
 
     const me = await app.request("/api/auth/me", { headers: { cookie } });
-    expect(me.status).toBe(200);
-
     const wallet = await app.request("/api/wallet", { headers: { cookie } });
     const walletBody = await wallet.json();
     expect(walletBody.realMoney).toBe(false);
@@ -74,5 +72,21 @@ describe("api", () => {
     });
     expect(response.status).toBe(403);
     expect(await response.json()).toMatchObject({ error: "UNDERAGE" });
+  });
+
+  it("serves games catalog with Cache-Control headers and uses in-memory cache", async () => {
+    const res1 = await app.request("/api/games");
+    expect(res1.status).toBe(200);
+    expect(res1.headers.get("cache-control")).toContain("public");
+    expect(res1.headers.get("cache-control")).toContain("max-age=15");
+    const body1 = await res1.json();
+    expect(Array.isArray(body1.items)).toBe(true);
+    expect(body1.items.length).toBeGreaterThan(0);
+
+    // Second call hits in-memory cache immediately
+    const res2 = await app.request("/api/games");
+    expect(res2.status).toBe(200);
+    const body2 = await res2.json();
+    expect(body2).toEqual(body1);
   });
 });

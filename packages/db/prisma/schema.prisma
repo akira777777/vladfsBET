@@ -668,6 +668,7 @@ model Game {
   rounds   GameRound[]
   favorites FavoriteGame[]
 
+  @@index([active, demoAvailable])
   @@index([category, active])
   @@index([providerId])
   @@index([title])

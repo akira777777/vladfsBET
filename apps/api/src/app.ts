@@ -430,8 +430,15 @@ export function createApp() {
   // Casino Games
   // ----------------------------------------------------
   app.get("/api/games", async (c) => {
-    const category = c.req.query("category");
-    const search = c.req.query("search");
+    c.header("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+    const category = c.req.query("category") ?? "ALL";
+    const search = (c.req.query("search") ?? "").trim();
+    const cacheKey = `games:${category}:${search}`;
+
+    const cached = getCached<unknown>(cacheKey);
+    if (cached) {
+      return c.json(cached);
+    }
 
     const where: Record<string, any> = {
       active: true,
@@ -450,7 +457,7 @@ export function createApp() {
       orderBy: { title: "asc" },
     });
 
-    return c.json({
+    const payload = {
       items: games.map((game) => ({
         id: game.id,
         slug: game.slug,
@@ -465,7 +472,10 @@ export function createApp() {
         tags: game.tags,
         demo: true,
       })),
-    });
+    };
+
+    setCached(cacheKey, payload, 30_000);
+    return c.json(payload);
   });
 
   app.get("/api/games/favorites", async (c) => {
@@ -506,14 +516,21 @@ export function createApp() {
   });
 
   app.get("/api/games/:slug", async (c) => {
+    c.header("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
     const slug = c.req.param("slug");
+    const cacheKey = `game:${slug}`;
+    const cached = getCached<unknown>(cacheKey);
+    if (cached) {
+      return c.json(cached);
+    }
+
     const game = await prisma.game.findUnique({
       where: { slug },
       include: { provider: true },
     });
     if (!game || !game.active) return c.json({ error: "GAME_NOT_FOUND" }, 404);
 
-    return c.json({
+    const payload = {
       game: {
         id: game.id,
         slug: game.slug,
@@ -528,7 +545,10 @@ export function createApp() {
         tags: game.tags,
         demo: true,
       },
-    });
+    };
+
+    setCached(cacheKey, payload, 60_000);
+    return c.json(payload);
   });
 
   app.post("/api/games/:slug/play", async (c) => {
@@ -559,13 +579,22 @@ export function createApp() {
   // Sportsbook
   // ----------------------------------------------------
   app.get("/api/sports/events", async (c) => {
-    const sport = c.req.query("sport");
+    c.header("Cache-Control", "public, max-age=10, stale-while-revalidate=30");
+    const sport = c.req.query("sport") ?? "ALL";
+    const cacheKey = `sports:${sport}`;
+    const cached = getCached<unknown>(cacheKey);
+    if (cached) {
+      return c.json(cached);
+    }
+
     const events = await prisma.sportEvent.findMany({
-      where: sport ? { sport } : undefined,
+      where: sport !== "ALL" ? { sport } : undefined,
       include: { markets: true },
       orderBy: { startsAt: "asc" },
     });
-    return c.json({ items: events });
+    const payload = { items: events };
+    setCached(cacheKey, payload, 15_000);
+    return c.json(payload);
   });
 
   app.post("/api/sports/bet", async (c) => {

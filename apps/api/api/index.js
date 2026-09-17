@@ -10315,6 +10315,23 @@ if (process.env.NODE_ENV !== "production") {
 // src/app.ts
 var COOKIE = "vladfsbet_session";
 var ADMIN_COOKIE = "vladfsbet_admin_session";
+var responseCache2 = /* @__PURE__ */ new Map();
+function getCached(key) {
+  const entry = responseCache2.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    responseCache2.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+function setCached(key, data, ttlMs) {
+  if (responseCache2.size > 1e3) {
+    const oldestKey = responseCache2.keys().next().value;
+    if (oldestKey) responseCache2.delete(oldestKey);
+  }
+  responseCache2.set(key, { data, expiresAt: Date.now() + ttlMs });
+}
 var registerSchema = external_exports.object({
   firstName: external_exports.string().min(1),
   lastName: external_exports.string().min(1),
@@ -10601,8 +10618,14 @@ function createApp() {
     return c.json({ withdrawal: result.withdrawal, wallet: snapshot });
   });
   app2.get("/api/games", async (c) => {
-    const category = c.req.query("category");
-    const search = c.req.query("search");
+    c.header("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
+    const category = c.req.query("category") ?? "ALL";
+    const search = (c.req.query("search") ?? "").trim();
+    const cacheKey2 = `games:${category}:${search}`;
+    const cached = getCached(cacheKey2);
+    if (cached) {
+      return c.json(cached);
+    }
     const where = {
       active: true,
       demoAvailable: true
@@ -10618,7 +10641,7 @@ function createApp() {
       include: { provider: true },
       orderBy: { title: "asc" }
     });
-    return c.json({
+    const payload = {
       items: games.map((game) => ({
         id: game.id,
         slug: game.slug,
@@ -10633,7 +10656,9 @@ function createApp() {
         tags: game.tags,
         demo: true
       }))
-    });
+    };
+    setCached(cacheKey2, payload, 3e4);
+    return c.json(payload);
   });
   app2.get("/api/games/favorites", async (c) => {
     const user = await getSessionUser(prisma, getCookie(c, COOKIE));
@@ -10669,13 +10694,19 @@ function createApp() {
     return c.json({ favorited: !existing, slugs: rows.map((row) => row.game.slug) });
   });
   app2.get("/api/games/:slug", async (c) => {
+    c.header("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
     const slug = c.req.param("slug");
+    const cacheKey2 = `game:${slug}`;
+    const cached = getCached(cacheKey2);
+    if (cached) {
+      return c.json(cached);
+    }
     const game = await prisma.game.findUnique({
       where: { slug },
       include: { provider: true }
     });
     if (!game || !game.active) return c.json({ error: "GAME_NOT_FOUND" }, 404);
-    return c.json({
+    const payload = {
       game: {
         id: game.id,
         slug: game.slug,
@@ -10690,7 +10721,9 @@ function createApp() {
         tags: game.tags,
         demo: true
       }
-    });
+    };
+    setCached(cacheKey2, payload, 6e4);
+    return c.json(payload);
   });
   app2.post("/api/games/:slug/play", async (c) => {
     const user = await getSessionUser(prisma, getCookie(c, COOKIE));
@@ -10716,13 +10749,21 @@ function createApp() {
     });
   });
   app2.get("/api/sports/events", async (c) => {
-    const sport = c.req.query("sport");
+    c.header("Cache-Control", "public, max-age=10, stale-while-revalidate=30");
+    const sport = c.req.query("sport") ?? "ALL";
+    const cacheKey2 = `sports:${sport}`;
+    const cached = getCached(cacheKey2);
+    if (cached) {
+      return c.json(cached);
+    }
     const events = await prisma.sportEvent.findMany({
-      where: sport ? { sport } : void 0,
+      where: sport !== "ALL" ? { sport } : void 0,
       include: { markets: true },
       orderBy: { startsAt: "asc" }
     });
-    return c.json({ items: events });
+    const payload = { items: events };
+    setCached(cacheKey2, payload, 15e3);
+    return c.json(payload);
   });
   app2.post("/api/sports/bet", async (c) => {
     const user = await getSessionUser(prisma, getCookie(c, COOKIE));
