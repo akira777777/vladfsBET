@@ -65,6 +65,23 @@ export class ApiError extends Error {
   }
 }
 
+type WalletListener = (wallet: Wallet) => void;
+const walletListeners = new Set<WalletListener>();
+
+export function onWalletUpdate(listener: WalletListener): () => void {
+  walletListeners.add(listener);
+  return () => {
+    walletListeners.delete(listener);
+  };
+}
+
+function publishWallet(data: unknown) {
+  if (!data || typeof data !== "object") return;
+  const wallet = (data as { wallet?: Wallet }).wallet;
+  if (!wallet || typeof wallet.available !== "string") return;
+  for (const listener of walletListeners) listener(wallet);
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body && !headers.has("content-type")) {
@@ -76,10 +93,17 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     headers,
   });
   const text = await response.text();
-  const data = text ? (JSON.parse(text) as T & { error?: string; message?: string }) : ({} as T);
-  if (!response.ok) {
-    const body = data as { error?: string; message?: string };
-    throw new ApiError(response.status, body.error ?? "ERROR", body.message ?? "Request failed");
+  let data = {} as T & { error?: string; message?: string };
+  if (text) {
+    try {
+      data = JSON.parse(text) as T & { error?: string; message?: string };
+    } catch {
+      throw new ApiError(response.status, "ERROR", text.slice(0, 180) || "Request failed");
+    }
   }
+  if (!response.ok) {
+    throw new ApiError(response.status, data.error ?? "ERROR", data.message ?? "Request failed");
+  }
+  publishWallet(data);
   return data;
 }

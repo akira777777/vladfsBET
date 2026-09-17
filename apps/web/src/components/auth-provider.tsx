@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, type User, type Wallet } from "@/lib/api";
+import { api, onWalletUpdate, type User, type Wallet } from "@/lib/api";
 
 type AuthState = {
   ready: boolean;
@@ -24,11 +24,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await api<{ user: User }>("/api/auth/me");
       setUser(me.user);
-      const snapshot = await api<{ wallet: Wallet | null }>("/api/wallet");
-      setWallet(snapshot.wallet);
     } catch {
       setUser(null);
       setWallet(null);
+      return;
+    }
+    try {
+      const snapshot = await api<{ wallet: Wallet | null }>("/api/wallet");
+      setWallet(snapshot.wallet);
+    } catch {
+      // Keep the signed-in user even if the wallet snapshot fails.
     }
   }, []);
 
@@ -61,9 +66,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     void initAuth();
+    const stopWallet = onWalletUpdate((next) => {
+      if (active) setWallet(next);
+    });
 
     return () => {
       active = false;
+      stopWallet();
     };
   }, []);
 
