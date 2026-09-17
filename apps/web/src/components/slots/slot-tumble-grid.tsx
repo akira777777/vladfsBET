@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { Grid, SymbolCell } from "@/lib/slots/slot-engine";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Grid, SymbolCell, SymbolId } from "@/lib/slots/slot-engine";
 import { SlotTheme } from "@/lib/slots/slot-themes";
 import { SlotSymbolIcon } from "./slot-symbols";
 
@@ -10,8 +10,12 @@ interface SlotTumbleGridProps {
   theme: SlotTheme;
   isTumbling: boolean;
   shatteredPositions: { col: number; row: number }[];
+  winHoldPositions?: { col: number; row: number }[];
+  spinningColumns?: boolean[];
+  anticipatingColumns?: boolean[];
   currentMultiplier: number;
   tumbleStepIndex: number;
+  isTurbo?: boolean;
 }
 
 // Generate random debris particles for shatter effects
@@ -30,13 +34,23 @@ function generateDebris(count: number) {
   });
 }
 
+function makeLoopStrip(theme: SlotTheme): SymbolId[] {
+  const pool = Object.keys(theme.symbols) as SymbolId[];
+  const half = Array.from({ length: 8 }, () => pool[Math.floor(Math.random() * pool.length)]);
+  return [...half, ...half];
+}
+
 export function SlotTumbleGrid({
   grid,
   theme,
   isTumbling,
   shatteredPositions,
+  winHoldPositions = [],
+  spinningColumns = [false, false, false, false, false, false],
+  anticipatingColumns = [false, false, false, false, false, false],
   currentMultiplier,
   tumbleStepIndex,
+  isTurbo = false,
 }: SlotTumbleGridProps) {
   // Track shatter particles with unique keys
   const [activeShatterKey, setActiveShatterKey] = useState(0);
@@ -44,6 +58,44 @@ export function SlotTumbleGrid({
   const [sparkles, setSparkles] = useState<
     { id: number; col: number; row: number; offsetX: number; offsetY: number }[]
   >([]);
+  const prevGridRef = useRef<Grid>(grid);
+  const [fallFrom, setFallFrom] = useState<Map<string, number>>(new Map());
+  const stripsRef = useRef<SymbolId[][]>([0, 1, 2, 3, 4, 5].map(() => makeLoopStrip(theme)));
+
+  const anySpinning = spinningColumns.some(Boolean);
+
+  useEffect(() => {
+    if (anySpinning) {
+      stripsRef.current = [0, 1, 2, 3, 4, 5].map(() => makeLoopStrip(theme));
+    }
+  }, [anySpinning, theme]);
+
+  useEffect(() => {
+    const prev = prevGridRef.current;
+    const next = new Map<string, number>();
+    for (let col = 0; col < 6; col++) {
+      for (let row = 0; row < 5; row++) {
+        const cell = grid[col]?.[row];
+        if (!cell) continue;
+        if (cell.isNew) {
+          next.set(cell.key, -(row + 1));
+          continue;
+        }
+        let oldRow = -1;
+        for (let r = 0; r < 5; r++) {
+          if (prev[col]?.[r]?.key === cell.key) {
+            oldRow = r;
+            break;
+          }
+        }
+        if (oldRow >= 0 && oldRow !== row) {
+          next.set(cell.key, oldRow - row);
+        }
+      }
+    }
+    setFallFrom(next);
+    prevGridRef.current = grid;
+  }, [grid]);
 
   // Trigger screen shake on tumble hit
   useEffect(() => {
@@ -93,7 +145,10 @@ export function SlotTumbleGrid({
   }, [activeShatterKey]);
 
   const isPositionWinning = (col: number, row: number) => {
-    return shatteredPositions.some((p) => p.col === col && p.row === row);
+    return (
+      shatteredPositions.some((p) => p.col === col && p.row === row) ||
+      winHoldPositions.some((p) => p.col === col && p.row === row)
+    );
   };
 
   return (
@@ -133,12 +188,29 @@ export function SlotTumbleGrid({
         }`}
       >
         {[0, 1, 2, 3, 4, 5].map((colIdx) => (
-          <div key={`col-${colIdx}`} className="flex flex-col justify-between gap-1 sm:gap-1.5 h-full">
+          <div
+            key={`col-${colIdx}`}
+            className={`relative flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl ${
+              anticipatingColumns[colIdx] ? "animate-scatter-anticipation ring-1 ring-amber-400/70" : ""
+            } ${!spinningColumns[colIdx] && isTumbling ? "animate-reel-spring" : ""}`}
+          >
+            {spinningColumns[colIdx] ? (
+              <div className={`flex flex-col h-[200%] ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
+                {stripsRef.current[colIdx].map((id, idx) => (
+                  <div key={`spin-${colIdx}-${idx}`} className="flex h-[6.25%] items-center justify-center">
+                    <SlotSymbolIcon id={id} theme={theme} size="sm" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+            <>
             {[0, 1, 2, 3, 4].map((rowIdx) => {
               const cell: SymbolCell | undefined = grid[colIdx]?.[rowIdx];
               const isWin = isPositionWinning(colIdx, rowIdx);
-              const isShattering = isWin && isTumbling;
+              const isShattering = shatteredPositions.some((p) => p.col === colIdx && p.row === rowIdx);
               const debrisParticles = debrisMap.get(`${colIdx}-${rowIdx}`) || [];
+              const rowsMoved = cell ? fallFrom.get(cell.key) : undefined;
+              const shouldFall = typeof rowsMoved === "number" && rowsMoved !== 0 && !isShattering;
 
               if (!cell) {
                 return (
@@ -158,13 +230,8 @@ export function SlotTumbleGrid({
                       : isWin
                       ? "bg-yellow-400/20 border-2 border-yellow-400 scale-105 z-10 animate-win-glow"
                       : "bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]"
-                  } ${
-                    cell.isNew
-                      ? `animate-slot-drop cascade-delay-${colIdx}`
-                      : !isWin && !isShattering
-                      ? ""
-                      : ""
-                  }`}
+                  } ${shouldFall ? "animate-symbol-fall" : ""}`}
+                  style={shouldFall ? ({ "--fall-from": `${rowsMoved * 110}%` } as React.CSSProperties) : undefined}
                 >
                   {/* Win shimmer overlay */}
                   {isWin && !isShattering && (
@@ -219,6 +286,8 @@ export function SlotTumbleGrid({
                 </div>
               );
             })}
+            </>
+            )}
           </div>
         ))}
 

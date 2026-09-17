@@ -30,6 +30,12 @@ interface SlotMachineProps {
   initialSlug?: string;
 }
 
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+function prefersReducedMotion() {
+  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProps) {
   const { user, wallet, refreshWallet } = useAuth();
 
@@ -65,6 +71,9 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   // Tumble Execution State
   const [tumbleStepIndex, setTumbleStepIndex] = useState<number>(0);
   const [shatteredPositions, setShatteredPositions] = useState<{ col: number; row: number }[]>([]);
+  const [winHoldPositions, setWinHoldPositions] = useState<{ col: number; row: number }[]>([]);
+  const [spinningColumns, setSpinningColumns] = useState<boolean[]>([false, false, false, false, false, false]);
+  const [anticipatingColumns, setAnticipatingColumns] = useState<boolean[]>([false, false, false, false, false, false]);
   const [accumulatedMultiplier, setAccumulatedMultiplier] = useState<number>(1);
   const [roundWinDisplay, setRoundWinDisplay] = useState<number>(0);
 
@@ -117,18 +126,19 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           setAccumulatedMultiplier(currentMult);
         }
 
-        // If step has winning clusters, highlight and shatter them!
         if (step.clusterHits.length > 0) {
+          setWinHoldPositions(step.shatteredPositions);
+          await wait(isTurbo ? 120 : 280);
+          setWinHoldPositions([]);
           setShatteredPositions(step.shatteredPositions);
           slotAudio.playTumbleShatter();
           slotAudio.playTumbleCascade(i);
 
           setRoundWinDisplay(step.accumulatedStepWin * currentMult);
 
-          // Pause for explosion animation
-          await new Promise((r) => setTimeout(r, isTurbo ? 350 : 650));
+          await wait(isTurbo ? 320 : 620);
           setShatteredPositions([]);
-          await new Promise((r) => setTimeout(r, isTurbo ? 150 : 250));
+          await wait(isTurbo ? 220 : 400);
         }
       }
 
@@ -212,9 +222,46 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       }
 
       if (engineMode === "CLUSTER_6X5") {
-        // Run 6x5 Cascading Tumble Sequence
         const initialG = generate6x5Grid(undefined, forcedFeature);
         setGrid(initialG);
+
+        if (!prefersReducedMotion()) {
+          setSpinningColumns([true, true, true, true, true, true]);
+          setAnticipatingColumns([false, false, false, false, false, false]);
+          const stagger = isTurbo ? 85 : 230;
+          await wait(isTurbo ? 160 : 500);
+          let landedScatters = 0;
+          for (let col = 0; col < 6; col++) {
+            if (col > 0) {
+              if (landedScatters >= 2) {
+                setAnticipatingColumns((prev) => prev.map((_, i) => i >= col));
+                slotAudio.startAnticipation();
+                await wait(stagger + (isTurbo ? 180 : 650));
+              } else {
+                await wait(stagger);
+              }
+            }
+            setSpinningColumns((prev) => {
+              const next = [...prev];
+              next[col] = false;
+              return next;
+            });
+            setAnticipatingColumns((prev) => {
+              const next = [...prev];
+              next[col] = false;
+              return next;
+            });
+            slotAudio.playReelStop(col);
+            const colScatters = initialG[col].filter((c) => c.id === "SCATTER").length;
+            landedScatters += colScatters;
+            if (colScatters > 0) {
+              slotAudio.playScatterLand(col + 1);
+            }
+          }
+          slotAudio.stopAnticipation();
+          setAnticipatingColumns([false, false, false, false, false, false]);
+          await wait(isTurbo ? 120 : 280);
+        }
 
         const roundResult = resolveFullTumbleRound(
           initialG,
@@ -224,7 +271,6 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
 
         await runTumbleAnimation(roundResult, effectiveStake);
       } else {
-        // Run Megaways Dynamic Reels Spin
         slotAudio.playMegawaysExpand();
         const megaRes = generateMegawaysSpin(
           effectiveStake > 0 ? effectiveStake : betAmount,
@@ -232,6 +278,21 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         );
 
         setMegawaysResult(megaRes);
+        if (!prefersReducedMotion()) {
+          setSpinningColumns([true, true, true, true, true, true]);
+          const stagger = isTurbo ? 80 : 200;
+          await wait(isTurbo ? 200 : 520);
+          for (let col = 0; col < 6; col++) {
+            if (col > 0) await wait(stagger);
+            setSpinningColumns((prev) => {
+              const next = [...prev];
+              next[col] = false;
+              return next;
+            });
+            slotAudio.playReelStop(col);
+          }
+          await wait(isTurbo ? 120 : 260);
+        }
         setRoundWinDisplay(megaRes.totalWin);
 
         if (megaRes.totalWin > 0) {
