@@ -205,6 +205,11 @@ body {
   .animate-reel-strip-fast,
   .animate-symbol-fall,
   .animate-celebration-flash,
+  .animate-column-flash,
+  .animate-orb-collect,
+  .animate-cell-flash,
+  .animate-cabinet-pulse,
+  .animate-cabinet-hit,
   .live-dot {
     animation: none !important;
   }
@@ -511,6 +516,44 @@ body {
 }
 .animate-column-flash {
   animation: columnFlash 0.4s ease-out;
+}
+
+@keyframes cellFlash {
+  0% { background-color: rgba(255, 255, 255, 0.55); }
+  100% { background-color: transparent; }
+}
+.animate-cell-flash {
+  animation: cellFlash 0.28s ease-out forwards;
+}
+
+@keyframes orbCollect {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  70% { opacity: 1; }
+  100% {
+    transform: translate(var(--orb-dx, 0px), var(--orb-dy, -90px)) scale(0.3);
+    opacity: 0;
+  }
+}
+.animate-orb-collect {
+  animation: orbCollect 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  z-index: 40;
+  pointer-events: none;
+}
+
+@keyframes cabinetPulse {
+  0%, 100% { box-shadow: 0 0 18px rgba(251, 191, 36, 0.22); }
+  50% { box-shadow: 0 0 34px rgba(251, 191, 36, 0.5); }
+}
+.animate-cabinet-pulse {
+  animation: cabinetPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes cabinetHit {
+  0% { box-shadow: 0 0 42px rgba(251, 191, 36, 0.85); }
+  100% { box-shadow: 0 0 16px rgba(251, 191, 36, 0.2); }
+}
+.animate-cabinet-hit {
+  animation: cabinetHit 0.45s ease-out;
 }
 
 /* ── Reel Spring Elastic Overshoot (on BOUNCING phase) ── */

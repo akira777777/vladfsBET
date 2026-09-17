@@ -10,6 +10,7 @@ interface SlotMegawaysGridProps {
   theme: SlotTheme;
   isSpinning: boolean;
   spinningColumns?: boolean[];
+  flashingColumns?: boolean[];
   isTurbo?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function SlotMegawaysGrid({
   theme,
   isSpinning,
   spinningColumns = [false, false, false, false, false, false],
+  flashingColumns = [false, false, false, false, false, false],
   isTurbo = false,
 }: SlotMegawaysGridProps) {
   const reelHeights = result?.reelHeights || [4, 5, 4, 6, 5, 4];
@@ -114,8 +116,8 @@ export function SlotMegawaysGrid({
             <div
               key={`megaways-col-${colIdx}`}
               className={`flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 ${
-                spinningColumns[colIdx] ? "" : isSpinning ? "animate-reel-spring" : ""
-              }`}
+                flashingColumns[colIdx] ? "animate-column-flash" : ""
+              } ${spinningColumns[colIdx] ? "" : isSpinning ? "animate-reel-spring" : ""}`}
             >
               {spinningColumns[colIdx] ? (
                 <div className={`flex h-[200%] flex-col ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
@@ -128,7 +130,9 @@ export function SlotMegawaysGrid({
               ) : (
               Array.from({ length: height }).map((_, rowIdx) => {
                 const cell = colCells[rowIdx];
-                const win = !isSpinning && isWinning(colIdx, rowIdx);
+                const win = !spinningColumns[colIdx] && isWinning(colIdx, rowIdx);
+                const showScatterBeam =
+                  cell?.id === "SCATTER" && flashingColumns[colIdx] && !spinningColumns[colIdx];
 
                 if (!cell) {
                   return (
@@ -150,9 +154,13 @@ export function SlotMegawaysGrid({
                       revealed ? `animate-slot-drop cascade-delay-${colIdx}` : ""
                     }`}
                   >
-                    {/* Win shimmer */}
                     {win && (
                       <div className="absolute inset-0 rounded-lg animate-win-shimmer pointer-events-none z-[1]" />
+                    )}
+                    {showScatterBeam && (
+                      <div className="absolute inset-0 overflow-hidden rounded-lg pointer-events-none z-20">
+                        <div className="absolute inset-x-1 top-0 h-full bg-gradient-to-b from-white via-cyan-300/70 to-transparent animate-gem-beam" />
+                      </div>
                     )}
                     <SlotSymbolIcon
                       id={cell.id}

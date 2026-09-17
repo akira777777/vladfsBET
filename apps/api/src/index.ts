@@ -20,5 +20,16 @@ const server = serve({
   console.log(`VladfsBET API http://${hostname}:${port}`);
 });
 
+server.on("error", (error) => {
+  const code = (error as NodeJS.ErrnoException).code;
+  if (code === "EADDRINUSE") {
+    console.error(
+      `API port ${hostname}:${port} is already in use. Run \`npm run dev:stop\` then \`npm run dev\`.`,
+    );
+    process.exit(1);
+  }
+  throw error;
+});
+
 server.maxConnections = Number(process.env.API_MAX_CONNECTIONS ?? 1_024);
 if ("maxRequestsPerSocket" in server) server.maxRequestsPerSocket = 1_000;

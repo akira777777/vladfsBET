@@ -9,8 +9,10 @@
     "services/*"
   ],
   "scripts": {
-    "postinstall": "npm run db:generate -w @vladfsbet/db",
+    "postinstall": "node scripts/prisma-generate.mjs",
+    "start": "npm run dev",
     "dev": "turbo run dev",
+    "dev:stop": "node scripts/stop-dev.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
@@ -32,5 +34,9 @@
   "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0"
   }
 }

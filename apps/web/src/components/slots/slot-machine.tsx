@@ -74,6 +74,10 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   const [winHoldPositions, setWinHoldPositions] = useState<{ col: number; row: number }[]>([]);
   const [spinningColumns, setSpinningColumns] = useState<boolean[]>([false, false, false, false, false, false]);
   const [anticipatingColumns, setAnticipatingColumns] = useState<boolean[]>([false, false, false, false, false, false]);
+  const [flashingColumns, setFlashingColumns] = useState<boolean[]>([false, false, false, false, false, false]);
+  const [scatterCount, setScatterCount] = useState(0);
+  const [collectingOrbs, setCollectingOrbs] = useState<{ col: number; row: number }[]>([]);
+  const multiplierHudRef = useRef<HTMLDivElement>(null);
   const [accumulatedMultiplier, setAccumulatedMultiplier] = useState<number>(1);
   const [roundWinDisplay, setRoundWinDisplay] = useState<number>(0);
 
@@ -117,13 +121,15 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         setTumbleStepIndex(i + 1);
         setGrid(step.grid);
 
-        // Check if new multiplier orbs landed in this step
         if (step.multiplierOrbs.length > 0) {
+          setCollectingOrbs(step.multiplierOrbs.map((orb) => orb.position));
           step.multiplierOrbs.forEach((orb) => {
             currentMult += orb.value;
             slotAudio.playMultiplierOrbCharge(orb.value);
           });
+          await wait(prefersReducedMotion() ? 0 : isTurbo ? 180 : 420);
           setAccumulatedMultiplier(currentMult);
+          setCollectingOrbs([]);
         }
 
         if (step.clusterHits.length > 0) {
@@ -203,6 +209,9 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       setWinHoldPositions([]);
       setSpinningColumns([false, false, false, false, false, false]);
       setAnticipatingColumns([false, false, false, false, false, false]);
+      setFlashingColumns([false, false, false, false, false, false]);
+      setScatterCount(0);
+      setCollectingOrbs([]);
       setTumbleStepIndex(0);
       setAccumulatedMultiplier(isBonus ? persistentBonusMultiplier : 1);
       slotAudio.playSpinStart();
@@ -254,9 +263,15 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
               next[col] = false;
               return next;
             });
+            setFlashingColumns((prev) => {
+              const next = [...prev];
+              next[col] = true;
+              return next;
+            });
             slotAudio.playReelStop(col);
             const colScatters = initialG[col].filter((c) => c.id === "SCATTER").length;
             landedScatters += colScatters;
+            setScatterCount(landedScatters);
             if (colScatters > 0) {
               slotAudio.playScatterLand(col + 1);
             }
@@ -285,6 +300,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           setSpinningColumns([true, true, true, true, true, true]);
           const stagger = isTurbo ? 80 : 200;
           await wait(isTurbo ? 200 : 520);
+          let megaScatters = 0;
           for (let col = 0; col < 6; col++) {
             if (col > 0) await wait(stagger);
             setSpinningColumns((prev) => {
@@ -292,9 +308,18 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
               next[col] = false;
               return next;
             });
+            setFlashingColumns((prev) => {
+              const next = [...prev];
+              next[col] = true;
+              return next;
+            });
             slotAudio.playReelStop(col);
+            const colScatters = (megaRes.grid[col] || []).filter((c) => c.id === "SCATTER").length;
+            megaScatters += colScatters;
+            setScatterCount(megaScatters);
+            if (colScatters > 0) slotAudio.playScatterLand(col + 1);
           }
-          await wait(isTurbo ? 120 : 260);
+          await wait(isTurbo ? 80 : 200);
         }
         setRoundWinDisplay(megaRes.totalWin);
 

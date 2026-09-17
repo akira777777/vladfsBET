@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Grid, SymbolCell, SymbolId } from "@/lib/slots/slot-engine";
 import { SlotTheme } from "@/lib/slots/slot-themes";
 import { SlotSymbolIcon } from "./slot-symbols";
@@ -13,13 +13,15 @@ interface SlotTumbleGridProps {
   winHoldPositions?: { col: number; row: number }[];
   spinningColumns?: boolean[];
   anticipatingColumns?: boolean[];
+  flashingColumns?: boolean[];
+  collectingOrbs?: { col: number; row: number }[];
+  hudTargetRef?: React.RefObject<HTMLElement | null>;
   currentMultiplier: number;
   tumbleStepIndex: number;
   isTurbo?: boolean;
 }
 
-// Generate random debris particles for shatter effects
-function generateDebris(count: number) {
+function generateDebris(count: number, color: string) {
   return Array.from({ length: count }, (_, i) => {
     const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
     const distance = 20 + Math.random() * 35;
@@ -30,8 +32,58 @@ function generateDebris(count: number) {
       rotation: Math.random() * 360,
       size: 3 + Math.random() * 5,
       delay: Math.random() * 80,
+      color,
     };
   });
+}
+
+function CollectingOrbShell({
+  active,
+  hudTargetRef,
+  children,
+}: {
+  active: boolean;
+  hudTargetRef?: React.RefObject<HTMLElement | null>;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [delta, setDelta] = useState({ dx: 0, dy: -90 });
+  const [ready, setReady] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!active) {
+      setReady(false);
+      return;
+    }
+    const cell = ref.current;
+    const hud = hudTargetRef?.current;
+    if (!cell) return;
+    const a = cell.getBoundingClientRect();
+    if (hud) {
+      const b = hud.getBoundingClientRect();
+      setDelta({
+        dx: b.left + b.width / 2 - (a.left + a.width / 2),
+        dy: b.top + b.height / 2 - (a.top + a.height / 2),
+      });
+    } else {
+      setDelta({ dx: 0, dy: -90 });
+    }
+    setReady(true);
+  }, [active, hudTargetRef]);
+
+  return (
+    <div
+      ref={ref}
+      className={active && ready ? "animate-orb-collect" : ""}
+      style={
+        active
+          ? ({ "--orb-dx": `${delta.dx}px`, "--orb-dy": `${delta.dy}px` } as React.CSSProperties)
+          : undefined
+      }
+    >
+      {children}
+    </div>
+  );
 }
 
 function makeLoopStrip(theme: SlotTheme): SymbolId[] {
@@ -48,6 +100,9 @@ export function SlotTumbleGrid({
   winHoldPositions = [],
   spinningColumns = [false, false, false, false, false, false],
   anticipatingColumns = [false, false, false, false, false, false],
+  flashingColumns = [false, false, false, false, false, false],
+  collectingOrbs = [],
+  hudTargetRef,
   currentMultiplier,
   tumbleStepIndex,
   isTurbo = false,
@@ -56,7 +111,7 @@ export function SlotTumbleGrid({
   const [activeShatterKey, setActiveShatterKey] = useState(0);
   const [shaking, setShaking] = useState(false);
   const [sparkles, setSparkles] = useState<
-    { id: number; col: number; row: number; offsetX: number; offsetY: number }[]
+    { id: number; col: number; row: number; offsetX: number; offsetY: number; color: string }[]
   >([]);
   const prevGridRef = useRef<Grid>(grid);
   const [fallFrom, setFallFrom] = useState<Map<string, number>>(new Map());
@@ -115,15 +170,18 @@ export function SlotTumbleGrid({
   // Generate floating sparkles on winning positions
   useEffect(() => {
     if (shatteredPositions.length > 0) {
-      const newSparkles = shatteredPositions.flatMap((pos, idx) =>
-        Array.from({ length: 3 }, (_, i) => ({
+      const newSparkles = shatteredPositions.flatMap((pos, idx) => {
+        const cell = grid[pos.col]?.[pos.row];
+        const color = (cell && theme.symbols[cell.id]?.glowColor) || "#fbbf24";
+        return Array.from({ length: 3 }, (_, i) => ({
           id: Date.now() + idx * 10 + i,
           col: pos.col,
           row: pos.row,
           offsetX: (Math.random() - 0.5) * 30,
           offsetY: Math.random() * -10,
-        }))
-      );
+          color,
+        }));
+      });
       const timer1 = setTimeout(() => setSparkles(newSparkles), 0);
       const timer2 = setTimeout(() => setSparkles([]), 1000);
       return () => {
@@ -138,7 +196,9 @@ export function SlotTumbleGrid({
     if (shatteredPositions.length === 0) return new Map<string, ReturnType<typeof generateDebris>>();
     const map = new Map<string, ReturnType<typeof generateDebris>>();
     shatteredPositions.forEach((pos) => {
-      map.set(`${pos.col}-${pos.row}`, generateDebris(8));
+      const cell = grid[pos.col]?.[pos.row];
+      const color = (cell && theme.symbols[cell.id]?.glowColor) || "#fbbf24";
+      map.set(`${pos.col}-${pos.row}`, generateDebris(8, color));
     });
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,7 +252,9 @@ export function SlotTumbleGrid({
             key={`col-${colIdx}`}
             className={`relative flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl ${
               anticipatingColumns[colIdx] ? "animate-scatter-anticipation ring-1 ring-amber-400/70" : ""
-            } ${!spinningColumns[colIdx] && isTumbling ? "animate-reel-spring" : ""}`}
+            } ${flashingColumns[colIdx] ? "animate-column-flash" : ""} ${
+              !spinningColumns[colIdx] && isTumbling ? "animate-reel-spring" : ""
+            }`}
           >
             {spinningColumns[colIdx] ? (
               <div className={`flex flex-col h-[200%] ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
@@ -208,6 +270,9 @@ export function SlotTumbleGrid({
               const cell: SymbolCell | undefined = grid[colIdx]?.[rowIdx];
               const isWin = isPositionWinning(colIdx, rowIdx);
               const isShattering = shatteredPositions.some((p) => p.col === colIdx && p.row === rowIdx);
+              const isCollecting = collectingOrbs.some((p) => p.col === colIdx && p.row === rowIdx);
+              const showScatterBeam =
+                cell?.id === "SCATTER" && flashingColumns[colIdx] && !spinningColumns[colIdx];
               const debrisParticles = debrisMap.get(`${colIdx}-${rowIdx}`) || [];
               const rowsMoved = cell ? fallFrom.get(cell.key) : undefined;
               const shouldFall = typeof rowsMoved === "number" && rowsMoved !== 0 && !isShattering;
@@ -233,19 +298,25 @@ export function SlotTumbleGrid({
                   } ${shouldFall ? "animate-symbol-fall" : ""}`}
                   style={shouldFall ? ({ "--fall-from": `${rowsMoved * 110}%` } as React.CSSProperties) : undefined}
                 >
-                  {/* Win shimmer overlay */}
                   {isWin && !isShattering && (
                     <div className="absolute inset-0 rounded-xl animate-win-shimmer pointer-events-none z-[1]" />
                   )}
 
-                  {/* Shatter ring effect */}
-                  {isShattering && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                      <div className="w-full h-full rounded-xl border-2 border-yellow-400 animate-shatter-ring" />
+                  {showScatterBeam && (
+                    <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none z-20">
+                      <div className="absolute inset-x-1 top-0 h-full bg-gradient-to-b from-white via-cyan-300/70 to-transparent animate-gem-beam" />
                     </div>
                   )}
 
-                  {/* Debris particles on shatter */}
+                  {isShattering && (
+                    <>
+                      <div className="absolute inset-0 rounded-xl animate-cell-flash pointer-events-none z-20" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                        <div className="w-full h-full rounded-xl border-2 border-yellow-400 animate-shatter-ring" />
+                      </div>
+                    </>
+                  )}
+
                   {isShattering &&
                     debrisParticles.map((d) => (
                       <div
@@ -262,27 +333,30 @@ export function SlotTumbleGrid({
                         }
                       >
                         <div
-                          className="rounded-sm bg-gradient-to-br from-yellow-300 to-amber-500"
+                          className="rounded-sm"
                           style={{
                             width: `${d.size}px`,
                             height: `${d.size}px`,
                             transform: `rotate(${d.rotation}deg)`,
+                            background: `linear-gradient(135deg, #fff, ${d.color})`,
+                            boxShadow: `0 0 6px ${d.color}`,
                           }}
                         />
                       </div>
                     ))}
 
-                  {/* Symbol with shatter animation */}
-                  <div className={isShattering ? "animate-slot-shatter" : ""}>
-                    <SlotSymbolIcon
-                      id={cell.id}
-                      multiplierValue={cell.multiplierValue}
-                      theme={theme}
-                      isWinning={isWin}
-                      isExploding={isShattering}
-                      size="sm"
-                    />
-                  </div>
+                  <CollectingOrbShell active={isCollecting} hudTargetRef={hudTargetRef}>
+                    <div className={isShattering ? "animate-slot-shatter" : ""}>
+                      <SlotSymbolIcon
+                        id={cell.id}
+                        multiplierValue={cell.multiplierValue}
+                        theme={theme}
+                        isWinning={isWin}
+                        isExploding={isShattering}
+                        size="sm"
+                      />
+                    </div>
+                  </CollectingOrbShell>
                 </div>
               );
             })}
@@ -301,9 +375,13 @@ export function SlotTumbleGrid({
               top: `${(s.row / 5) * 100 + 10 + s.offsetY * 0.2}%`,
             }}
           >
-            <span className="text-yellow-300 text-sm drop-shadow-[0_0_6px_rgba(251,191,36,0.9)]">
-              ✦
-            </span>
+            <span
+              className="block h-1.5 w-1.5 rounded-full"
+              style={{
+                background: s.color,
+                boxShadow: `0 0 8px ${s.color}, 0 0 14px ${s.color}`,
+              }}
+            />
           </div>
         ))}
       </div>

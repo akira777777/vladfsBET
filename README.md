@@ -101,7 +101,11 @@ npm run db:seed
 
 ### Running Locally
 ```powershell
-# Run both API and Web concurrently
+# Run both API and Web concurrently (`npm start` does the same)
+npm run dev
+
+# If ports 3000/4000 are already taken, or `prisma generate` hits EPERM:
+npm run dev:stop
 npm run dev
 
 # Or run separately:

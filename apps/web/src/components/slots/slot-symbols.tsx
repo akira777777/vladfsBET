@@ -80,8 +80,7 @@ export function SlotSymbolIcon({
               stroke={orbTheme.ring}
               strokeWidth="3.5"
               strokeDasharray="8 6"
-              className="animate-spin origin-center"
-              style={{ animationDuration: "4s" }}
+              className="animate-orb-orbit origin-center"
             />
 
             {/* Glowing Core Sphere */}
