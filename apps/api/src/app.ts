@@ -4,7 +4,7 @@ import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { HTTPException } from "hono/http-exception";
 import { ZodError, z } from "zod";
-import { getClientIp, rateLimitProfiles } from "./middleware/rate-limiter.js";
+import { getClientIp, globalBurstProtection, rateLimitProfiles } from "./middleware/rate-limiter.js";
 import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./middleware/security.js";
 import {
   AdminError,

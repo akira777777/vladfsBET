@@ -20,6 +20,7 @@ interface RateLimitRecord {
 }
 
 const memoryStore = new Map<string, RateLimitRecord>();
+let globalBurstTimestamps: number[] = [];
 
 // Periodic cleanup every 60s to prevent unbounded memory growth
 const cleanupTimer = setInterval(() => {
@@ -33,6 +34,7 @@ const cleanupTimer = setInterval(() => {
       record.timestamps = valid;
     }
   }
+  globalBurstTimestamps = globalBurstTimestamps.filter((ts) => now - ts < 60_000);
 }, 60_000);
 
 // Ensure cleanup timer does not prevent process exit in Node
@@ -64,6 +66,46 @@ export function getClientIp(c: { req: { header: (name: string) => string | undef
  */
 export function resetRateLimitStore(): void {
   memoryStore.clear();
+  globalBurstTimestamps = [];
+}
+
+/**
+ * Global burst / flood protection middleware across the entire application instance.
+ * Mitigates volumetric burst floods even when attackers spoof forwarding headers.
+ */
+export function globalBurstProtection(burstLimit = 40, windowMs = 5000): MiddlewareHandler {
+  return async (c, next) => {
+    if (c.req.header("x-bypass-rate-limit") === "1" && process.env.NODE_ENV === "test") {
+      return next();
+    }
+
+    const now = Date.now();
+    const windowStart = now - windowMs;
+    globalBurstTimestamps = globalBurstTimestamps.filter((ts) => ts > windowStart);
+
+    if (globalBurstTimestamps.length >= burstLimit) {
+      const oldest = globalBurstTimestamps[0] ?? now;
+      const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+
+      c.header("Retry-After", String(retryAfter));
+      c.header("Cache-Control", "no-store");
+      c.header("RateLimit-Limit", String(burstLimit));
+      c.header("RateLimit-Remaining", "0");
+      c.header("RateLimit-Reset", String(retryAfter));
+
+      return c.json(
+        {
+          error: "RATE_LIMITED",
+          message: "Flood protection: instance burst limit reached. Please slow down.",
+          retryAfter,
+        },
+        429,
+      );
+    }
+
+    globalBurstTimestamps.push(now);
+    await next();
+  };
 }
 
 /**
@@ -115,11 +157,12 @@ export function rateLimiter(options: RateLimiterOptions): MiddlewareHandler {
       const retryAfterSeconds = Math.max(1, Math.ceil((oldestInWindow + windowMs - now) / 1000));
 
       c.header("Retry-After", String(retryAfterSeconds));
+      c.header("Cache-Control", "no-store");
       c.header("RateLimit-Remaining", "0");
 
       return c.json(
         {
-          error: "RATE_LIMIT_EXCEEDED",
+          error: "RATE_LIMITED",
           message,
           retryAfter: retryAfterSeconds,
         },
@@ -137,11 +180,11 @@ export function rateLimiter(options: RateLimiterOptions): MiddlewareHandler {
  */
 export const rateLimitProfiles = {
   /**
-   * Auth endpoints: 10 requests / minute
+   * Auth endpoints: 10 requests / minute shared across player and admin authentication
    * Mitigates credential stuffing and brute-force registration/login
    */
   auth: rateLimiter({
-    keyPrefix: "auth",
+    keyPrefix: "auth-shared",
     windowMs: 60_000,
     limit: 10,
     message: "Too many authentication attempts. Please slow down and try again in a minute.",

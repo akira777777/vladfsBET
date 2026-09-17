@@ -40,4 +40,18 @@ describe("API flood protection", () => {
     expect(response.status).toBe(413);
     expect(await response.json()).toMatchObject({ error: "PAYLOAD_TOO_LARGE" });
   });
+
+  it.each([
+    "/api/wallet/demo-credit",
+    "/api/wallet/deposit",
+    "/api/admin/ledger/adjust",
+  ])("does not expose manual balance funding at %s", async (path) => {
+    const app = createApp();
+    const response = await app.request(path, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    expect(response.status).toBe(404);
+  });
 });
