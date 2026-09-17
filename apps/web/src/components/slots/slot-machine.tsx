@@ -34,7 +34,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   const { user, wallet, refreshWallet } = useAuth();
 
   // Active theme
-  const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
+  const [selectedSlug] = useState<string>(initialSlug);
   const theme: SlotTheme = useMemo(() => getSlotTheme(selectedSlug), [selectedSlug]);
 
   // Engine Mode Toggle: 6x5 Cascading Tumble vs Dynamic Megaways
@@ -205,7 +205,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
               body: JSON.stringify({ betAmount: effectiveStake.toString() }),
             });
             void refreshWallet();
-          } catch (e) {
+          } catch {
             setDemoBalance((prev) => Math.max(0, prev - effectiveStake));
           }
         }

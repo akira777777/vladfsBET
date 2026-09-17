@@ -91,7 +91,7 @@ export default function LootBoxesPage() {
     setUserVipPoints((prev) => prev - crate.costPoints);
 
     // Roll random prize
-    const rand = Math.random();
+    const rand = crypto.getRandomValues(new Uint32Array(1))[0]! / 0x1_0000_0000;
     let won = crate.possiblePrizes[0];
     if (rand > 0.95) won = crate.possiblePrizes[3];
     else if (rand > 0.75) won = crate.possiblePrizes[2];
