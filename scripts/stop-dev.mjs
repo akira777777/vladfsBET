@@ -69,7 +69,7 @@ function removeStaleNextLock() {
 }
 
 collectPortPids();
-collectProjectPids();
+if (!ports.length) collectProjectPids();
 
 if (pids.size === 0) {
   removeStaleNextLock();

@@ -11,8 +11,7 @@
   "scripts": {
     "postinstall": "node scripts/prisma-generate.mjs",
     "start": "npm run dev",
-    "predev": "node scripts/stop-dev.mjs",
-    "dev": "turbo run dev",
+    "dev": "node scripts/dev.mjs",
     "dev:stop": "node scripts/stop-dev.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
