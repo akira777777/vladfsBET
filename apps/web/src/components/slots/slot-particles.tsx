@@ -112,40 +112,52 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
         ctx.globalAlpha = Math.max(0, p.alpha);
 
         if (p.type === "COIN") {
-          // Draw shiny gold coin
+          // 3D spinning coin with depth and specular rim
+          const flipScale = Math.cos(p.rotation * 0.06);
+          const absScale = Math.max(0.12, Math.abs(flipScale));
+          
+          // Outer gold rim
           ctx.beginPath();
-          ctx.ellipse(0, 0, p.size, p.size * 0.6, 0, 0, Math.PI * 2);
-          ctx.fillStyle = "#fbbf24";
+          ctx.ellipse(0, 0, p.size, p.size * absScale, 0, 0, Math.PI * 2);
+          ctx.fillStyle = flipScale >= 0 ? "#fbbf24" : "#d97706";
           ctx.fill();
-          ctx.lineWidth = 1.5;
+          ctx.lineWidth = 1.8;
           ctx.strokeStyle = "#ffffff";
           ctx.stroke();
 
-          // Coin rim
+          // Inner engraved emblem
           ctx.beginPath();
-          ctx.ellipse(0, 0, p.size * 0.6, p.size * 0.35, 0, 0, Math.PI * 2);
-          ctx.strokeStyle = "#d97706";
+          ctx.ellipse(0, 0, p.size * 0.65, p.size * 0.65 * absScale, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = flipScale >= 0 ? "#fef08a" : "#b45309";
+          ctx.lineWidth = 1;
           ctx.stroke();
-        } else if (p.type === "STAR") {
-          // Draw sparkling star
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          for (let s = 0; s < 5; s++) {
-            ctx.lineTo(
-              Math.cos(((18 + s * 72) * Math.PI) / 180) * p.size,
-              -Math.sin(((18 + s * 72) * Math.PI) / 180) * p.size,
-            );
-            ctx.lineTo(
-              Math.cos(((54 + s * 72) * Math.PI) / 180) * (p.size * 0.4),
-              -Math.sin(((54 + s * 72) * Math.PI) / 180) * (p.size * 0.4),
-            );
+
+          // Specular highlight glint
+          if (absScale > 0.8) {
+            ctx.beginPath();
+            ctx.arc(p.size * 0.3, -p.size * absScale * 0.3, p.size * 0.2, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.fill();
           }
+        } else if (p.type === "STAR") {
+          // 4-point Diamond Twinkle
+          ctx.fillStyle = p.color;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(0, -p.size * 1.4);
+          ctx.quadraticCurveTo(0, 0, p.size * 1.4, 0);
+          ctx.quadraticCurveTo(0, 0, 0, p.size * 1.4);
+          ctx.quadraticCurveTo(0, 0, -p.size * 1.4, 0);
+          ctx.quadraticCurveTo(0, 0, 0, -p.size * 1.4);
           ctx.closePath();
           ctx.fill();
+          ctx.shadowBlur = 0;
         } else {
-          // Draw confetti rectangle
+          // Confetti ribbon with 3D roll
+          const roll = Math.cos(p.rotation * 0.04);
           ctx.fillStyle = p.color;
-          ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+          ctx.fillRect(-p.size / 2, (-p.size / 3) * roll, p.size, (p.size / 1.5) * Math.abs(roll));
         }
 
         ctx.restore();

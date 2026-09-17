@@ -129,11 +129,19 @@ export function SlotWinCelebration({
         />
       </div>
 
-      {/* Secondary expanding ring */}
+      {/* Dynamic Multi-layered Shockwave Rings */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div
-          className="rounded-full border border-white/20 animate-shatter-ring"
+          className="absolute rounded-full border border-white/20 animate-shatter-ring"
           style={{ width: "300px", height: "300px" }}
+        />
+        <div
+          className="absolute rounded-full border-2 border-amber-400/40 animate-ping opacity-25"
+          style={{ width: "480px", height: "480px", animationDuration: "2.8s" }}
+        />
+        <div
+          className="absolute rounded-full border border-yellow-300/30 animate-pulse"
+          style={{ width: "650px", height: "650px" }}
         />
       </div>
 
