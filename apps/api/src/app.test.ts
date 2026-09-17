@@ -55,7 +55,7 @@ describe("api", () => {
     expect(walletBody.realMoney).toBe(false);
     expect(walletBody.wallet.available).toBe("1000.00000000");
 
-    const play = await app.request("/api/games/sandbox-slots/play", {
+    const play = await app.request("/api/games/gates-of-vladfs/play", {
       method: "POST",
       headers: { "content-type": "application/json", cookie },
       body: JSON.stringify({ betAmount: "50" }),
