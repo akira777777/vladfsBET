@@ -1,0 +1,122 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "VLADFSBET Demo" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: VLADFSBET
+        - generic [ref=e6]: Demo
+      - navigation [ref=e7]:
+        - link "Casino" [ref=e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=e21] [cursor=pointer]:
+          - /url: /sports
+        - link "Tournaments" [ref=e29] [cursor=pointer]:
+          - /url: /tournaments
+        - link "Lucky Wheel" [ref=e33] [cursor=pointer]:
+          - /url: /rewards
+        - link "Loot Boxes" [ref=e39] [cursor=pointer]:
+          - /url: /lootboxes
+        - link "VIP" [ref=e45] [cursor=pointer]:
+          - /url: /vip
+      - button "Search" [ref=e50]
+  - main [ref=e52]:
+    - generic [ref=e53]:
+      - paragraph [ref=e56]: Demo play. Virtual credits only.
+      - generic [ref=e57]:
+        - heading "Log in" [level=1] [ref=e58]
+        - paragraph [ref=e59]: Demo accounts only. No real-money wallet.
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - text: Email
+            - textbox "Email" [ref=e62]
+          - generic [ref=e63]:
+            - text: Password
+            - textbox "Password" [ref=e64]
+          - button "Log in" [ref=e65]
+        - paragraph [ref=e66]:
+          - text: New here?
+          - link "Create a demo account" [ref=e67] [cursor=pointer]:
+            - /url: /register
+  - contentinfo [ref=e68]:
+    - generic [ref=e69]:
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - text: VLADFSBET
+          - paragraph [ref=e72]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=e73]:
+            - generic [ref=e74]: 18+ ONLY
+            - generic [ref=e75]: PROVABLY FAIR
+            - generic [ref=e76]: SANDBOX DEMO
+        - generic [ref=e77]:
+          - heading "Gaming" [level=3] [ref=e78]
+          - list [ref=e79]:
+            - listitem [ref=e80]:
+              - link "Casino Lobby" [ref=e81] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=e82]:
+              - link "Originals" [ref=e83] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=e84]:
+              - link "Live Casino" [ref=e85] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=e86]:
+              - link "Sportsbook" [ref=e87] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=e88]:
+              - link "Promotions" [ref=e89] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=e90]:
+              - link "VIP Club" [ref=e91] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=e92]:
+          - heading "Protection" [level=3] [ref=e93]
+          - list [ref=e94]:
+            - listitem [ref=e95]:
+              - link "Responsible Gaming" [ref=e96] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=e97]:
+              - link "Provably Fair" [ref=e98] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=e99]:
+              - link "Terms of Service" [ref=e100] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e101]:
+              - link "Privacy Policy" [ref=e102] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e103]:
+              - link "Cookie Preferences" [ref=e104] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=e105]:
+              - link "AML Policy" [ref=e106] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=e107]:
+              - link "KYC Policy" [ref=e108] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=e109]:
+          - heading "Support" [level=3] [ref=e110]
+          - list [ref=e111]:
+            - listitem [ref=e112]:
+              - link "About" [ref=e113] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e114]:
+              - link "Help Center" [ref=e115] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e116]:
+              - link "Contact" [ref=e117] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e118]:
+              - link "Account" [ref=e119] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=e120]:
+              - link "Cashier" [ref=e121] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=e122]:
+        - generic [ref=e123]: Responsible Gaming
+        - paragraph [ref=e127]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=e128]:
+        - paragraph [ref=e129]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=e130]: HMAC-SHA256 provably fair originals.
+  - button "Open Live Community Chat" [ref=e131]
+  - alert [ref=e135]
