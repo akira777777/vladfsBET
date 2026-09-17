@@ -25,12 +25,14 @@ export function GameRail({
           </Link>
         ) : null}
       </div>
-      <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {visible.map((game) => (
-          <div key={game.slug} className="w-44 shrink-0 snap-start">
-            <GameCard game={game} />
-          </div>
-        ))}
+      <div className="relative">
+        <div className="rail-fade flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {visible.map((game) => (
+            <div key={game.slug} className="w-44 shrink-0 snap-start">
+              <GameCard game={game} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
