@@ -1,0 +1,134 @@
+- generic [active] [ref=f8e1]:
+  - banner [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - link "VLADFSBET Demo" [ref=f8e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f8e5]: VLADFSBET
+        - generic [ref=f8e6]: Demo
+      - navigation [ref=f8e7]:
+        - link "Casino" [ref=f8e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=f8e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=f8e21] [cursor=pointer]:
+          - /url: /sports
+        - link "VIP" [ref=f8e29] [cursor=pointer]:
+          - /url: /vip
+        - button "More" [ref=f8e34]
+      - button "Search" [ref=f8e38]
+  - main [ref=f8e40]:
+    - generic [ref=f8e41]:
+      - generic [ref=f8e43]:
+        - generic [ref=f8e44]: VLADFSBET SPORTSBOOK • SANDBOX ODDS
+        - heading "Sportsbook" [level=1] [ref=f8e48]
+        - paragraph [ref=f8e49]: Wager on Premier League, Champions League, NBA, CS2 Majors, ATP Tennis and more with competitive virtual odds.
+      - generic [ref=f8e50]:
+        - generic [ref=f8e51]:
+          - button "2D Live Match Tracker" [ref=f8e52]
+          - button "Bet builder" [ref=f8e53]
+          - button "Live Match Stats" [ref=f8e54]
+        - generic [ref=f8e56]:
+          - generic [ref=f8e57]:
+            - generic [ref=f8e58]:
+              - generic [ref=f8e59]: LIVE 68'
+              - generic [ref=f8e66]: Real Madrid vs Manchester City
+            - generic [ref=f8e67]: 2 - 1
+          - generic [ref=f8e68]: 🔥 DANGEROUS ATTACK - REAL MADRID
+      - generic [ref=f8e77]:
+        - generic [ref=f8e78]:
+          - generic [ref=f8e79]:
+            - generic [ref=f8e80]:
+              - button "All" [ref=f8e81]
+              - button "Soccer" [ref=f8e82]
+              - button "Basketball" [ref=f8e83]
+              - button "Esports" [ref=f8e84]
+              - button "Tennis" [ref=f8e85]
+            - generic [ref=f8e86]:
+              - button "Match Lobby" [ref=f8e87]
+              - button "My Bets" [ref=f8e88]
+          - generic [ref=f8e89]: Loading sports fixtures…
+        - generic [ref=f8e94]:
+          - generic [ref=f8e96]:
+            - generic [ref=f8e100]: Bet Slip
+            - generic [ref=f8e101]: "0"
+          - generic [ref=f8e102]: Your bet slip is empty.Click on any odds to add selections.
+  - contentinfo [ref=f8e103]:
+    - generic [ref=f8e104]:
+      - generic [ref=f8e105]:
+        - generic [ref=f8e106]:
+          - text: VLADFSBET
+          - paragraph [ref=f8e107]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f8e108]:
+            - generic [ref=f8e109]: 18+ ONLY
+            - generic [ref=f8e110]: PROVABLY FAIR
+            - generic [ref=f8e111]: SANDBOX DEMO
+        - generic [ref=f8e112]:
+          - heading "Gaming" [level=3] [ref=f8e113]
+          - list [ref=f8e114]:
+            - listitem [ref=f8e115]:
+              - link "Casino Lobby" [ref=f8e116] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f8e117]:
+              - link "Originals" [ref=f8e118] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f8e119]:
+              - link "Live Casino" [ref=f8e120] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f8e121]:
+              - link "Sportsbook" [ref=f8e122] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f8e123]:
+              - link "Promotions" [ref=f8e124] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f8e125]:
+              - link "VIP Club" [ref=f8e126] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f8e127]:
+          - heading "Protection" [level=3] [ref=f8e128]
+          - list [ref=f8e129]:
+            - listitem [ref=f8e130]:
+              - link "Responsible Gaming" [ref=f8e131] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f8e132]:
+              - link "Provably Fair" [ref=f8e133] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f8e134]:
+              - link "Terms of Service" [ref=f8e135] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f8e136]:
+              - link "Privacy Policy" [ref=f8e137] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f8e138]:
+              - link "Cookie Preferences" [ref=f8e139] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f8e140]:
+              - link "AML Policy" [ref=f8e141] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f8e142]:
+              - link "KYC Policy" [ref=f8e143] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f8e144]:
+          - heading "Support" [level=3] [ref=f8e145]
+          - list [ref=f8e146]:
+            - listitem [ref=f8e147]:
+              - link "About" [ref=f8e148] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f8e149]:
+              - link "Help Center" [ref=f8e150] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f8e151]:
+              - link "Contact" [ref=f8e152] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f8e153]:
+              - link "Account" [ref=f8e154] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f8e155]:
+              - link "Cashier" [ref=f8e156] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f8e157]:
+        - generic [ref=f8e158]: Responsible Gaming
+        - paragraph [ref=f8e162]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f8e163]:
+        - paragraph [ref=f8e164]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f8e165]: HMAC-SHA256 provably fair originals.
+  - button "Open Next.js Dev Tools" [ref=f8e171] [cursor=pointer]

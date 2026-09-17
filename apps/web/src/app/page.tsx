@@ -68,7 +68,7 @@ export default function HomePage() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#07080C] via-[#07080C]/75 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-black/40" />
 
         <div className="relative mx-auto flex min-h-[75vh] max-w-7xl flex-col justify-end gap-6 px-4 pb-16">
           <div className="inline-flex items-center gap-2 rounded-full bg-gold/20 border border-gold/40 px-3 py-1 text-xs font-bold text-gold backdrop-blur-sm w-fit">
@@ -132,7 +132,7 @@ export default function HomePage() {
         <LiveBetsTable />
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-purple-500/30 bg-gradient-to-br from-[#1b0a2f] to-[#0A0E17] p-8 text-white space-y-4">
+          <Card className="border-purple-500/30 bg-gradient-to-br from-[#1b0a2f] to-card p-8 text-white space-y-4">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/20 px-3 py-1 text-xs font-bold text-purple-300">
               <Gift className="h-3.5 w-3.5" />
               <span>WELCOME</span>
@@ -146,7 +146,7 @@ export default function HomePage() {
             </Button>
           </Card>
 
-          <Card className="border-gold/30 bg-gradient-to-br from-[#241a05] to-[#0A0E17] p-8 text-white space-y-4">
+          <Card className="border-gold/30 bg-gradient-to-br from-[#241a05] to-card p-8 text-white space-y-4">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-gold/20 px-3 py-1 text-xs font-bold text-gold">
               <Crown className="h-3.5 w-3.5" />
               <span>VIP</span>
@@ -171,7 +171,7 @@ export default function HomePage() {
             {ADVANTAGES.map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.title} className="border-white/10 bg-[#0A0E17] p-6 text-white space-y-3">
+                <Card key={item.title} className="border-white/10 bg-card p-6 text-white space-y-3">
                   <div className="h-10 w-10 rounded-lg bg-gold/10 flex items-center justify-center text-gold">
                     <Icon className="h-5 w-5" />
                   </div>

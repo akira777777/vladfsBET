@@ -142,7 +142,7 @@ html {
 }
 
 body {
-  background-color: #07080c;
+  background-color: var(--background);
   background-image:
     radial-gradient(1200px 500px at 80% -10%, oklch(0.35 0.08 250 / 0.18), transparent 60%),
     radial-gradient(900px 400px at 0% 100%, oklch(0.4 0.08 85 / 0.08), transparent 55%);
@@ -171,6 +171,10 @@ body {
 
 .gold-cta:hover {
   filter: brightness(1.08);
+}
+
+.rail-fade {
+  mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 2.75rem), transparent 100%);
 }
 
 .live-dot {

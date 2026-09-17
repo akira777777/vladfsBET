@@ -197,9 +197,21 @@ export function SlotMascot({
           }`}
         />
 
-        <div className="relative p-4 rounded-3xl bg-neutral-950/80 border-2 border-amber-400/40 shadow-2xl flex flex-col items-center text-center">
-          <span className="text-5xl drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]">
-            {themeId === "cyber-neon-777" ? "🤖" : themeId === "pharaoh-gold-deluxe" ? "👑" : themeId === "sugar-rush-frenzy" ? "🍭" : "🐉"}
+        <div className="relative p-4 rounded-3xl bg-card/80 border-2 border-amber-400/40 shadow-2xl flex flex-col items-center text-center">
+          <span
+            className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-black text-black shadow-[0_0_18px_rgba(251,191,36,0.55)]"
+            style={{
+              background:
+                themeId === "cyber-neon-777"
+                  ? "linear-gradient(135deg,#22d3ee,#6366f1)"
+                  : themeId === "pharaoh-gold-deluxe"
+                    ? "linear-gradient(135deg,#fde68a,#b45309)"
+                    : themeId === "sugar-rush-frenzy"
+                      ? "linear-gradient(135deg,#f9a8d4,#ec4899)"
+                      : "linear-gradient(135deg,#facc15,#dc2626)",
+            }}
+          >
+            {themeId === "cyber-neon-777" ? "C" : themeId === "pharaoh-gold-deluxe" ? "P" : themeId === "sugar-rush-frenzy" ? "S" : "D"}
           </span>
           <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 mt-2">
             {themeId === "cyber-neon-777" ? "CYBER BOSS" : themeId === "pharaoh-gold-deluxe" ? "PHARAOH" : themeId === "sugar-rush-frenzy" ? "SUGAR QUEEN" : "GOLD DRAGON"}

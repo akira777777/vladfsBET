@@ -36,9 +36,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-[#0A0E17] lg:grid-cols-2 my-10 mx-4 lg:mx-auto">
+    <div className="mx-4 my-10 grid max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-card lg:mx-auto lg:grid-cols-2">
       <div className="relative hidden min-h-[420px] lg:block">
-        <Image src="/games/aero-crash.jpg" alt="" fill className="object-cover" />
+        <Image src="/hero.jpg" alt="" fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20" />
         <p className="absolute bottom-8 left-8 right-8 font-heading text-2xl font-bold text-white">
           Demo play. Virtual credits only.

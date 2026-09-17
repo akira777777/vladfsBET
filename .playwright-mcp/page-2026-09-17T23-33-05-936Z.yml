@@ -1,0 +1,141 @@
+- generic [active] [ref=f7e1]:
+  - banner [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - link "VLADFSBET Demo" [ref=f7e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f7e5]: VLADFSBET
+        - generic [ref=f7e6]: Demo
+      - navigation [ref=f7e7]:
+        - link "Casino" [ref=f7e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=f7e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=f7e21] [cursor=pointer]:
+          - /url: /sports
+        - link "VIP" [ref=f7e29] [cursor=pointer]:
+          - /url: /vip
+        - button "More" [ref=f7e34]
+      - button "Search" [ref=f7e38]
+  - main [ref=f7e40]:
+    - generic [ref=f7e41]:
+      - generic [ref=f7e44]:
+        - generic [ref=f7e45]: LIVE STUDIO · SANDBOX
+        - heading "Live casino" [level=1] [ref=f7e54]
+        - paragraph [ref=f7e55]: RNG tables styled as live studios. Occupancy is not simulated. Virtual credits only.
+      - generic [ref=f7e56]:
+        - button "ALL" [ref=f7e57]
+        - button "ROULETTE" [ref=f7e58]
+        - button "BLACKJACK" [ref=f7e59]
+        - button "BACCARAT" [ref=f7e60]
+        - button "GAME SHOW" [ref=f7e61]
+      - generic [ref=f7e62]:
+        - link [ref=f7e63] [cursor=pointer]:
+          - /url: /casino/lightning-roulette
+          - generic [ref=f7e64]: LIVE
+          - generic [ref=f7e68]:
+            - heading "Lightning Roulette" [level=2] [ref=f7e69]
+            - paragraph [ref=f7e70]: ROULETTE · $0.50 – $2,000
+        - link [ref=f7e71] [cursor=pointer]:
+          - /url: /casino/infinite-blackjack
+          - generic [ref=f7e72]: LIVE
+          - generic [ref=f7e76]:
+            - heading "Infinite Blackjack VIP" [level=2] [ref=f7e77]
+            - paragraph [ref=f7e78]: BLACKJACK · $1.00 – $5,000
+        - link [ref=f7e79] [cursor=pointer]:
+          - /url: /casino/dragon-baccarat
+          - generic [ref=f7e80]: LIVE
+          - generic [ref=f7e84]:
+            - heading "Dragon Speed Baccarat" [level=2] [ref=f7e85]
+            - paragraph [ref=f7e86]: BACCARAT · $1.00 – $1,000
+        - link [ref=f7e87] [cursor=pointer]:
+          - /url: /casino/crazy-time-deluxe
+          - generic [ref=f7e88]: LIVE
+          - generic [ref=f7e92]:
+            - heading "Studio Wheel Deluxe" [level=2] [ref=f7e93]
+            - paragraph [ref=f7e94]: GAME SHOW · $0.10 – $2,500
+        - link [ref=f7e95] [cursor=pointer]:
+          - /url: /casino/monopoly-live-studio
+          - generic [ref=f7e96]: LIVE
+          - generic [ref=f7e100]:
+            - heading "Studio Board Live" [level=2] [ref=f7e101]
+            - paragraph [ref=f7e102]: GAME SHOW · $0.10 – $1,000
+  - contentinfo [ref=f7e103]:
+    - generic [ref=f7e104]:
+      - generic [ref=f7e105]:
+        - generic [ref=f7e106]:
+          - text: VLADFSBET
+          - paragraph [ref=f7e107]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f7e108]:
+            - generic [ref=f7e109]: 18+ ONLY
+            - generic [ref=f7e110]: PROVABLY FAIR
+            - generic [ref=f7e111]: SANDBOX DEMO
+        - generic [ref=f7e112]:
+          - heading "Gaming" [level=3] [ref=f7e113]
+          - list [ref=f7e114]:
+            - listitem [ref=f7e115]:
+              - link "Casino Lobby" [ref=f7e116] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f7e117]:
+              - link "Originals" [ref=f7e118] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f7e119]:
+              - link "Live Casino" [ref=f7e120] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f7e121]:
+              - link "Sportsbook" [ref=f7e122] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f7e123]:
+              - link "Promotions" [ref=f7e124] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f7e125]:
+              - link "VIP Club" [ref=f7e126] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f7e127]:
+          - heading "Protection" [level=3] [ref=f7e128]
+          - list [ref=f7e129]:
+            - listitem [ref=f7e130]:
+              - link "Responsible Gaming" [ref=f7e131] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f7e132]:
+              - link "Provably Fair" [ref=f7e133] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f7e134]:
+              - link "Terms of Service" [ref=f7e135] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f7e136]:
+              - link "Privacy Policy" [ref=f7e137] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f7e138]:
+              - link "Cookie Preferences" [ref=f7e139] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f7e140]:
+              - link "AML Policy" [ref=f7e141] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f7e142]:
+              - link "KYC Policy" [ref=f7e143] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f7e144]:
+          - heading "Support" [level=3] [ref=f7e145]
+          - list [ref=f7e146]:
+            - listitem [ref=f7e147]:
+              - link "About" [ref=f7e148] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f7e149]:
+              - link "Help Center" [ref=f7e150] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f7e151]:
+              - link "Contact" [ref=f7e152] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f7e153]:
+              - link "Account" [ref=f7e154] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f7e155]:
+              - link "Cashier" [ref=f7e156] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f7e157]:
+        - generic [ref=f7e158]: Responsible Gaming
+        - paragraph [ref=f7e162]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f7e163]:
+        - paragraph [ref=f7e164]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f7e165]: HMAC-SHA256 provably fair originals.
+  - button "Open Next.js Dev Tools" [ref=f7e171] [cursor=pointer]

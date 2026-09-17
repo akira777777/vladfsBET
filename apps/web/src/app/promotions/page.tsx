@@ -37,7 +37,7 @@ export default function PromotionsPage() {
 
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {templates.map((template) => (
-          <Card key={template.id} className="space-y-3 border-white/10 bg-[#0A0E17] p-6 text-white">
+          <Card key={template.id} className="space-y-3 border-white/10 bg-card p-6 text-white">
             <span className="text-[10px] font-bold uppercase tracking-widest text-purple-300">{template.type}</span>
             <h2 className="text-lg font-bold">{template.name}</h2>
             <p className="text-xs leading-relaxed text-muted-foreground">{template.terms}</p>

@@ -42,15 +42,10 @@ export function GameCard({ game }: { game: Game }) {
           </span>
         </div>
 
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
-        >
-          <span className="inline-flex items-center gap-1.5 rounded-full gold-cta px-4 py-2 text-xs font-extrabold uppercase tracking-wide">
-            <Play className="h-3.5 w-3.5" />
-            Play
-          </span>
-        </div>
+        <span className="absolute left-1/2 top-[42%] z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full gold-cta px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wide opacity-90 shadow-lg sm:opacity-0 sm:transition-opacity sm:duration-200 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100">
+          <Play className="h-3 w-3" />
+          Play
+        </span>
 
         {user ? (
           <button

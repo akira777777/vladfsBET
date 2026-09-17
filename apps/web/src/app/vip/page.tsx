@@ -73,7 +73,7 @@ export default function VipPage() {
 
       {/* User Progress Card */}
       {user && (
-        <Card className="border-gold/30 bg-[#0A0E17] p-6 text-white shadow-xl space-y-6">
+        <Card className="border-gold/30 bg-card p-6 text-white shadow-xl space-y-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-1">
               <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Current VIP Status</span>
@@ -125,7 +125,7 @@ export default function VipPage() {
               <Card
                 key={tier.name}
                 className={`flex flex-col justify-between border p-5 text-white transition-all ${
-                  isCurrent ? "border-gold ring-2 ring-gold/50 bg-[#121622] scale-[1.03] shadow-2xl" : "border-white/10 bg-[#0A0E17] hover:border-white/20"
+                  isCurrent ? "border-gold ring-2 ring-gold/50 bg-card scale-[1.03] shadow-2xl" : "border-white/10 bg-card hover:border-white/20"
                 }`}
               >
                 <div>

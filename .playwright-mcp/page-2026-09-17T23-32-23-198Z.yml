@@ -1,0 +1,174 @@
+- generic [active] [ref=f4e1]:
+  - banner [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - link "VLADFSBET Demo" [ref=f4e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f4e5]: VLADFSBET
+        - generic [ref=f4e6]: Demo
+      - navigation [ref=f4e7]:
+        - link "Casino" [ref=f4e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=f4e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=f4e21] [cursor=pointer]:
+          - /url: /sports
+        - link "VIP" [ref=f4e29] [cursor=pointer]:
+          - /url: /vip
+        - button "More" [ref=f4e34]
+      - generic [ref=f4e37]:
+        - button "Search" [ref=f4e38]
+        - generic [ref=f4e691]:
+          - link "Log in" [ref=f4e692] [cursor=pointer]:
+            - /url: /login
+          - link "Register" [ref=f4e693] [cursor=pointer]:
+            - /url: /register
+  - main [ref=f4e40]:
+    - generic [ref=f4e1014]:
+      - generic [ref=f4e1015]:
+        - link "Lobby" [ref=f4e1016] [cursor=pointer]:
+          - /url: /casino
+        - heading "Plinko" [level=1] [ref=f4e1019]
+        - generic [ref=f4e1020]: Demo
+      - generic [ref=f4e1021]:
+        - generic [ref=f4e1022]:
+          - generic [ref=f4e1023]:
+            - generic [ref=f4e1028]:
+              - text: "Session:"
+              - strong [ref=f4e1029]: 00:00
+            - generic [ref=f4e1031]: Demo Mode • 18+ Play Responsibly
+          - link "Set Gaming Limits" [ref=f4e1033] [cursor=pointer]:
+            - /url: /responsible-gaming
+        - generic [ref=f4e1037]:
+          - generic [ref=f4e1038]:
+            - generic [ref=f4e1039]:
+              - heading "Plinko" [level=1] [ref=f4e1041]
+              - generic [ref=f4e1045]: Rigid Body 2D Physics
+            - paragraph [ref=f4e1046]: Customizable 8–16 row pegboard with 3 risk profiles, multi-ball spamming, and certified provably fair outcomes.
+          - generic [ref=f4e1047]:
+            - button "Sound ON" [ref=f4e1048]
+            - button "🛡️ Provably Fair" [ref=f4e1049]
+        - generic [ref=f4e1050]:
+          - generic [ref=f4e1052]:
+            - generic [ref=f4e1053]:
+              - button "Manual" [ref=f4e1054]
+              - button "Auto Strategy" [ref=f4e1055]
+            - generic [ref=f4e1056]:
+              - generic [ref=f4e1057]:
+                - generic [ref=f4e1058]: Bet Amount ($)
+                - generic [ref=f4e1059]: "Balance: US$1,000.00"
+              - spinbutton [ref=f4e1060]: "10"
+              - generic [ref=f4e1061]:
+                - button "$1" [ref=f4e1062]
+                - button "$5" [ref=f4e1063]
+                - button "$10" [ref=f4e1064]
+                - button "$25" [ref=f4e1065]
+                - button "$50" [ref=f4e1066]
+                - button "$100" [ref=f4e1067]
+            - generic [ref=f4e1068]:
+              - text: Risk Profile
+              - generic [ref=f4e1069]:
+                - button "LOW" [ref=f4e1070]
+                - button "MEDIUM" [ref=f4e1071]
+                - button "HIGH" [ref=f4e1072]
+            - generic [ref=f4e1073]:
+              - generic [ref=f4e1074]:
+                - generic [ref=f4e1075]: Board Rows
+                - generic [ref=f4e1076]: 16 Rows
+              - generic [ref=f4e1077]:
+                - button "8" [ref=f4e1078]
+                - button "10" [ref=f4e1079]
+                - button "12" [ref=f4e1080]
+                - button "14" [ref=f4e1081]
+                - button "16" [ref=f4e1082]
+            - generic [ref=f4e1083]:
+              - button "Drop Ball ($10)" [ref=f4e1084]
+              - button "Rapid drop 5 balls" [ref=f4e1085]
+          - generic [ref=f4e1087]:
+            - generic [ref=f4e1088]: "Recent:"
+            - generic [ref=f4e1089]: 2x (+$20)
+            - generic [ref=f4e1090]: 0.2x (+$2)
+            - generic [ref=f4e1091]: 26x (+$260)
+            - generic [ref=f4e1092]: 4x (+$40)
+            - generic [ref=f4e1093]: 0.2x (+$2)
+  - contentinfo [ref=f4e619]:
+    - generic [ref=f4e620]:
+      - generic [ref=f4e621]:
+        - generic [ref=f4e622]:
+          - text: VLADFSBET
+          - paragraph [ref=f4e623]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f4e624]:
+            - generic [ref=f4e625]: 18+ ONLY
+            - generic [ref=f4e626]: PROVABLY FAIR
+            - generic [ref=f4e627]: SANDBOX DEMO
+        - generic [ref=f4e628]:
+          - heading "Gaming" [level=3] [ref=f4e629]
+          - list [ref=f4e630]:
+            - listitem [ref=f4e631]:
+              - link "Casino Lobby" [ref=f4e632] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f4e633]:
+              - link "Originals" [ref=f4e634] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f4e635]:
+              - link "Live Casino" [ref=f4e636] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f4e637]:
+              - link "Sportsbook" [ref=f4e638] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f4e639]:
+              - link "Promotions" [ref=f4e640] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f4e641]:
+              - link "VIP Club" [ref=f4e642] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f4e643]:
+          - heading "Protection" [level=3] [ref=f4e644]
+          - list [ref=f4e645]:
+            - listitem [ref=f4e646]:
+              - link "Responsible Gaming" [ref=f4e647] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f4e648]:
+              - link "Provably Fair" [ref=f4e649] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f4e650]:
+              - link "Terms of Service" [ref=f4e651] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f4e652]:
+              - link "Privacy Policy" [ref=f4e653] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f4e654]:
+              - link "Cookie Preferences" [ref=f4e655] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f4e656]:
+              - link "AML Policy" [ref=f4e657] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f4e658]:
+              - link "KYC Policy" [ref=f4e659] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f4e660]:
+          - heading "Support" [level=3] [ref=f4e661]
+          - list [ref=f4e662]:
+            - listitem [ref=f4e663]:
+              - link "About" [ref=f4e664] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f4e665]:
+              - link "Help Center" [ref=f4e666] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f4e667]:
+              - link "Contact" [ref=f4e668] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f4e669]:
+              - link "Account" [ref=f4e670] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f4e671]:
+              - link "Cashier" [ref=f4e672] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f4e673]:
+        - generic [ref=f4e674]: Responsible Gaming
+        - paragraph [ref=f4e678]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f4e679]:
+        - paragraph [ref=f4e680]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f4e681]: HMAC-SHA256 provably fair originals.
+  - button "Open Next.js Dev Tools" [ref=f4e687] [cursor=pointer]
+  - alert [ref=f4e1009]: VladfsBET
+  - button "Open Live Community Chat" [ref=f4e1010]
