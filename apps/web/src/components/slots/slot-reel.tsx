@@ -55,7 +55,7 @@ export function SlotReel({
     }
 
     timeoutRef.current = setTimeout(() => {
-      setAnimState("STOPPING");
+      setAnimState("BOUNCING");
       slotAudio.playReelStop(colIndex);
 
       if (isAnticipating) {
@@ -70,7 +70,7 @@ export function SlotReel({
       setTimeout(() => {
         setAnimState("IDLE");
         onReelStopped(colIndex);
-      }, isTurbo ? 100 : 250);
+      }, isTurbo ? 120 : 320);
     }, stopDelay);
 
     return () => {
@@ -138,19 +138,19 @@ export function SlotReel({
 
       {/* Spinning Strip Container */}
       <div
-        className="flex flex-col w-full"
+        className={`flex flex-col w-full ${animState === "BOUNCING" ? "animate-reel-spring" : ""}`}
         style={{
           transform:
             animState === "SPINNING"
               ? `translateY(-${(stripSymbols.length - 6) * 33.333}%)`
-              : animState === "STOPPING"
-              ? `translateY(-${targetOffset}%)`
               : `translateY(-${targetOffset}%)`,
           transition:
             animState === "SPINNING"
               ? `transform ${isTurbo ? "0.3s" : "0.7s"} linear infinite`
+              : animState === "BOUNCING"
+              ? `transform ${isTurbo ? "0.18s" : "0.38s"} cubic-bezier(0.34, 1.56, 0.64, 1)`
               : `transform ${isTurbo ? "0.2s" : "0.45s"} cubic-bezier(0.15, 0.85, 0.35, 1.15)`,
-          filter: animState === "SPINNING" ? "blur(1.5px)" : "none",
+          filter: animState === "SPINNING" ? "blur(2.5px)" : "none",
         }}
       >
         {stripSymbols.map((symbolId, idx) => (
