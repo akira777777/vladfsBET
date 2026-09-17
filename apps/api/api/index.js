@@ -8288,17 +8288,27 @@ var adaptiveBodyLimit = async (c, next) => {
   }
   return defaultBodyLimit(c, next);
 };
-var requestTimeout = timeout(15e3, (c) => {
-  return new HTTPException(504, {
-    res: c.json(
-      {
-        error: "REQUEST_TIMEOUT",
-        message: "Request timed out after 15 seconds."
-      },
-      504
-    )
+function timeoutMiddleware(seconds) {
+  return timeout(seconds * 1e3, (c) => {
+    return new HTTPException(504, {
+      res: c.json(
+        {
+          error: "REQUEST_TIMEOUT",
+          message: `Request timed out after ${seconds} seconds.`
+        },
+        504
+      )
+    });
   });
-});
+}
+var standardRequestTimeout = timeoutMiddleware(15);
+var registrationRequestTimeout = timeoutMiddleware(30);
+var requestTimeout = (c, next) => {
+  if (c.req.path === "/api/auth/register") {
+    return registrationRequestTimeout(c, next);
+  }
+  return standardRequestTimeout(c, next);
+};
 
 // ../../packages/db/dist/index.js
 import { PrismaClient } from "@prisma/client";

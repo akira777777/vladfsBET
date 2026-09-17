@@ -65,18 +65,30 @@ export const adaptiveBodyLimit: MiddlewareHandler = async (c, next) => {
   return defaultBodyLimit(c, next);
 };
 
-/**
- * Request timeout middleware (15 seconds)
- * Mitigates Slowloris and connection starvation attacks
- */
-export const requestTimeout = timeout(15_000, (c) => {
-  return new HTTPException(504, {
-    res: c.json(
-      {
-        error: "REQUEST_TIMEOUT",
-        message: "Request timed out after 15 seconds.",
-      },
-      504,
-    ),
+function timeoutMiddleware(seconds: number) {
+  return timeout(seconds * 1_000, (c) => {
+    return new HTTPException(504, {
+      res: c.json(
+        {
+          error: "REQUEST_TIMEOUT",
+          message: `Request timed out after ${seconds} seconds.`,
+        },
+        504,
+      ),
+    });
   });
-});
+}
+
+const standardRequestTimeout = timeoutMiddleware(15);
+const registrationRequestTimeout = timeoutMiddleware(30);
+
+/**
+ * Most requests are capped at 15 seconds. Registration gets 30 seconds because
+ * it performs password hashing and several ledger writes against the remote DB.
+ */
+export const requestTimeout: MiddlewareHandler = (c, next) => {
+  if (c.req.path === "/api/auth/register") {
+    return registrationRequestTimeout(c, next);
+  }
+  return standardRequestTimeout(c, next);
+};

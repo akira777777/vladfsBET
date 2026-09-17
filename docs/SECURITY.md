@@ -40,7 +40,7 @@
   - Global API requests strictly capped at **128 KB** to prevent Event Loop blocking and Memory Exhaustion (HTTP 413).
   - KYC document uploads (`/api/kyc/upload`) are capped at **4 MB**.
 - **Request Timeout Defense**:
-  - Global 15-second execution timeout prevents Slowloris and connection starvation attacks (HTTP 504).
+  - Requests have a 15-second execution timeout; registration gets 30 seconds for password hashing and remote ledger writes (HTTP 504).
 - **Security Headers**:
   - Enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, and HSTS.
 
