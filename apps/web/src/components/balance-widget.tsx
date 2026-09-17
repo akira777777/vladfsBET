@@ -20,14 +20,16 @@ export function BalanceWidget() {
   return (
     <Link
       href="/wallet"
-      className="flex min-w-0 flex-col items-end rounded-lg px-2 py-1 transition-colors hover:bg-white/5"
+      className="flex min-w-0 items-center gap-2 rounded-lg border border-gold/20 bg-gold/5 px-2.5 py-1.5 transition-colors hover:bg-gold/10"
     >
-      <span className="tabular text-sm font-medium text-gold">
-        {formatMoney(wallet.available, wallet.currency)}
-      </span>
-      <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <DemoBadge />
-        <span>credits</span>
+      <span className="flex min-w-0 flex-col items-end">
+        <span className="tabular text-sm font-semibold text-gold">
+          {formatMoney(wallet.available, wallet.currency)}
+        </span>
+        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <DemoBadge />
+          <span className="hidden sm:inline">Wallet</span>
+        </span>
       </span>
     </Link>
   );

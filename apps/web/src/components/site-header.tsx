@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,25 +11,43 @@ import { NotificationsDrawer } from "@/components/notifications-drawer";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Sparkles, Trophy, Radio, Gift, Crown, Flame, Package } from "lucide-react";
+import {
+  Sparkles,
+  Trophy,
+  Radio,
+  Gift,
+  Crown,
+  Flame,
+  Package,
+  ChevronDown,
+} from "lucide-react";
 
-const NAV = [
+const PRIMARY_NAV = [
   { href: "/casino", label: "Casino", icon: Sparkles },
   { href: "/live-casino", label: "Live", icon: Radio },
   { href: "/sports", label: "Sports", icon: Trophy },
+  { href: "/vip", label: "VIP", icon: Crown },
+] as const;
+
+const MORE_NAV = [
   { href: "/tournaments", label: "Tournaments", icon: Flame },
   { href: "/rewards", label: "Lucky Wheel", icon: Gift },
   { href: "/lootboxes", label: "Loot Boxes", icon: Package },
-  { href: "/vip", label: "VIP", icon: Crown },
-];
+  { href: "/promotions", label: "Promotions", icon: Gift },
+] as const;
+
+function navActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function SiteHeader() {
   const pathname = usePathname();
   const { user, ready } = useAuth();
+  const moreActive = MORE_NAV.some((item) => navActive(pathname, item.href));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/8 bg-[#07080C]/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
+    <header className="sticky top-0 z-40 border-b border-white/8 bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
           <Image
             src="/logo-mark.jpg"
@@ -43,10 +62,10 @@ export function SiteHeader() {
           <DemoBadge className="hidden sm:inline-flex" />
         </Link>
 
-        <nav className="hidden items-center gap-1 xl:flex ml-2">
-          {NAV.map((item) => {
+        <nav className="hidden items-center gap-1 lg:flex ml-2">
+          {PRIMARY_NAV.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = navActive(pathname, item.href);
             return (
               <Link
                 key={item.href}
@@ -61,6 +80,7 @@ export function SiteHeader() {
               </Link>
             );
           })}
+          <MoreMenu pathname={pathname} active={moreActive} />
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
@@ -89,5 +109,75 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
+  );
+}
+
+function MoreMenu({ pathname, active }: { pathname: string; active: boolean }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointer(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((value) => !value)}
+        className={cn(
+          "flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:text-white hover:bg-white/5",
+          (open || active) && "text-gold bg-gold/10 font-bold",
+        )}
+      >
+        More
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+      </button>
+      {open ? (
+        <div
+          role="menu"
+          className="absolute left-0 top-full z-50 mt-1 min-w-[11rem] rounded-xl border border-white/10 bg-popover p-1 shadow-xl"
+        >
+          {MORE_NAV.map((item) => {
+            const Icon = item.icon;
+            const isActive = navActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                role="menuitem"
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-muted-foreground hover:bg-white/5 hover:text-white",
+                  isActive && "text-gold bg-gold/10",
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
