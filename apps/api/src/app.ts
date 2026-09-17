@@ -1,4 +1,3 @@
-import "./setup-env.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";

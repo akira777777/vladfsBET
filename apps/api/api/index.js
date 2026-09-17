@@ -47,368 +47,10 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// ../../node_modules/dotenv/package.json
-var require_package = __commonJS({
-  "../../node_modules/dotenv/package.json"(exports, module) {
-    module.exports = {
-      name: "dotenv",
-      version: "16.6.1",
-      description: "Loads environment variables from .env file",
-      main: "lib/main.js",
-      types: "lib/main.d.ts",
-      exports: {
-        ".": {
-          types: "./lib/main.d.ts",
-          require: "./lib/main.js",
-          default: "./lib/main.js"
-        },
-        "./config": "./config.js",
-        "./config.js": "./config.js",
-        "./lib/env-options": "./lib/env-options.js",
-        "./lib/env-options.js": "./lib/env-options.js",
-        "./lib/cli-options": "./lib/cli-options.js",
-        "./lib/cli-options.js": "./lib/cli-options.js",
-        "./package.json": "./package.json"
-      },
-      scripts: {
-        "dts-check": "tsc --project tests/types/tsconfig.json",
-        lint: "standard",
-        pretest: "npm run lint && npm run dts-check",
-        test: "tap run --allow-empty-coverage --disable-coverage --timeout=60000",
-        "test:coverage": "tap run --show-full-coverage --timeout=60000 --coverage-report=text --coverage-report=lcov",
-        prerelease: "npm test",
-        release: "standard-version"
-      },
-      repository: {
-        type: "git",
-        url: "git://github.com/motdotla/dotenv.git"
-      },
-      homepage: "https://github.com/motdotla/dotenv#readme",
-      funding: "https://dotenvx.com",
-      keywords: [
-        "dotenv",
-        "env",
-        ".env",
-        "environment",
-        "variables",
-        "config",
-        "settings"
-      ],
-      readmeFilename: "README.md",
-      license: "BSD-2-Clause",
-      devDependencies: {
-        "@types/node": "^18.11.3",
-        decache: "^4.6.2",
-        sinon: "^14.0.1",
-        standard: "^17.0.0",
-        "standard-version": "^9.5.0",
-        tap: "^19.2.0",
-        typescript: "^4.8.4"
-      },
-      engines: {
-        node: ">=12"
-      },
-      browser: {
-        fs: false
-      }
-    };
-  }
-});
-
-// ../../node_modules/dotenv/lib/main.js
-var require_main = __commonJS({
-  "../../node_modules/dotenv/lib/main.js"(exports, module) {
-    var fs = __require("fs");
-    var path = __require("path");
-    var os = __require("os");
-    var crypto3 = __require("crypto");
-    var packageJson = require_package();
-    var version = packageJson.version;
-    var LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
-    function parse2(src) {
-      const obj = {};
-      let lines = src.toString();
-      lines = lines.replace(/\r\n?/mg, "\n");
-      let match2;
-      while ((match2 = LINE.exec(lines)) != null) {
-        const key = match2[1];
-        let value = match2[2] || "";
-        value = value.trim();
-        const maybeQuote = value[0];
-        value = value.replace(/^(['"`])([\s\S]*)\1$/mg, "$2");
-        if (maybeQuote === '"') {
-          value = value.replace(/\\n/g, "\n");
-          value = value.replace(/\\r/g, "\r");
-        }
-        obj[key] = value;
-      }
-      return obj;
-    }
-    function _parseVault(options) {
-      options = options || {};
-      const vaultPath = _vaultPath(options);
-      options.path = vaultPath;
-      const result = DotenvModule.configDotenv(options);
-      if (!result.parsed) {
-        const err = new Error(`MISSING_DATA: Cannot parse ${vaultPath} for an unknown reason`);
-        err.code = "MISSING_DATA";
-        throw err;
-      }
-      const keys = _dotenvKey(options).split(",");
-      const length = keys.length;
-      let decrypted;
-      for (let i = 0; i < length; i++) {
-        try {
-          const key = keys[i].trim();
-          const attrs = _instructions(result, key);
-          decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
-          break;
-        } catch (error) {
-          if (i + 1 >= length) {
-            throw error;
-          }
-        }
-      }
-      return DotenvModule.parse(decrypted);
-    }
-    function _warn(message) {
-      console.log(`[dotenv@${version}][WARN] ${message}`);
-    }
-    function _debug(message) {
-      console.log(`[dotenv@${version}][DEBUG] ${message}`);
-    }
-    function _log(message) {
-      console.log(`[dotenv@${version}] ${message}`);
-    }
-    function _dotenvKey(options) {
-      if (options && options.DOTENV_KEY && options.DOTENV_KEY.length > 0) {
-        return options.DOTENV_KEY;
-      }
-      if (process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0) {
-        return process.env.DOTENV_KEY;
-      }
-      return "";
-    }
-    function _instructions(result, dotenvKey) {
-      let uri;
-      try {
-        uri = new URL(dotenvKey);
-      } catch (error) {
-        if (error.code === "ERR_INVALID_URL") {
-          const err = new Error("INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development");
-          err.code = "INVALID_DOTENV_KEY";
-          throw err;
-        }
-        throw error;
-      }
-      const key = uri.password;
-      if (!key) {
-        const err = new Error("INVALID_DOTENV_KEY: Missing key part");
-        err.code = "INVALID_DOTENV_KEY";
-        throw err;
-      }
-      const environment = uri.searchParams.get("environment");
-      if (!environment) {
-        const err = new Error("INVALID_DOTENV_KEY: Missing environment part");
-        err.code = "INVALID_DOTENV_KEY";
-        throw err;
-      }
-      const environmentKey = `DOTENV_VAULT_${environment.toUpperCase()}`;
-      const ciphertext = result.parsed[environmentKey];
-      if (!ciphertext) {
-        const err = new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${environmentKey} in your .env.vault file.`);
-        err.code = "NOT_FOUND_DOTENV_ENVIRONMENT";
-        throw err;
-      }
-      return { ciphertext, key };
-    }
-    function _vaultPath(options) {
-      let possibleVaultPath = null;
-      if (options && options.path && options.path.length > 0) {
-        if (Array.isArray(options.path)) {
-          for (const filepath of options.path) {
-            if (fs.existsSync(filepath)) {
-              possibleVaultPath = filepath.endsWith(".vault") ? filepath : `${filepath}.vault`;
-            }
-          }
-        } else {
-          possibleVaultPath = options.path.endsWith(".vault") ? options.path : `${options.path}.vault`;
-        }
-      } else {
-        possibleVaultPath = path.resolve(process.cwd(), ".env.vault");
-      }
-      if (fs.existsSync(possibleVaultPath)) {
-        return possibleVaultPath;
-      }
-      return null;
-    }
-    function _resolveHome(envPath) {
-      return envPath[0] === "~" ? path.join(os.homedir(), envPath.slice(1)) : envPath;
-    }
-    function _configVault(options) {
-      const debug = Boolean(options && options.debug);
-      const quiet = options && "quiet" in options ? options.quiet : true;
-      if (debug || !quiet) {
-        _log("Loading env from encrypted .env.vault");
-      }
-      const parsed = DotenvModule._parseVault(options);
-      let processEnv = process.env;
-      if (options && options.processEnv != null) {
-        processEnv = options.processEnv;
-      }
-      DotenvModule.populate(processEnv, parsed, options);
-      return { parsed };
-    }
-    function configDotenv(options) {
-      const dotenvPath = path.resolve(process.cwd(), ".env");
-      let encoding = "utf8";
-      const debug = Boolean(options && options.debug);
-      const quiet = options && "quiet" in options ? options.quiet : true;
-      if (options && options.encoding) {
-        encoding = options.encoding;
-      } else {
-        if (debug) {
-          _debug("No encoding is specified. UTF-8 is used by default");
-        }
-      }
-      let optionPaths = [dotenvPath];
-      if (options && options.path) {
-        if (!Array.isArray(options.path)) {
-          optionPaths = [_resolveHome(options.path)];
-        } else {
-          optionPaths = [];
-          for (const filepath of options.path) {
-            optionPaths.push(_resolveHome(filepath));
-          }
-        }
-      }
-      let lastError;
-      const parsedAll = {};
-      for (const path2 of optionPaths) {
-        try {
-          const parsed = DotenvModule.parse(fs.readFileSync(path2, { encoding }));
-          DotenvModule.populate(parsedAll, parsed, options);
-        } catch (e) {
-          if (debug) {
-            _debug(`Failed to load ${path2} ${e.message}`);
-          }
-          lastError = e;
-        }
-      }
-      let processEnv = process.env;
-      if (options && options.processEnv != null) {
-        processEnv = options.processEnv;
-      }
-      DotenvModule.populate(processEnv, parsedAll, options);
-      if (debug || !quiet) {
-        const keysCount = Object.keys(parsedAll).length;
-        const shortPaths = [];
-        for (const filePath of optionPaths) {
-          try {
-            const relative = path.relative(process.cwd(), filePath);
-            shortPaths.push(relative);
-          } catch (e) {
-            if (debug) {
-              _debug(`Failed to load ${filePath} ${e.message}`);
-            }
-            lastError = e;
-          }
-        }
-        _log(`injecting env (${keysCount}) from ${shortPaths.join(",")}`);
-      }
-      if (lastError) {
-        return { parsed: parsedAll, error: lastError };
-      } else {
-        return { parsed: parsedAll };
-      }
-    }
-    function config2(options) {
-      if (_dotenvKey(options).length === 0) {
-        return DotenvModule.configDotenv(options);
-      }
-      const vaultPath = _vaultPath(options);
-      if (!vaultPath) {
-        _warn(`You set DOTENV_KEY but you are missing a .env.vault file at ${vaultPath}. Did you forget to build it?`);
-        return DotenvModule.configDotenv(options);
-      }
-      return DotenvModule._configVault(options);
-    }
-    function decrypt(encrypted, keyStr) {
-      const key = Buffer.from(keyStr.slice(-64), "hex");
-      let ciphertext = Buffer.from(encrypted, "base64");
-      const nonce = ciphertext.subarray(0, 12);
-      const authTag = ciphertext.subarray(-16);
-      ciphertext = ciphertext.subarray(12, -16);
-      try {
-        const aesgcm = crypto3.createDecipheriv("aes-256-gcm", key, nonce);
-        aesgcm.setAuthTag(authTag);
-        return `${aesgcm.update(ciphertext)}${aesgcm.final()}`;
-      } catch (error) {
-        const isRange = error instanceof RangeError;
-        const invalidKeyLength = error.message === "Invalid key length";
-        const decryptionFailed = error.message === "Unsupported state or unable to authenticate data";
-        if (isRange || invalidKeyLength) {
-          const err = new Error("INVALID_DOTENV_KEY: It must be 64 characters long (or more)");
-          err.code = "INVALID_DOTENV_KEY";
-          throw err;
-        } else if (decryptionFailed) {
-          const err = new Error("DECRYPTION_FAILED: Please check your DOTENV_KEY");
-          err.code = "DECRYPTION_FAILED";
-          throw err;
-        } else {
-          throw error;
-        }
-      }
-    }
-    function populate(processEnv, parsed, options = {}) {
-      const debug = Boolean(options && options.debug);
-      const override = Boolean(options && options.override);
-      if (typeof parsed !== "object") {
-        const err = new Error("OBJECT_REQUIRED: Please check the processEnv argument being passed to populate");
-        err.code = "OBJECT_REQUIRED";
-        throw err;
-      }
-      for (const key of Object.keys(parsed)) {
-        if (Object.prototype.hasOwnProperty.call(processEnv, key)) {
-          if (override === true) {
-            processEnv[key] = parsed[key];
-          }
-          if (debug) {
-            if (override === true) {
-              _debug(`"${key}" is already defined and WAS overwritten`);
-            } else {
-              _debug(`"${key}" is already defined and was NOT overwritten`);
-            }
-          }
-        } else {
-          processEnv[key] = parsed[key];
-        }
-      }
-    }
-    var DotenvModule = {
-      configDotenv,
-      _configVault,
-      _parseVault,
-      config: config2,
-      decrypt,
-      parse: parse2,
-      populate
-    };
-    module.exports.configDotenv = DotenvModule.configDotenv;
-    module.exports._configVault = DotenvModule._configVault;
-    module.exports._parseVault = DotenvModule._parseVault;
-    module.exports.config = DotenvModule.config;
-    module.exports.decrypt = DotenvModule.decrypt;
-    module.exports.parse = DotenvModule.parse;
-    module.exports.populate = DotenvModule.populate;
-    module.exports = DotenvModule;
-  }
-});
-
 // node_modules/ipaddr.js/lib/ipaddr.js
 var require_ipaddr = __commonJS({
   "node_modules/ipaddr.js/lib/ipaddr.js"(exports, module) {
-    (function(root2) {
+    (function(root) {
       "use strict";
       const ipv4Part = "(0?\\d+|0x[a-f0-9]+)";
       const ipv4Regexes = {
@@ -1210,7 +852,7 @@ var require_ipaddr = __commonJS({
       if (typeof module !== "undefined" && module.exports) {
         module.exports = ipaddr2;
       } else {
-        root2.ipaddr = ipaddr2;
+        root.ipaddr = ipaddr2;
       }
     })(exports);
   }
@@ -1409,11 +1051,11 @@ var require_decoder = __commonJS({
       getTypeMapping;
       #cursor = 0;
       #next;
-      constructor(config2) {
-        this.onReply = config2.onReply;
-        this.onErrorReply = config2.onErrorReply;
-        this.onPush = config2.onPush;
-        this.getTypeMapping = config2.getTypeMapping;
+      constructor(config) {
+        this.onReply = config.onReply;
+        this.onErrorReply = config.onErrorReply;
+        this.onPush = config.onPush;
+        this.getTypeMapping = config.getTypeMapping;
       }
       reset() {
         this.#cursor = 0;
@@ -16055,9 +15697,9 @@ var require_token_manager = __commonJS({
       refreshTimeout = null;
       listener = null;
       retryAttempt = 0;
-      constructor(identityProvider, config2) {
+      constructor(identityProvider, config) {
         this.identityProvider = identityProvider;
-        this.config = config2;
+        this.config = config;
         if (this.config.expirationRefreshRatio > 1) {
           throw new Error("expirationRefreshRatio must be less than or equal to 1");
         }
@@ -17285,11 +16927,11 @@ var require_commands_queue = __commonJS({
         if (this.#waitingForReply.length === 0) {
           return;
         }
-        return new Promise((resolve2) => {
+        return new Promise((resolve) => {
           const onEmpty = () => {
             if (timeoutId)
               clearTimeout(timeoutId);
-            resolve2();
+            resolve();
           };
           let timeoutId;
           const timeoutMs = options?.timeoutMs;
@@ -17302,7 +16944,7 @@ var require_commands_queue = __commonJS({
                 (0, enterprise_maintenance_manager_1.dbgMaintenance)(`Flushing ${pendingCount} commands that timed out waiting for reply`);
                 this.#flushWaitingForReply(new errors_1.TimeoutError());
               }
-              resolve2();
+              resolve();
             }, timeoutMs);
           }
           this.#waitingForReply.events.once("empty", onEmpty);
@@ -17314,14 +16956,14 @@ var require_commands_queue = __commonJS({
         } else if (options?.abortSignal?.aborted) {
           return Promise.reject(new errors_1.AbortError());
         }
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve, reject) => {
           let node;
           const value = {
             args,
             chainId: options?.chainId,
             abort: void 0,
             timeout: void 0,
-            resolve: resolve2,
+            resolve,
             reject,
             channelsCounter: void 0,
             typeMapping: options?.typeMapping
@@ -17358,7 +17000,7 @@ var require_commands_queue = __commonJS({
         });
       }
       #addPubSubCommand(command, asap = false, chainId) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve, reject) => {
           this.#toWrite.add({
             args: command.args,
             chainId,
@@ -17366,7 +17008,7 @@ var require_commands_queue = __commonJS({
             timeout: void 0,
             resolve() {
               command.resolve();
-              resolve2();
+              resolve();
             },
             reject(err) {
               command.reject?.();
@@ -17386,8 +17028,8 @@ var require_commands_queue = __commonJS({
               return;
             const firstElement = typeof reply[0] === "string" ? Buffer.from(reply[0]) : reply[0];
             if (PONG.equals(firstElement)) {
-              const { resolve: resolve2, typeMapping } = this.#waitingForReply.shift(), buffer = reply[1].length === 0 ? reply[0] : reply[1];
-              resolve2(typeMapping?.[decoder_1.RESP_TYPES.SIMPLE_STRING] === Buffer ? buffer : buffer.toString());
+              const { resolve, typeMapping } = this.#waitingForReply.shift(), buffer = reply[1].length === 0 ? reply[0] : reply[1];
+              resolve(typeMapping?.[decoder_1.RESP_TYPES.SIMPLE_STRING] === Buffer ? buffer : buffer.toString());
               return;
             }
           }
@@ -17411,12 +17053,12 @@ var require_commands_queue = __commonJS({
         if (!command)
           return;
         if (command && this.#respVersion === 2) {
-          const { resolve: resolve2 } = command;
+          const { resolve } = command;
           command.resolve = () => {
             if (!this.#pubSub.isActive) {
               this.#resetDecoderCallbacks();
             }
-            resolve2();
+            resolve();
           };
         }
         return this.#addPubSubCommand(command);
@@ -17452,7 +17094,7 @@ var require_commands_queue = __commonJS({
         return this.#pubSub.listeners[type];
       }
       monitor(callback, options) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve, reject) => {
           const typeMapping = options?.typeMapping ?? {};
           this.#toWrite.add({
             args: ["MONITOR"],
@@ -17467,7 +17109,7 @@ var require_commands_queue = __commonJS({
                 this.decoder.onReply = callback;
               }
               this.decoder.getTypeMapping = () => typeMapping;
-              resolve2();
+              resolve();
             },
             reject,
             channelsCounter: void 0,
@@ -17481,7 +17123,7 @@ var require_commands_queue = __commonJS({
       }
       #resetFallbackOnReply;
       async reset(chainId, typeMapping) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve, reject) => {
           this.#resetFallbackOnReply = this.decoder.onReply;
           this.decoder.onReply = ((reply) => {
             if (typeof reply === "string" && reply === "RESET" || reply instanceof Buffer && RESET.equals(reply)) {
@@ -17498,7 +17140,7 @@ var require_commands_queue = __commonJS({
             chainId,
             abort: void 0,
             timeout: void 0,
-            resolve: resolve2,
+            resolve,
             reject,
             channelsCounter: void 0,
             typeMapping
@@ -17638,21 +17280,21 @@ var require_commander = __commonJS({
     function throwResp3SearchModuleUnstableError() {
       throw new Error("Some RESP3 results for Redis Query Engine responses may change. Refer to the readme for guidance");
     }
-    function attachConfig({ BaseClass, commands, createCommand, createModuleCommand, createFunctionCommand, createScriptCommand, config: config2 }) {
-      const RESP = config2?.RESP ?? 2, Class = class extends BaseClass {
+    function attachConfig({ BaseClass, commands, createCommand, createModuleCommand, createFunctionCommand, createScriptCommand, config }) {
+      const RESP = config?.RESP ?? 2, Class = class extends BaseClass {
       };
       for (const [name, command] of Object.entries(commands)) {
-        if (config2?.RESP == 3 && command.unstableResp3 && !config2.unstableResp3) {
+        if (config?.RESP == 3 && command.unstableResp3 && !config.unstableResp3) {
           Class.prototype[name] = throwResp3SearchModuleUnstableError;
         } else {
           Class.prototype[name] = createCommand(command, RESP);
         }
       }
-      if (config2?.modules) {
-        for (const [moduleName, module2] of Object.entries(config2.modules)) {
+      if (config?.modules) {
+        for (const [moduleName, module2] of Object.entries(config.modules)) {
           const fns = /* @__PURE__ */ Object.create(null);
           for (const [name, command] of Object.entries(module2)) {
-            if (config2.RESP == 3 && command.unstableResp3 && !config2.unstableResp3) {
+            if (config.RESP == 3 && command.unstableResp3 && !config.unstableResp3) {
               fns[name] = throwResp3SearchModuleUnstableError;
             } else {
               fns[name] = createModuleCommand(command, RESP);
@@ -17661,8 +17303,8 @@ var require_commander = __commonJS({
           attachNamespace(Class.prototype, moduleName, fns);
         }
       }
-      if (config2?.functions) {
-        for (const [library, commands2] of Object.entries(config2.functions)) {
+      if (config?.functions) {
+        for (const [library, commands2] of Object.entries(config.functions)) {
           const fns = /* @__PURE__ */ Object.create(null);
           for (const [name, command] of Object.entries(commands2)) {
             fns[name] = createFunctionCommand(name, command, RESP);
@@ -17670,8 +17312,8 @@ var require_commander = __commonJS({
           attachNamespace(Class.prototype, library, fns);
         }
       }
-      if (config2?.scripts) {
-        for (const [name, script] of Object.entries(config2.scripts)) {
+      if (config?.scripts) {
+        for (const [name, script] of Object.entries(config.scripts)) {
           Class.prototype[name] = createScriptCommand(script, RESP);
         }
       }
@@ -17829,7 +17471,7 @@ var require_multi_command2 = __commonJS({
           return this.#addScript(script, redisArgs, transformReply);
         };
       }
-      static extend(config2) {
+      static extend(config) {
         return (0, commander_1.attachConfig)({
           BaseClass: _RedisClientMultiCommand,
           commands: commands_1.default,
@@ -17837,7 +17479,7 @@ var require_multi_command2 = __commonJS({
           createModuleCommand: _RedisClientMultiCommand.#createModuleCommand,
           createFunctionCommand: _RedisClientMultiCommand.#createFunctionCommand,
           createScriptCommand: _RedisClientMultiCommand.#createScriptCommand,
-          config: config2
+          config
         });
       }
       #multi;
@@ -18291,14 +17933,14 @@ var require_cache = __commonJS({
       recordMisses(count) {
         this.#statsCounter.recordMisses(count);
       }
-      constructor(config2) {
+      constructor(config) {
         super();
         this.#cacheKeyToEntryMap = /* @__PURE__ */ new Map();
         this.#keyToCacheKeySetMap = /* @__PURE__ */ new Map();
-        this.ttl = config2?.ttl ?? 0;
-        this.maxEntries = config2?.maxEntries ?? 0;
-        this.lru = config2?.evictPolicy !== "FIFO";
-        const recordStats = config2?.recordStats !== false;
+        this.ttl = config?.ttl ?? 0;
+        this.maxEntries = config?.maxEntries ?? 0;
+        this.lru = config?.evictPolicy !== "FIFO";
+        const recordStats = config?.recordStats !== false;
         this.#statsCounter = recordStats ? DefaultStatsCounter.create() : disabledStatsCounter();
       }
       /* logic of how caching works:
@@ -18912,7 +18554,7 @@ var require_pool = __commonJS({
         this._self.#returnClient(node);
       }
       execute(fn) {
-        return new Promise((resolve2, reject) => {
+        return new Promise((resolve, reject) => {
           if (this._self.#isClosing || !this._self.#isOpen) {
             return reject(new errors_1.ClientClosedError());
           }
@@ -18929,7 +18571,7 @@ var require_pool = __commonJS({
             const task = this._self.#tasksQueue.push({
               timeout: timeout2,
               // @ts-ignore
-              resolve: resolve2,
+              resolve,
               reject,
               fn,
               waitStartTimestamp
@@ -18941,17 +18583,17 @@ var require_pool = __commonJS({
           }
           const node = this._self.#clientsInUse.push(client);
           (0, tracing_1.publish)(tracing_1.CHANNELS.POOL_CONNECTION_WAIT, () => ({ clientId: client._clientId, waitStartTimestamp }));
-          this._self.#executeTask(node, resolve2, reject, fn);
+          this._self.#executeTask(node, resolve, reject, fn);
         });
       }
-      #executeTask(node, resolve2, reject, fn) {
+      #executeTask(node, resolve, reject, fn) {
         const result = fn(node.value);
         if (result instanceof Promise) {
-          result.then(resolve2, reject).finally(() => {
+          result.then(resolve, reject).finally(() => {
             this.#returnClient(node);
           });
         } else {
-          resolve2(result);
+          resolve(result);
           this.#returnClient(node);
         }
       }
@@ -19001,8 +18643,8 @@ var require_pool = __commonJS({
         clearTimeout(this._self.cleanupTimeout);
         try {
           if (this._self.#clientsInUse.length > 0) {
-            await new Promise((resolve2) => {
-              this._self.#drainResolve = resolve2;
+            await new Promise((resolve) => {
+              this._self.#drainResolve = resolve;
             });
           }
           const promises = [];
@@ -19038,7 +18680,7 @@ var require_pool = __commonJS({
 });
 
 // ../../node_modules/@redis/client/dist/package.json
-var require_package2 = __commonJS({
+var require_package = __commonJS({
   "../../node_modules/@redis/client/dist/package.json"(exports, module) {
     module.exports = {
       name: "@redis/client",
@@ -19177,7 +18819,7 @@ var require_types = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.METRIC_ERROR_ORIGIN = exports.METRIC_ERROR_TYPE = exports.DEFAULT_HISTOGRAM_BUCKETS = exports.DEFAULT_METRIC_GROUPS = exports.METRIC_NAMES = exports.DEFAULT_OTEL_ATTRIBUTES = exports.INSTRUMENTATION_SCOPE_NAME = exports.CSC_EVICTION_REASON = exports.CSC_RESULT = exports.CONNECTION_CLOSE_REASON = exports.ERROR_CATEGORY = exports.OTEL_ATTRIBUTES = exports.METRIC_GROUP = void 0;
-    var package_json_1 = require_package2();
+    var package_json_1 = require_package();
     exports.METRIC_GROUP = {
       COMMAND: "command",
       CONNECTION_BASIC: "connection-basic",
@@ -19841,8 +19483,8 @@ var require_metrics = __commonJS({
       #channelSubscribers;
       #instruments;
       #options;
-      constructor(api, config2) {
-        this.#options = this.parseOptions(config2);
+      constructor(api, config) {
+        this.#options = this.parseOptions(config);
         if (!this.#options.enabled) {
           this.commandMetrics = { destroy() {
           } };
@@ -19861,11 +19503,11 @@ var require_metrics = __commonJS({
         }
         this.#channelSubscribers = new OTelChannelSubscribers(this.#options, this.#instruments, this.#options.enabledMetricGroups);
       }
-      static init({ api, config: config2 }) {
+      static init({ api, config }) {
         if (_OTelMetrics.#initialized) {
           throw new errors_1.OpenTelemetryError("OTelMetrics already initialized");
         }
-        const instance = new _OTelMetrics(api, config2);
+        const instance = new _OTelMetrics(api, config);
         _OTelMetrics.#instance = instance;
         _OTelMetrics.#initialized = true;
       }
@@ -19893,30 +19535,30 @@ var require_metrics = __commonJS({
         }
         return api.metrics.getMeter(types_1.INSTRUMENTATION_SCOPE_NAME);
       }
-      parseOptions(config2) {
+      parseOptions(config) {
         return {
-          enabled: !!config2?.metrics?.enabled,
+          enabled: !!config?.metrics?.enabled,
           attributes: {
             ...types_1.DEFAULT_OTEL_ATTRIBUTES
           },
-          meterProvider: config2?.metrics?.meterProvider,
-          includeCommands: (config2?.metrics?.includeCommands ?? []).reduce((acc, c) => {
+          meterProvider: config?.metrics?.meterProvider,
+          includeCommands: (config?.metrics?.includeCommands ?? []).reduce((acc, c) => {
             acc[c.toUpperCase()] = true;
             return acc;
           }, {}),
-          hasIncludeCommands: !!config2?.metrics?.includeCommands?.length,
-          excludeCommands: (config2?.metrics?.excludeCommands ?? []).reduce((acc, c) => {
+          hasIncludeCommands: !!config?.metrics?.includeCommands?.length,
+          excludeCommands: (config?.metrics?.excludeCommands ?? []).reduce((acc, c) => {
             acc[c.toUpperCase()] = true;
             return acc;
           }, {}),
-          hasExcludeCommands: !!config2?.metrics?.excludeCommands?.length,
-          enabledMetricGroups: config2?.metrics?.enabledMetricGroups ?? types_1.DEFAULT_METRIC_GROUPS,
-          hidePubSubChannelNames: config2?.metrics?.hidePubSubChannelNames ?? false,
-          hideStreamNames: config2?.metrics?.hideStreamNames ?? false,
-          bucketsOperationDuration: config2?.metrics?.bucketsOperationDuration ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.OPERATION_DURATION,
-          bucketsConnectionCreateTime: config2?.metrics?.bucketsConnectionCreateTime ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.CONNECTION_CREATE_TIME,
-          bucketsConnectionWaitTime: config2?.metrics?.bucketsConnectionWaitTime ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.CONNECTION_WAIT_TIME,
-          bucketsStreamProcessingDuration: config2?.metrics?.bucketsStreamProcessingDuration ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.STREAM_LAG
+          hasExcludeCommands: !!config?.metrics?.excludeCommands?.length,
+          enabledMetricGroups: config?.metrics?.enabledMetricGroups ?? types_1.DEFAULT_METRIC_GROUPS,
+          hidePubSubChannelNames: config?.metrics?.hidePubSubChannelNames ?? false,
+          hideStreamNames: config?.metrics?.hideStreamNames ?? false,
+          bucketsOperationDuration: config?.metrics?.bucketsOperationDuration ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.OPERATION_DURATION,
+          bucketsConnectionCreateTime: config?.metrics?.bucketsConnectionCreateTime ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.CONNECTION_CREATE_TIME,
+          bucketsConnectionWaitTime: config?.metrics?.bucketsConnectionWaitTime ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.CONNECTION_WAIT_TIME,
+          bucketsStreamProcessingDuration: config?.metrics?.bucketsStreamProcessingDuration ?? types_1.DEFAULT_HISTOGRAM_BUCKETS.STREAM_LAG
         };
       }
       createHistogram(meter, instrumentConfig) {
@@ -21031,8 +20673,8 @@ var init_NoopTracer = __esm({
     NoopTracer = class {
       // startSpan starts a noop span.
       startSpan(name, options, context2 = contextApi.active()) {
-        const root2 = Boolean(options === null || options === void 0 ? void 0 : options.root);
-        if (root2) {
+        const root = Boolean(options === null || options === void 0 ? void 0 : options.root);
+        if (root) {
           return new NonRecordingSpan();
         }
         const parentFromContext = context2 && getSpanContext(context2);
@@ -21694,7 +21336,7 @@ var require_opentelemetry = __commonJS({
        * });
        * ```
        */
-      static init(config2) {
+      static init(config) {
         if (_OpenTelemetry._instance) {
           throw new errors_1.OpenTelemetryError("OpenTelemetry already initialized");
         }
@@ -21707,7 +21349,7 @@ var require_opentelemetry = __commonJS({
         })();
         _OpenTelemetry._instance = new _OpenTelemetry();
         client_registry_1.ClientRegistry.init();
-        metrics_1.OTelMetrics.init({ api, config: config2 });
+        metrics_1.OTelMetrics.init({ api, config });
       }
     };
     exports.OpenTelemetry = OpenTelemetry;
@@ -21788,7 +21430,7 @@ var require_client = __commonJS({
     var cache_1 = require_cache();
     var parser_1 = require_parser();
     var single_entry_cache_1 = __importDefault(require_single_entry_cache());
-    var package_json_1 = require_package2();
+    var package_json_1 = require_package();
     var enterprise_maintenance_manager_1 = __importStar(require_enterprise_maintenance_manager());
     var opentelemetry_1 = require_opentelemetry();
     var identity_1 = require_identity();
@@ -21833,8 +21475,8 @@ var require_client = __commonJS({
         };
       }
       static #SingleEntryCache = new single_entry_cache_1.default();
-      static factory(config2) {
-        let Client = _a.#SingleEntryCache.get(config2);
+      static factory(config) {
+        let Client = _a.#SingleEntryCache.get(config);
         if (!Client) {
           Client = (0, commander_1.attachConfig)({
             BaseClass: _a,
@@ -21843,10 +21485,10 @@ var require_client = __commonJS({
             createModuleCommand: _a.#createModuleCommand,
             createFunctionCommand: _a.#createFunctionCommand,
             createScriptCommand: _a.#createScriptCommand,
-            config: config2
+            config
           });
-          Client.prototype.Multi = multi_command_1.default.extend(config2);
-          _a.#SingleEntryCache.set(config2, Client);
+          Client.prototype.Multi = multi_command_1.default.extend(config);
+          _a.#SingleEntryCache.set(config, Client);
         }
         return (options) => {
           return Object.create(new Client(options));
@@ -22776,14 +22418,14 @@ var require_client = __commonJS({
        * Close the client. Wait for pending commands.
        */
       close() {
-        return new Promise((resolve2) => {
+        return new Promise((resolve) => {
           clearTimeout(this._self.#pingTimer);
           this._self.#socket.close();
           this._self.#clientSideCache?.onClose();
           if (this._self.#queue.isEmpty()) {
             this._self.#unregisterFromMetrics();
             this._self.#socket.destroySocket();
-            return resolve2();
+            return resolve();
           }
           const maybeClose = () => {
             if (!this._self.#queue.isEmpty())
@@ -22791,7 +22433,7 @@ var require_client = __commonJS({
             this._self.#socket.off("data", maybeClose);
             this._self.#unregisterFromMetrics();
             this._self.#socket.destroySocket();
-            resolve2();
+            resolve();
           };
           this._self.#socket.on("data", maybeClose);
           this._self.#credentialsSubscription?.dispose();
@@ -23477,7 +23119,7 @@ var require_multi_command3 = __commonJS({
           return this.#addScript(firstKey, script.IS_READ_ONLY, script, scriptArgs, transformReply);
         };
       }
-      static extend(config2) {
+      static extend(config) {
         return (0, commander_1.attachConfig)({
           BaseClass: _RedisClusterMultiCommand,
           commands: commands_1.NON_STICKY_COMMANDS,
@@ -23485,7 +23127,7 @@ var require_multi_command3 = __commonJS({
           createModuleCommand: _RedisClusterMultiCommand.#createModuleCommand,
           createFunctionCommand: _RedisClusterMultiCommand.#createFunctionCommand,
           createScriptCommand: _RedisClusterMultiCommand.#createScriptCommand,
-          config: config2
+          config
         });
       }
       #multi;
@@ -23631,8 +23273,8 @@ var require_cluster = __commonJS({
         };
       }
       static #SingleEntryCache = new single_entry_cache_1.default();
-      static factory(config2) {
-        let Cluster = _RedisCluster.#SingleEntryCache.get(config2);
+      static factory(config) {
+        let Cluster = _RedisCluster.#SingleEntryCache.get(config);
         if (!Cluster) {
           Cluster = (0, commander_1.attachConfig)({
             BaseClass: _RedisCluster,
@@ -23641,10 +23283,10 @@ var require_cluster = __commonJS({
             createModuleCommand: _RedisCluster.#createModuleCommand,
             createFunctionCommand: _RedisCluster.#createFunctionCommand,
             createScriptCommand: _RedisCluster.#createScriptCommand,
-            config: config2
+            config
           });
-          Cluster.prototype.Multi = multi_command_1.default.extend(config2);
-          _RedisCluster.#SingleEntryCache.set(config2, Cluster);
+          Cluster.prototype.Multi = multi_command_1.default.extend(config);
+          _RedisCluster.#SingleEntryCache.set(config, Cluster);
         }
         return (options) => {
           return Object.create(new Cluster(options));
@@ -24120,7 +23762,7 @@ var require_multi_commands = __commonJS({
           return this.#addScript(script.IS_READ_ONLY, script, scriptArgs, transformReply);
         };
       }
-      static extend(config2) {
+      static extend(config) {
         return (0, commander_1.attachConfig)({
           BaseClass: _RedisSentinelMultiCommand,
           commands: commands_1.NON_STICKY_COMMANDS,
@@ -24128,7 +23770,7 @@ var require_multi_commands = __commonJS({
           createModuleCommand: _RedisSentinelMultiCommand._createModuleCommand,
           createFunctionCommand: _RedisSentinelMultiCommand._createFunctionCommand,
           createScriptCommand: _RedisSentinelMultiCommand._createScriptCommand,
-          config: config2
+          config
         });
       }
       #multi = new multi_command_1.default();
@@ -24511,9 +24153,9 @@ var require_wait_queue = __commonJS({
       #list = new linked_list_1.SinglyLinkedList();
       #queue = new linked_list_1.SinglyLinkedList();
       push(value) {
-        const resolve2 = this.#queue.shift();
-        if (resolve2 !== void 0) {
-          resolve2(value);
+        const resolve = this.#queue.shift();
+        if (resolve !== void 0) {
+          resolve(value);
           return;
         }
         this.#list.push(value);
@@ -24522,7 +24164,7 @@ var require_wait_queue = __commonJS({
         return this.#list.shift();
       }
       wait() {
-        return new Promise((resolve2) => this.#queue.push(resolve2));
+        return new Promise((resolve) => this.#queue.push(resolve));
       }
     };
     exports.WaitQueue = WaitQueue;
@@ -24585,7 +24227,7 @@ var require_sentinel = __commonJS({
         this.#clientInfo = clientInfo;
         this.#commandOptions = commandOptions;
       }
-      static factory(config2) {
+      static factory(config) {
         const SentinelClient = (0, commander_1.attachConfig)({
           BaseClass: _RedisSentinelClient,
           commands: commands_1.NON_STICKY_COMMANDS,
@@ -24593,9 +24235,9 @@ var require_sentinel = __commonJS({
           createModuleCommand: utils_1.createModuleCommand,
           createFunctionCommand: utils_1.createFunctionCommand,
           createScriptCommand: utils_1.createScriptCommand,
-          config: config2
+          config
         });
-        SentinelClient.prototype.Multi = multi_commands_1.default.extend(config2);
+        SentinelClient.prototype.Multi = multi_commands_1.default.extend(config);
         return (internal, clientInfo, commandOptions) => {
           return Object.create(new SentinelClient(internal, clientInfo, commandOptions));
         };
@@ -24739,7 +24381,7 @@ var require_sentinel = __commonJS({
           }
         });
       }
-      static factory(config2) {
+      static factory(config) {
         const Sentinel = (0, commander_1.attachConfig)({
           BaseClass: _RedisSentinel,
           commands: commands_1.NON_STICKY_COMMANDS,
@@ -24747,9 +24389,9 @@ var require_sentinel = __commonJS({
           createModuleCommand: utils_1.createModuleCommand,
           createFunctionCommand: utils_1.createFunctionCommand,
           createScriptCommand: utils_1.createScriptCommand,
-          config: config2
+          config
         });
-        Sentinel.prototype.Multi = multi_commands_1.default.extend(config2);
+        Sentinel.prototype.Multi = multi_commands_1.default.extend(config);
         return (options) => {
           return Object.create(new Sentinel(options));
         };
@@ -32821,7 +32463,7 @@ var responseViaResponseObject = async (res, outgoing, options = {}) => {
         });
         if (!chunk) {
           if (i === 1) {
-            await new Promise((resolve2) => setTimeout(resolve2));
+            await new Promise((resolve) => setTimeout(resolve));
             maxReadCount = 3;
             continue;
           }
@@ -32951,14 +32593,6 @@ var getRequestListener = (fetchCallback, options = {}) => {
 var handle = (app2) => {
   return getRequestListener(app2.fetch);
 };
-
-// src/setup-env.ts
-var import_dotenv = __toESM(require_main(), 1);
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-var root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
-(0, import_dotenv.config)({ path: resolve(root, ".env") });
-(0, import_dotenv.config)({ path: resolve(root, "packages/db/.env") });
 
 // ../../node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
@@ -39823,7 +39457,7 @@ async function withSerializable(db, fn) {
       const code = error.code;
       const metaCode = error.meta?.code;
       if (code === "P2034" || code === "40001" || metaCode === "40001") {
-        await new Promise((resolve2) => setTimeout(resolve2, 25 * (attempt + 1)));
+        await new Promise((resolve) => setTimeout(resolve, 25 * (attempt + 1)));
         continue;
       }
       throw error;
