@@ -118,6 +118,9 @@ export function SlotWinCelebration({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md cursor-pointer select-none animate-fadeIn"
     >
       <SlotParticles active={true} tier={tier} />
+      {(tier === "MEGA_WIN" || tier === "ULTRA_WIN" || tier === "EPIC_WIN") && (
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-white animate-celebration-flash" />
+      )}
 
       {/* Animated Sunburst Background */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">

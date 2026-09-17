@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { MegawaysSpinResult } from "@/lib/slots/slot-engine";
+import React, { useEffect, useRef, useState } from "react";
+import { MegawaysSpinResult, SymbolId } from "@/lib/slots/slot-engine";
 import { SlotTheme } from "@/lib/slots/slot-themes";
 import { SlotSymbolIcon } from "./slot-symbols";
 
@@ -9,14 +9,37 @@ interface SlotMegawaysGridProps {
   result: MegawaysSpinResult | null;
   theme: SlotTheme;
   isSpinning: boolean;
+  spinningColumns?: boolean[];
+  isTurbo?: boolean;
 }
 
-export function SlotMegawaysGrid({ result, theme, isSpinning }: SlotMegawaysGridProps) {
+function megaStrip(theme: SlotTheme, count: number): SymbolId[] {
+  const pool = Object.keys(theme.symbols) as SymbolId[];
+  const half = Array.from({ length: count }, () => pool[Math.floor(Math.random() * pool.length)]);
+  return [...half, ...half];
+}
+
+export function SlotMegawaysGrid({
+  result,
+  theme,
+  isSpinning,
+  spinningColumns = [false, false, false, false, false, false],
+  isTurbo = false,
+}: SlotMegawaysGridProps) {
   const reelHeights = result?.reelHeights || [4, 5, 4, 6, 5, 4];
   const totalWays = result?.totalWays || 9600;
   const grid = result?.grid;
   const [revealed, setRevealed] = useState(false);
   const [waysAnimated, setWaysAnimated] = useState(totalWays);
+  const stripsRef = useRef<SymbolId[][]>([0, 1, 2, 3, 4, 5].map((i) => megaStrip(theme, reelHeights[i] || 4)));
+  const anySpinning = spinningColumns.some(Boolean);
+
+  useEffect(() => {
+    if (anySpinning) {
+      const heights = result?.reelHeights || [4, 5, 4, 6, 5, 4];
+      stripsRef.current = [0, 1, 2, 3, 4, 5].map((i) => megaStrip(theme, heights[i] || 4));
+    }
+  }, [anySpinning, theme, result]);
 
   const winningPositions = result?.wayHits.flatMap((w) => w.positions) || [];
 
@@ -90,11 +113,20 @@ export function SlotMegawaysGrid({ result, theme, isSpinning }: SlotMegawaysGrid
           return (
             <div
               key={`megaways-col-${colIdx}`}
-              className={`flex flex-col justify-between gap-1 sm:gap-1.5 h-full rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 ${
-                isSpinning ? "opacity-30 blur-[2px]" : ""
+              className={`flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 ${
+                spinningColumns[colIdx] ? "" : isSpinning ? "animate-reel-spring" : ""
               }`}
             >
-              {Array.from({ length: height }).map((_, rowIdx) => {
+              {spinningColumns[colIdx] ? (
+                <div className={`flex h-[200%] flex-col ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
+                  {(stripsRef.current[colIdx] || []).map((id, idx) => (
+                    <div key={`mspin-${colIdx}-${idx}`} className="flex flex-1 items-center justify-center">
+                      <SlotSymbolIcon id={id} theme={theme} size="sm" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+              Array.from({ length: height }).map((_, rowIdx) => {
                 const cell = colCells[rowIdx];
                 const win = !isSpinning && isWinning(colIdx, rowIdx);
 
@@ -130,17 +162,13 @@ export function SlotMegawaysGrid({ result, theme, isSpinning }: SlotMegawaysGrid
                     />
                   </div>
                 );
-              })}
+              })
+              )}
             </div>
           );
         })}
 
-        {/* Spinning overlay effect */}
-        {isSpinning && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-            <div className="w-16 h-16 rounded-full border-4 border-yellow-400/30 border-t-yellow-300 animate-spin" />
-          </div>
-        )}
+
       </div>
     </div>
   );

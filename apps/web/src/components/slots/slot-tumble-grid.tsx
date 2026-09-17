@@ -36,7 +36,7 @@ function generateDebris(count: number) {
 
 function makeLoopStrip(theme: SlotTheme): SymbolId[] {
   const pool = Object.keys(theme.symbols) as SymbolId[];
-  const half = Array.from({ length: 8 }, () => pool[Math.floor(Math.random() * pool.length)]);
+  const half = Array.from({ length: 5 }, () => pool[Math.floor(Math.random() * pool.length)]);
   return [...half, ...half];
 }
 
@@ -197,7 +197,7 @@ export function SlotTumbleGrid({
             {spinningColumns[colIdx] ? (
               <div className={`flex flex-col h-[200%] ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
                 {stripsRef.current[colIdx].map((id, idx) => (
-                  <div key={`spin-${colIdx}-${idx}`} className="flex h-[6.25%] items-center justify-center">
+                  <div key={`spin-${colIdx}-${idx}`} className="flex h-[10%] items-center justify-center">
                     <SlotSymbolIcon id={id} theme={theme} size="sm" />
                   </div>
                 ))}

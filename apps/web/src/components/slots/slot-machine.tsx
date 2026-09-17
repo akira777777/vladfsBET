@@ -200,6 +200,9 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
 
       setIsSpinning(true);
       setShatteredPositions([]);
+      setWinHoldPositions([]);
+      setSpinningColumns([false, false, false, false, false, false]);
+      setAnticipatingColumns([false, false, false, false, false, false]);
       setTumbleStepIndex(0);
       setAccumulatedMultiplier(isBonus ? persistentBonusMultiplier : 1);
       slotAudio.playSpinStart();
@@ -538,14 +541,20 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 theme={theme}
                 isTumbling={isSpinning}
                 shatteredPositions={shatteredPositions}
+                winHoldPositions={winHoldPositions}
+                spinningColumns={spinningColumns}
+                anticipatingColumns={anticipatingColumns}
                 currentMultiplier={accumulatedMultiplier}
                 tumbleStepIndex={tumbleStepIndex}
+                isTurbo={isTurbo}
               />
             ) : (
               <SlotMegawaysGrid
                 result={megawaysResult}
                 theme={theme}
                 isSpinning={isSpinning}
+                spinningColumns={spinningColumns}
+                isTurbo={isTurbo}
               />
             )}
           </div>
