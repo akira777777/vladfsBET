@@ -2,7 +2,6 @@ import "./setup-env.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { HTTPException } from "hono/http-exception";
 import { ZodError, z } from "zod";
 import { getClientIp, globalBurstProtection, rateLimitProfiles } from "./middleware/rate-limiter.js";
 import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./middleware/security.js";
@@ -19,7 +18,6 @@ import {
   SupportError,
   addTicketMessage,
   adminApproveWithdrawal,
-  adminManualBalanceAdjustment,
   adminRejectWithdrawal,
   adminReviewKycCase,
   adminUpdatePlayerStatus,
@@ -29,7 +27,6 @@ import {
   claimBonusTemplate,
   claimVipCashback,
   createPlayerTicket,
-  creditDemo,
   getAdminStatsOverview,
   getAdminTickets,
   getOrCreatePlayerKycCase,
@@ -45,7 +42,6 @@ import {
   placeSportBet,
   postJournal,
   prisma,
-  processDeposit,
   redeemPromoCode,
   registerPlayer,
   requestWithdrawal,
@@ -94,16 +90,6 @@ const updateProfileSchema = z.object({
   address1: z.string().optional(),
   city: z.string().optional(),
   postalCode: z.string().optional(),
-});
-
-const creditSchema = z.object({
-  amount: z.string().default("100"),
-});
-
-const depositSchema = z.object({
-  providerId: z.string(),
-  method: z.string(),
-  amount: z.string(),
 });
 
 const withdrawalSchema = z.object({
@@ -403,37 +389,6 @@ export function createApp() {
         sandbox: p.sandbox,
       })),
     });
-  });
-
-  app.post("/api/wallet/demo-credit", async (c) => {
-    const user = await getSessionUser(prisma, getCookie(c, COOKIE));
-    if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
-    const body = creditSchema.parse((await c.req.json().catch(() => ({}))) ?? {});
-    const key = c.req.header("idempotency-key") ?? `demo-credit:${user.id}:${body.amount}:${Date.now()}`;
-    await creditDemo(prisma, user.id, user.currency, body.amount, key);
-    const snapshot = await getWalletSnapshot(prisma, user.id, user.currency);
-    return c.json({ wallet: snapshot, realMoney: false });
-  });
-
-  app.post("/api/wallet/deposit", async (c) => {
-    const user = await getSessionUser(prisma, getCookie(c, COOKIE));
-    if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
-    const body = depositSchema.parse(await c.req.json());
-
-    // Risk evaluation
-    await evaluateTransactionRisk(prisma, user.id, "DEPOSIT", body.amount);
-
-    const key = c.req.header("idempotency-key") ?? `dep:${user.id}:${Date.now()}`;
-    const result = await processDeposit(prisma, {
-      userId: user.id,
-      providerId: body.providerId,
-      method: body.method,
-      amount: body.amount,
-      currency: user.currency,
-      idempotencyKey: key,
-    });
-    const snapshot = await getWalletSnapshot(prisma, user.id, user.currency);
-    return c.json({ deposit: result.deposit, wallet: snapshot });
   });
 
   app.post("/api/wallet/withdrawal", async (c) => {
@@ -859,28 +814,6 @@ export function createApp() {
     const body = z.object({ reason: z.string().min(3) }).parse(await c.req.json());
     const updated = await adminRejectWithdrawal(prisma, c.req.param("id"), "admin-system", body.reason);
     return c.json({ withdrawal: updated });
-  });
-
-  app.post("/api/admin/ledger/adjust", async (c) => {
-    const body = z
-      .object({
-        targetUserId: z.string().uuid(),
-        amount: z.string(),
-        direction: z.enum(["CREDIT", "DEBIT"]),
-        reasonCode: z.enum(["CORRECTION", "DISPUTE_SETTLEMENT", "GOODWILL", "TEST_CREDIT"]),
-        notes: z.string().min(5),
-      })
-      .parse(await c.req.json());
-
-    const result = await adminManualBalanceAdjustment(prisma, {
-      adminUserId: "admin-system",
-      targetUserId: body.targetUserId,
-      amount: body.amount,
-      direction: body.direction,
-      reasonCode: body.reasonCode,
-      notes: body.notes,
-    });
-    return c.json({ result });
   });
 
   app.get("/api/admin/kyc", async (c) => {

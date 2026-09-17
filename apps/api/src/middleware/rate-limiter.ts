@@ -19,29 +19,6 @@ interface RateLimitRecord {
   timestamps: number[];
 }
 
-const memoryStore = new Map<string, RateLimitRecord>();
-let globalBurstTimestamps: number[] = [];
-
-// Periodic cleanup every 60s to prevent unbounded memory growth
-const cleanupTimer = setInterval(() => {
-  const now = Date.now();
-  for (const [key, record] of memoryStore.entries()) {
-    // Retain only timestamps from the last 5 minutes
-    const valid = record.timestamps.filter((ts) => now - ts < 300_000);
-    if (valid.length === 0) {
-      memoryStore.delete(key);
-    } else {
-      record.timestamps = valid;
-    }
-  }
-  globalBurstTimestamps = globalBurstTimestamps.filter((ts) => now - ts < 60_000);
-}, 60_000);
-
-// Ensure cleanup timer does not prevent process exit in Node
-if (cleanupTimer && typeof cleanupTimer.unref === "function") {
-  cleanupTimer.unref();
-}
-
 /**
  * Extracts client IP securely considering Cloudflare and reverse-proxy headers
  */
@@ -62,168 +39,154 @@ export function getClientIp(c: { req: { header: (name: string) => string | undef
 }
 
 /**
- * Resets the in-memory store (primarily used for test suites)
+ * Creates an isolated set of rate limiters with its own in-memory store.
+ * Used inside createApp() to ensure clean isolation per instance and in tests.
  */
-export function resetRateLimitStore(): void {
-  memoryStore.clear();
-  globalBurstTimestamps = [];
-}
+export function createRateLimiters() {
+  const memoryStore = new Map<string, RateLimitRecord>();
+  let burstTimestamps: number[] = [];
 
-/**
- * Global burst / flood protection middleware across the entire application instance.
- * Mitigates volumetric burst floods even when attackers spoof forwarding headers.
- */
-export function globalBurstProtection(burstLimit = 40, windowMs = 5000): MiddlewareHandler {
-  return async (c, next) => {
-    if (c.req.header("x-bypass-rate-limit") === "1" && process.env.NODE_ENV === "test") {
-      return next();
-    }
+  const burstProtection = (burstLimit = 40, windowMs = 5000): MiddlewareHandler => {
+    return async (c, next) => {
+      if (c.req.header("x-bypass-rate-limit") === "1" && process.env.NODE_ENV === "test") {
+        return next();
+      }
 
-    const now = Date.now();
-    const windowStart = now - windowMs;
-    globalBurstTimestamps = globalBurstTimestamps.filter((ts) => ts > windowStart);
+      const now = Date.now();
+      const windowStart = now - windowMs;
+      burstTimestamps = burstTimestamps.filter((ts) => ts > windowStart);
 
-    if (globalBurstTimestamps.length >= burstLimit) {
-      const oldest = globalBurstTimestamps[0] ?? now;
-      const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
+      if (burstTimestamps.length >= burstLimit) {
+        const oldest = burstTimestamps[0] ?? now;
+        const retryAfter = Math.max(1, Math.ceil((oldest + windowMs - now) / 1000));
 
-      c.header("Retry-After", String(retryAfter));
-      c.header("Cache-Control", "no-store");
-      c.header("RateLimit-Limit", String(burstLimit));
-      c.header("RateLimit-Remaining", "0");
-      c.header("RateLimit-Reset", String(retryAfter));
+        c.header("Retry-After", String(retryAfter));
+        c.header("Cache-Control", "no-store");
+        c.header("RateLimit-Limit", String(burstLimit));
+        c.header("RateLimit-Remaining", "0");
+        c.header("RateLimit-Reset", String(retryAfter));
 
-      return c.json(
-        {
-          error: "RATE_LIMITED",
-          message: "Flood protection: instance burst limit reached. Please slow down.",
-          retryAfter,
-        },
-        429,
-      );
-    }
+        return c.json(
+          {
+            error: "RATE_LIMITED",
+            message: "Flood protection: instance burst limit reached. Please slow down.",
+            retryAfter,
+          },
+          429,
+        );
+      }
 
-    globalBurstTimestamps.push(now);
-    await next();
+      burstTimestamps.push(now);
+      await next();
+    };
   };
-}
 
-/**
- * Creates a sliding-window rate limiting middleware for Hono
- */
-export function rateLimiter(options: RateLimiterOptions): MiddlewareHandler {
-  const {
-    windowMs = 60_000,
-    limit,
-    keyPrefix = "rl",
-    keyGenerator = (c) => `${keyPrefix}:${getClientIp(c)}`,
-    message = "Too many requests. Please try again later.",
-    skip,
-  } = options;
+  const createLimiter = (options: RateLimiterOptions): MiddlewareHandler => {
+    const {
+      windowMs = 60_000,
+      limit,
+      keyPrefix = "rl",
+      keyGenerator = (c) => `${keyPrefix}:${getClientIp(c)}`,
+      message = "Too many requests. Please try again later.",
+      skip,
+    } = options;
 
-  return async (c, next) => {
-    // Allow bypassing in test suite if requested
-    if (skip && skip(c)) {
-      return next();
-    }
+    return async (c, next) => {
+      if (skip && skip(c)) {
+        return next();
+      }
 
-    if (c.req.header("x-bypass-rate-limit") === "1" && process.env.NODE_ENV === "test") {
-      return next();
-    }
+      if (c.req.header("x-bypass-rate-limit") === "1" && process.env.NODE_ENV === "test") {
+        return next();
+      }
 
-    const key = keyGenerator(c);
-    const now = Date.now();
-    const windowStart = now - windowMs;
+      const key = keyGenerator(c);
+      const now = Date.now();
+      const windowStart = now - windowMs;
 
-    let record = memoryStore.get(key);
-    if (!record) {
-      record = { timestamps: [] };
-      memoryStore.set(key, record);
-    }
+      let record = memoryStore.get(key);
+      if (!record) {
+        record = { timestamps: [] };
+        memoryStore.set(key, record);
+      }
 
-    // Keep only timestamps within the current sliding window
-    record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
+      record.timestamps = record.timestamps.filter((ts) => ts > windowStart);
 
-    const currentUsage = record.timestamps.length;
-    const remaining = Math.max(0, limit - currentUsage - 1);
-    const resetSeconds = Math.max(1, Math.ceil(windowMs / 1000));
+      const currentUsage = record.timestamps.length;
+      const remaining = Math.max(0, limit - currentUsage - 1);
+      const resetSeconds = Math.max(1, Math.ceil(windowMs / 1000));
 
-    c.header("RateLimit-Limit", String(limit));
-    c.header("RateLimit-Remaining", String(remaining));
-    c.header("RateLimit-Reset", String(resetSeconds));
+      c.header("RateLimit-Limit", String(limit));
+      c.header("RateLimit-Remaining", String(remaining));
+      c.header("RateLimit-Reset", String(resetSeconds));
 
-    if (currentUsage >= limit) {
-      const oldestInWindow = record.timestamps[0] ?? now;
-      const retryAfterSeconds = Math.max(1, Math.ceil((oldestInWindow + windowMs - now) / 1000));
+      if (currentUsage >= limit) {
+        const oldestInWindow = record.timestamps[0] ?? now;
+        const retryAfterSeconds = Math.max(1, Math.ceil((oldestInWindow + windowMs - now) / 1000));
 
-      c.header("Retry-After", String(retryAfterSeconds));
-      c.header("Cache-Control", "no-store");
-      c.header("RateLimit-Remaining", "0");
+        c.header("Retry-After", String(retryAfterSeconds));
+        c.header("Cache-Control", "no-store");
+        c.header("RateLimit-Remaining", "0");
 
-      return c.json(
-        {
-          error: "RATE_LIMITED",
-          message,
-          retryAfter: retryAfterSeconds,
-        },
-        429,
-      );
-    }
+        return c.json(
+          {
+            error: "RATE_LIMITED",
+            message,
+            retryAfter: retryAfterSeconds,
+          },
+          429,
+        );
+      }
 
-    record.timestamps.push(now);
-    await next();
+      record.timestamps.push(now);
+      await next();
+    };
   };
-}
 
-/**
- * Pre-configured rate limiting profiles for VladfsBET
- */
-export const rateLimitProfiles = {
-  /**
-   * Auth endpoints: 10 requests / minute shared across player and admin authentication
-   * Mitigates credential stuffing and brute-force registration/login
-   */
-  auth: rateLimiter({
-    keyPrefix: "auth-shared",
-    windowMs: 60_000,
-    limit: 10,
-    message: "Too many authentication attempts. Please slow down and try again in a minute.",
-  }),
-
-  /**
-   * Financial / Wallet endpoints: 20 requests / minute
-   * Prevents deposit/withdrawal spam and ledger contention
-   */
-  wallet: rateLimiter({
-    keyPrefix: "wallet",
-    windowMs: 60_000,
-    limit: 20,
-    message: "Too many wallet transactions requested. Please wait before retrying.",
-  }),
-
-  /**
-   * Game rounds & Sports bets: 60 requests / minute
-   * Blocks bot auto-clickers and socket flooding
-   */
-  gameplay: rateLimiter({
-    keyPrefix: "gameplay",
-    windowMs: 60_000,
-    limit: 60,
-    message: "Action velocity limit reached. Please wait a moment.",
-  }),
-
-  /**
-   * Global API protection: 120 requests / minute per IP
-   */
-  global: rateLimiter({
-    keyPrefix: "global",
-    windowMs: 60_000,
-    limit: 120,
-    message: "Rate limit exceeded. Please wait a minute before making more requests.",
-    skip: (c) => {
-      // Don't limit static assets or health checks
-      const path = c.req.path;
-      return path === "/health" || path === "/ready" || path === "/favicon.ico" || path === "/";
+  return {
+    burst: burstProtection(40, 5000),
+    auth: createLimiter({
+      keyPrefix: "auth-shared",
+      windowMs: 60_000,
+      limit: 10,
+      message: "Too many authentication attempts. Please slow down and try again in a minute.",
+    }),
+    wallet: createLimiter({
+      keyPrefix: "wallet",
+      windowMs: 60_000,
+      limit: 20,
+      message: "Too many wallet transactions requested. Please wait before retrying.",
+    }),
+    gameplay: createLimiter({
+      keyPrefix: "gameplay",
+      windowMs: 60_000,
+      limit: 60,
+      message: "Action velocity limit reached. Please wait a moment.",
+    }),
+    global: createLimiter({
+      keyPrefix: "global",
+      windowMs: 60_000,
+      limit: 120,
+      message: "Rate limit exceeded. Please wait a minute before making more requests.",
+      skip: (c) => {
+        const path = c.req.path;
+        return path === "/health" || path === "/ready" || path === "/favicon.ico" || path === "/";
+      },
+    }),
+    reset: () => {
+      memoryStore.clear();
+      burstTimestamps = [];
     },
-  }),
+  };
+}
+
+// Singleton for backward compatibility if needed
+const defaultLimiters = createRateLimiters();
+export const resetRateLimitStore = () => defaultLimiters.reset();
+export const rateLimitProfiles = {
+  auth: defaultLimiters.auth,
+  wallet: defaultLimiters.wallet,
+  gameplay: defaultLimiters.gameplay,
+  global: defaultLimiters.global,
 };
+export const globalBurstProtection = defaultLimiters.burst;
