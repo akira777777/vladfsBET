@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { api, type Game } from "@/lib/api";
 import { CATALOG_FALLBACK, isOriginal, mergeCatalog } from "@/lib/games-catalog";
 import { gameArt } from "@/lib/format";
-import { SlidersHorizontal, Sparkles, Search } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Flame, Trophy, Crown, Check, Search } from "lucide-react";
 
 const CATEGORIES = ["ALL", "ORIGINALS", "SLOTS", "CRASH", "TABLE", "LIVE"] as const;
 
@@ -95,17 +95,17 @@ function CasinoLobby() {
             Over 50+ casino classics, 6x5 cascading tumble slots with multiplier orbs, physics plinko, 5x5 mines, and 1080P live dealer studios.
           </p>
           <div className="flex flex-wrap gap-2.5 pt-1">
-            <Link href="/casino/gates-of-vladfs" className="inline-flex h-10 items-center rounded-xl gold-cta px-4 text-xs tracking-wider uppercase">
-              Gates of Vladfs
+            <Link href="/casino/gates-of-vladfs" className="inline-flex h-10 items-center rounded-xl bg-gold text-black font-extrabold px-4 text-xs tracking-wider uppercase shadow-lg shadow-gold/20 hover:brightness-110">
+              ⚡ Gates of Vladfs
             </Link>
-            <Link href="/casino/plinko" className="inline-flex h-10 items-center rounded-xl border border-live/40 bg-live/10 px-4 text-xs font-bold text-sky-200 hover:bg-live/20">
-              Plinko
+            <Link href="/casino/plinko" className="inline-flex h-10 items-center rounded-xl border border-blue-500/40 bg-blue-500/10 px-4 text-xs font-bold text-sky-300 hover:bg-blue-500/20">
+              🪙 Plinko Deluxe
             </Link>
             <Link href="/casino/mines" className="inline-flex h-10 items-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20">
-              Mines
+              💣 Cyber Mines
             </Link>
-            <Link href="/casino/dice" className="inline-flex h-10 items-center rounded-xl border border-white/15 bg-white/5 px-4 text-xs font-bold text-white hover:bg-white/10">
-              Dice
+            <Link href="/casino/dice" className="inline-flex h-10 items-center rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 text-xs font-bold text-purple-300 hover:bg-purple-500/20">
+              🎲 Quantum Dice
             </Link>
           </div>
         </div>
@@ -124,21 +124,17 @@ function CasinoLobby() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {(["POPULAR", "RTP", "NAME"] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setSortBy(item)}
-              className={`h-11 rounded-2xl px-4 text-xs font-bold ring-1 transition-colors ${
-                sortBy === item
-                  ? "bg-gold text-black ring-gold"
-                  : "bg-black/40 text-muted-foreground ring-white/10 hover:text-white"
-              }`}
-            >
-              {item === "POPULAR" ? "Popular" : item === "RTP" ? "Highest RTP" : "A–Z"}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          {/* Sort Selector */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "POPULAR" | "RTP" | "NAME")}
+            className="h-11 rounded-2xl border border-white/10 bg-black/40 px-4 text-xs font-bold text-white"
+          >
+            <option value="POPULAR">🔥 Most Popular</option>
+            <option value="RTP">📈 Highest RTP %</option>
+            <option value="NAME">🔤 Alphabetical (A-Z)</option>
+          </select>
 
           {/* Filter Toggle */}
           <Button
@@ -178,7 +174,7 @@ function CasinoLobby() {
       )}
 
       {/* Category Pills */}
-      <div className="flex flex-wrap gap-2 sticky top-16 z-20 py-2.5 bg-background/90 backdrop-blur-md border-y border-white/5">
+      <div className="flex flex-wrap gap-2 sticky top-16 z-20 py-2.5 bg-[#07080C]/90 backdrop-blur-md border-y border-white/5">
         {CATEGORIES.map((item) => (
           <button
             key={item}

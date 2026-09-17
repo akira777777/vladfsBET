@@ -91,7 +91,7 @@ export default function LiveCasinoPage() {
           <Link
             key={table.slug}
             href={`/casino/${table.slug}`}
-            className="group overflow-hidden rounded-2xl border border-white/10 bg-card hover:border-gold/40 transition-colors"
+            className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0A0E17] hover:border-gold/40 transition-colors"
           >
             <div className="relative aspect-[16/10]">
               <Image src={gameArt(table.slug)} alt="" fill className="object-cover transition-transform duration-500 group-hover:scale-105" />

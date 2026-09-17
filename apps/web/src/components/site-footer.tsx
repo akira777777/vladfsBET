@@ -3,7 +3,7 @@ import { ShieldAlert } from "lucide-react";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-white/8 bg-background py-12 text-sm text-muted-foreground">
+    <footer className="mt-auto border-t border-white/8 bg-[#04060A] py-12 text-sm text-muted-foreground">
       <div className="mx-auto max-w-7xl px-4 space-y-10">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 space-y-3">

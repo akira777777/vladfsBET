@@ -10,13 +10,15 @@
   ],
   "scripts": {
     "postinstall": "node scripts/prisma-generate.mjs",
-    "start": "npm run dev",
-    "dev": "node scripts/dev.mjs",
+    "dev": "npm run dev --workspace=apps/web",
+    "start": "npm run start --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "build:all": "turbo run build",
+    "dev:all": "node scripts/dev.mjs",
     "dev:stop": "node scripts/stop-dev.mjs",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "typecheck": "turbo run typecheck",
+    "lint": "npm run lint --workspace=apps/web",
+    "test": "npm run test --workspace=apps/web",
+    "typecheck": "npm run typecheck --workspace=apps/web",
     "db:validate": "npm run db:validate -w @vladfsbet/db",
     "db:generate": "node scripts/prisma-generate.mjs",
     "db:migrate": "npm run db:migrate -w @vladfsbet/db",
@@ -31,7 +33,6 @@
     "turbo": "^2.0.0",
     "typescript": "^5.6.3"
   },
-  "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=20.0.0"
   },
