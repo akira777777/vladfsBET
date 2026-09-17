@@ -56,7 +56,7 @@ export default function WalletPage() {
       <div className="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
         <h1 className="font-heading text-3xl font-bold text-white">Demo wallet</h1>
         <p className="text-sm text-muted-foreground">Sign in to use your one-time $1,000 starting balance.</p>
-        <Button asChild className="bg-gold font-bold text-black"><Link href="/login">Sign in</Link></Button>
+        <Button asChild variant="gold"><Link href="/login">Sign in</Link></Button>
       </div>
     );
   }
@@ -82,7 +82,7 @@ export default function WalletPage() {
           ["Pending", wallet.pending, "text-blue-300"],
           ["Locked", wallet.locked, "text-amber-300"],
         ].map(([label, value, color]) => (
-          <Card key={label} className="border-white/10 bg-[#0f1422] p-5 text-white">
+          <Card key={label} className="border-white/10 bg-card p-5 text-white">
             <span className="text-[11px] font-bold uppercase text-muted-foreground">{label}</span>
             <p className={`mt-1 font-mono text-2xl font-black ${color}`}>{formatMoney(value, currency)}</p>
           </Card>
@@ -90,7 +90,7 @@ export default function WalletPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="space-y-5 border-white/10 bg-[#0A0E17] p-6 text-white">
+        <Card className="space-y-5 border-white/10 bg-card p-6 text-white">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-gold" />
             <h2 className="font-bold">Balance policy</h2>
@@ -105,11 +105,11 @@ export default function WalletPage() {
           </div>
         </Card>
 
-        <Card className="space-y-5 border-white/10 bg-[#0A0E17] p-6 text-white">
+        <Card className="space-y-5 border-white/10 bg-card p-6 text-white">
           <div className="flex items-center gap-2"><ArrowUpRight className="h-5 w-5 text-gold" /><h2 className="font-bold">Withdrawal</h2></div>
           <form onSubmit={requestWithdrawal} className="space-y-3">
             <Input type="number" min="1" max={wallet.available} value={amount} onChange={(event) => setAmount(event.target.value)} required className="border-white/10 bg-black/40" />
-            <Button type="submit" disabled={submitting || !providerId} className="w-full bg-gold font-bold text-black">
+            <Button type="submit" variant="gold" disabled={submitting || !providerId} className="w-full">
               {submitting ? "Submitting…" : "Request withdrawal"}
             </Button>
           </form>
@@ -117,7 +117,7 @@ export default function WalletPage() {
         </Card>
       </div>
 
-      <Card className="overflow-hidden border-white/10 bg-[#0A0E17] text-white">
+      <Card className="overflow-hidden border-white/10 bg-card text-white">
         <div className="flex items-center gap-2 border-b border-white/10 p-5"><History className="h-5 w-5 text-gold" /><h2 className="font-bold">Ledger history</h2></div>
         <div className="divide-y divide-white/5">
           {items.length === 0 ? <p className="p-6 text-sm text-muted-foreground">No transactions yet.</p> : items.map((item) => (
