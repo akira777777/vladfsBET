@@ -55,6 +55,27 @@ import { evaluateTransactionRisk } from "@vladfsbet/db";
 const COOKIE = "vladfsbet_session";
 const ADMIN_COOKIE = "vladfsbet_admin_session";
 
+// In-memory high performance TTL cache
+const responseCache = new Map<string, { data: unknown; expiresAt: number }>();
+
+function getCached<T>(key: string): T | null {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    responseCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCached<T>(key: string, data: T, ttlMs: number): void {
+  if (responseCache.size > 1000) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey) responseCache.delete(oldestKey);
+  }
+  responseCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+}
+
 // Schemas
 const registerSchema = z.object({
   firstName: z.string().min(1),
