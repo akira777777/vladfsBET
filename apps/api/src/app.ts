@@ -188,16 +188,19 @@ function setSessionCookie(c: Parameters<typeof setCookie>[0], token: string, nam
 export function createApp() {
   const app = new Hono();
 
-  // 1. Security Headers (HSTS, frameguard, nosniff, referrer-policy)
+  // 1. Instance burst flood protection (40 requests in 5s burst)
+  app.use("*", globalBurstProtection(40, 5000));
+
+  // 2. Security Headers (HSTS, frameguard, nosniff, referrer-policy)
   app.use("*", platformSecureHeaders);
 
-  // 2. Request timeout protection (15s) against slowloris and stalled connections
+  // 3. Request timeout protection (15s) against slowloris and stalled connections
   app.use("*", requestTimeout);
 
-  // 3. Adaptive payload size limits (128KB standard, 10MB for KYC documents)
+  // 4. Adaptive payload size limits (128KB standard, 10MB for KYC documents)
   app.use("*", adaptiveBodyLimit);
 
-  // 4. CORS
+  // 5. CORS
   app.use(
     "*",
     cors({
@@ -208,9 +211,10 @@ export function createApp() {
     }),
   );
 
-  // 5. Rate Limiting layers
+  // 6. Rate Limiting layers
   app.use("/api/*", rateLimitProfiles.global);
   app.use("/api/auth/*", rateLimitProfiles.auth);
+  app.use("/api/admin/auth/*", rateLimitProfiles.auth);
   app.use("/api/wallet/*", rateLimitProfiles.wallet);
   app.use("/api/games/*/play", rateLimitProfiles.gameplay);
   app.use("/api/sports/bets", rateLimitProfiles.gameplay);
