@@ -41919,6 +41919,9 @@ function createApp() {
     if (error instanceof ZodError) {
       return c.json({ error: "INVALID_INPUT", message: error.issues[0]?.message ?? "Invalid input" }, 400);
     }
+    if (error instanceof AuthError && error.code === "UNDERAGE") {
+      return c.json({ error: error.code, message: error.message }, 403);
+    }
     if (error instanceof AuthError || error instanceof LedgerError || error instanceof PlayError || error instanceof RgError || error instanceof BonusError || error instanceof SportsError || error instanceof KycError || error instanceof RiskError || error instanceof SupportError || error instanceof AdminError) {
       return c.json({ error: error.code, message: error.message }, 400);
     }

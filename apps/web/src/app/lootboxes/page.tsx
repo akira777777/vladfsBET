@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Package, Sparkles, Crown, Gift, CheckCircle2, Lock, Flame } from "lucide-react";
+import { Package, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

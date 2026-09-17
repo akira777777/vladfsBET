@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { CreditCard, CheckCircle2, XCircle, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 interface AdminWithdrawal {
   id: string;
@@ -35,7 +35,12 @@ export default function AdminTransactionsPage() {
   };
 
   useEffect(() => {
-    fetchWithdrawals();
+    let active = true;
+    void api<{ items: AdminWithdrawal[] }>("/api/admin/withdrawals")
+      .then((data) => { if (active) setWithdrawals(data.items || []); })
+      .catch(() => { if (active) setWithdrawals([]); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   const handleSettleWithdrawal = async () => {
@@ -58,8 +63,8 @@ export default function AdminTransactionsPage() {
       setDecision(null);
       setReviewNote("");
       fetchWithdrawals();
-    } catch (err: any) {
-      alert(err.message || "Failed to process withdrawal");
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to process withdrawal");
     }
   };
 

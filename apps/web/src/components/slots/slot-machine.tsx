@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { DemoBadge } from "@/components/demo-badge";
-import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { formatMoney, gameArt } from "@/lib/format";
 import {
@@ -25,7 +24,7 @@ import { SlotBonusModal } from "./slot-bonus-modal";
 import { SlotPaytableModal } from "./slot-paytable-modal";
 import { SlotMascot } from "./slot-mascot";
 import Image from "next/image";
-import { Sparkles, Zap, Flame, Crown } from "lucide-react";
+import { Zap } from "lucide-react";
 
 interface SlotMachineProps {
   initialSlug?: string;
