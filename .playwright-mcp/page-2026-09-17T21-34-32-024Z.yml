@@ -1,0 +1,181 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "VLADFSBET Demo" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: VLADFSBET
+        - generic [ref=e6]: Demo
+      - navigation [ref=e7]:
+        - link "Casino" [ref=e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=e21] [cursor=pointer]:
+          - /url: /sports
+        - link "Tournaments" [ref=e29] [cursor=pointer]:
+          - /url: /tournaments
+        - link "Lucky Wheel" [ref=e33] [cursor=pointer]:
+          - /url: /rewards
+        - link "Loot Boxes" [ref=e39] [cursor=pointer]:
+          - /url: /lootboxes
+        - link "VIP" [ref=e45] [cursor=pointer]:
+          - /url: /vip
+      - generic [ref=e49]:
+        - button "Search" [ref=e50]
+        - generic [ref=e206]:
+          - link "Log in" [ref=e207] [cursor=pointer]:
+            - /url: /login
+          - link "Register" [ref=e208] [cursor=pointer]:
+            - /url: /register
+  - main [ref=e52]:
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e61]:
+            - text: "Session:"
+            - strong [ref=e62]: 00:22
+          - generic [ref=e64]: Demo Mode • 18+ Play Responsibly
+        - link "Set Gaming Limits" [ref=e66] [cursor=pointer]:
+          - /url: /responsible-gaming
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - heading "Dice" [level=1] [ref=e74]
+            - generic [ref=e77]: Theoretical RTP (sandbox)
+          - paragraph [ref=e78]: Customizable win chance slider with roll under/over toggles, Martingale automated strategies, and instant payouts.
+        - generic [ref=e79]:
+          - button "Sound ON" [ref=e80]
+          - button "🛡️ Provably Fair" [ref=e81]
+      - generic [ref=e82]:
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - button "Manual" [ref=e86]
+            - button "Auto Strategy" [ref=e87]
+          - generic [ref=e88]:
+            - generic [ref=e89]:
+              - generic [ref=e90]: Bet Amount ($)
+              - generic [ref=e91]: "Balance: US$1,000.00"
+            - spinbutton [ref=e92]: "10"
+            - generic [ref=e93]:
+              - button "$1" [ref=e94]
+              - button "$5" [ref=e95]
+              - button "$10" [ref=e96]
+              - button "$25" [ref=e97]
+              - button "$50" [ref=e98]
+              - button "$100" [ref=e99]
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]: "Multiplier:"
+              - generic [ref=e103]: 1.9800x
+            - generic [ref=e104]:
+              - generic [ref=e105]: "Profit on Win:"
+              - generic [ref=e106]: +$9.80
+            - generic [ref=e107]:
+              - generic [ref=e108]: "Win Chance:"
+              - generic [ref=e109]: 50.00%
+          - button "Roll Dice ($10)" [ref=e111]
+        - generic [ref=e112]:
+          - generic [ref=e113]:
+            - generic [ref=e114]: "Recent Rolls:"
+            - generic [ref=e115]: "65.03"
+            - generic [ref=e116]: "24.12"
+            - generic [ref=e117]: "78.55"
+            - generic [ref=e118]: "12.05"
+            - generic [ref=e119]: "49.91"
+            - generic [ref=e219]: "88.34"
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - paragraph [ref=e122]: Rolled Outcome
+              - generic [ref=e123]: "65.03"
+              - paragraph [ref=e125]: "Target: < 50.00"
+            - generic [ref=e126]:
+              - slider [ref=e130] [cursor=pointer]: "50"
+              - generic [ref=e131]:
+                - generic [ref=e132]: "0.00"
+                - generic [ref=e133]: "25.00"
+                - generic [ref=e134]: "50.00"
+                - generic [ref=e135]: "75.00"
+                - generic [ref=e136]: "100.00"
+            - button "Switch to Roll Over (> 50.00)" [ref=e138]
+  - contentinfo [ref=e139]:
+    - generic [ref=e140]:
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - text: VLADFSBET
+          - paragraph [ref=e143]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=e144]:
+            - generic [ref=e145]: 18+ ONLY
+            - generic [ref=e146]: PROVABLY FAIR
+            - generic [ref=e147]: SANDBOX DEMO
+        - generic [ref=e148]:
+          - heading "Gaming" [level=3] [ref=e149]
+          - list [ref=e150]:
+            - listitem [ref=e151]:
+              - link "Casino Lobby" [ref=e152] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=e153]:
+              - link "Originals" [ref=e154] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=e155]:
+              - link "Live Casino" [ref=e156] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=e157]:
+              - link "Sportsbook" [ref=e158] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=e159]:
+              - link "Promotions" [ref=e160] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=e161]:
+              - link "VIP Club" [ref=e162] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=e163]:
+          - heading "Protection" [level=3] [ref=e164]
+          - list [ref=e165]:
+            - listitem [ref=e166]:
+              - link "Responsible Gaming" [ref=e167] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=e168]:
+              - link "Provably Fair" [ref=e169] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=e170]:
+              - link "Terms of Service" [ref=e171] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=e172]:
+              - link "Privacy Policy" [ref=e173] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=e174]:
+              - link "Cookie Preferences" [ref=e175] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=e176]:
+              - link "AML Policy" [ref=e177] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=e178]:
+              - link "KYC Policy" [ref=e179] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=e180]:
+          - heading "Support" [level=3] [ref=e181]
+          - list [ref=e182]:
+            - listitem [ref=e183]:
+              - link "About" [ref=e184] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e185]:
+              - link "Help Center" [ref=e186] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e187]:
+              - link "Contact" [ref=e188] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=e189]:
+              - link "Account" [ref=e190] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=e191]:
+              - link "Cashier" [ref=e192] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=e193]:
+        - generic [ref=e194]: Responsible Gaming
+        - paragraph [ref=e198]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=e199]:
+        - paragraph [ref=e200]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=e201]: HMAC-SHA256 provably fair originals.
+  - button "Open Live Community Chat" [ref=e202]
+  - button "Open Next.js Dev Tools" [ref=e214] [cursor=pointer]
+  - alert [ref=e218]
