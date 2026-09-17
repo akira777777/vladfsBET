@@ -8590,20 +8590,6 @@ async function postJournal(db, input) {
     throw error;
   }
 }
-async function creditDemo(db, userId, currency, amount, idempotencyKey) {
-  return postJournal(db, {
-    userId,
-    type: "BONUS",
-    currency,
-    idempotencyKey,
-    amount,
-    memo: "Demo credits. Not real money.",
-    lines: [
-      { owner: "house", accountType: "AVAILABLE", direction: "DEBIT", amount },
-      { owner: "player", accountType: "AVAILABLE", direction: "CREDIT", amount }
-    ]
-  });
-}
 async function requestWithdrawal(db, input) {
   const amount = dec(input.amount);
   if (amount.lte(0)) {
@@ -8864,7 +8850,10 @@ async function registerPlayer(db, input) {
     throw error;
   }
   await ensurePlayerWallets(db, user.id, user.currency);
-  await creditDemo(db, user.id, user.currency, DEMO_CREDIT, `welcome-demo:${user.id}`);
+  await db.walletAccount.updateMany({
+    where: { wallet: { userId: user.id, currency: user.currency }, type: "AVAILABLE" },
+    data: { cachedBalance: DEMO_CREDIT }
+  });
   const bronze = await db.vipLevel.findUnique({ where: { slug: "bronze" } });
   if (bronze) {
     await db.vipProgress.create({

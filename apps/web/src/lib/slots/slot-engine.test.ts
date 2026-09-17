@@ -4,6 +4,7 @@ import {
   generate6x5Grid,
   generateMegawaysSpin,
   resolveFullTumbleRound,
+  type SymbolId,
 } from "./slot-engine";
 import { GATES_OF_VLADFS_THEME } from "./slot-themes";
 
@@ -16,7 +17,10 @@ function runTests() {
   console.assert(grid6x5[0].length === 5, `Expected 5 rows, got ${grid6x5[0].length}`);
 
   // Test 2: Cluster Pays (8+ matching symbols anywhere)
-  const testGrid = generate6x5Grid();
+  const nonMatchingSymbols: SymbolId[] = ["LOW_A", "LOW_K", "LOW_Q", "LOW_J", "LOW_10"];
+  const testGrid = Array.from({ length: 6 }, (_, col) =>
+    Array.from({ length: 5 }, (_, row) => createCell(nonMatchingSymbols[(col * 5 + row) % nonMatchingSymbols.length]))
+  );
   // Place 8 HIGH_1 symbols
   testGrid[0][0] = createCell("HIGH_1");
   testGrid[0][1] = createCell("HIGH_1");
