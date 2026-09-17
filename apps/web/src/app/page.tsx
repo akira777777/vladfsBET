@@ -64,6 +64,7 @@ export default function HomePage() {
           alt=""
           fill
           priority
+          loading="eager"
           sizes="100vw"
           className="object-cover object-center"
         />
