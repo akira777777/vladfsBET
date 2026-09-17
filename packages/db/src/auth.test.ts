@@ -56,8 +56,20 @@ describe("auth", () => {
     const ok = await loginPlayer(db, { email: input.email, password: input.password });
     expect(ok.user.email).toBe(input.email);
 
+    const loginAudit = await db.auditLog.findFirst({
+      where: { action: "PLAYER_LOGIN", subjectId: ok.user.id },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(loginAudit?.payload).toMatchObject({ email: input.email });
+
     await expect(
       loginPlayer(db, { email: input.email, password: "wrong-password" }),
     ).rejects.toMatchObject({ code: "INVALID_CREDENTIALS" });
+
+    const failed = await db.auditLog.findFirst({
+      where: { action: "PLAYER_LOGIN_FAILED", subjectId: ok.user.id },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(failed?.payload).toMatchObject({ email: input.email, reason: "bad_password" });
   });
 });

@@ -38,6 +38,20 @@ describe("playDemoGame", () => {
     expect(result.winAmount).toBe("0.00000000");
     expect(result.round.status).toBe("SETTLED");
     expect(await getAvailableBalance(db, user.id, "EUR")).toBe("900.00000000");
+
+    const audit = await db.auditLog.findFirst({
+      where: { action: "GAME_PLAY", entityId: result.round.id },
+    });
+    expect(audit).toMatchObject({
+      actorType: "PLAYER",
+      subjectId: user.id,
+      entity: "GameRound",
+    });
+    expect(audit?.payload).toMatchObject({
+      slug: "sandbox-slots",
+      betAmount: "100.00000000",
+      winAmount: "0.00000000",
+    });
   });
 
   it("settles a winning demo round as 2x the stake", async () => {
