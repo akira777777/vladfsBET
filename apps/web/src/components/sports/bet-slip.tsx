@@ -68,7 +68,7 @@ export function BetSlip({ selections, onRemoveSelection, onClearAll }: BetSlipPr
   };
 
   return (
-    <Card className="flex flex-col justify-between border-white/10 bg-[#0A0E17] p-4 text-white shadow-xl">
+    <Card className="flex flex-col justify-between border-white/10 bg-card p-4 text-white shadow-xl">
       <div>
         <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
           <div className="flex items-center gap-2">
@@ -170,8 +170,9 @@ export function BetSlip({ selections, onRemoveSelection, onClearAll }: BetSlipPr
 
           <Button
             onClick={handlePlaceBet}
+            variant="gold"
             disabled={placing || selections.length === 0}
-            className="w-full h-11 text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-gold via-yellow-500 to-amber-600 text-black hover:brightness-110 shadow-lg shadow-gold/20"
+            className="w-full h-11 text-xs font-bold uppercase tracking-wider"
           >
             {placing ? "PLACING BET..." : `PLACE BET ($${stakeNum.toFixed(2)})`}
           </Button>

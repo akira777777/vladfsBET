@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { api, type Game } from "@/lib/api";
 import { CATALOG_FALLBACK, isOriginal, mergeCatalog } from "@/lib/games-catalog";
 import { gameArt } from "@/lib/format";
-import { SlidersHorizontal, Sparkles, Flame, Trophy, Crown, Check, Search } from "lucide-react";
+import { SlidersHorizontal, Sparkles, Search } from "lucide-react";
 
 const CATEGORIES = ["ALL", "ORIGINALS", "SLOTS", "CRASH", "TABLE", "LIVE"] as const;
 

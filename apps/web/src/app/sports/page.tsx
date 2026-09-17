@@ -180,14 +180,14 @@ export default function SportsPage() {
               {loading ? (
                 <div className="py-16 text-center text-sm text-muted-foreground">Loading sports fixtures…</div>
               ) : events.length === 0 ? (
-                <div className="rounded-xl border border-white/10 bg-[#0A0E17] p-12 text-center text-sm text-muted-foreground">
+                <div className="rounded-xl border border-white/10 bg-card p-12 text-center text-sm text-muted-foreground">
                   No events found for the selected category.
                 </div>
               ) : (
                 events.map((evt) => (
                   <Card
                     key={evt.id}
-                    className="border-white/10 bg-[#0A0E17] p-5 text-white transition-all hover:border-white/20"
+                    className="border-white/10 bg-card p-5 text-white transition-all hover:border-white/20"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-3 mb-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-2">

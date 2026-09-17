@@ -41,7 +41,7 @@ export const GAME_ART: Record<string, string> = {
   hilo: "/games/hilo.jpg",
   "gates-of-vladfs": "/games/gates-of-vladfs.jpg",
   "neon-cyber-slots": "/games/neon-cyber-slots.jpg",
-  "cyber-neon-777": "/games/neon-cyber-slots.jpg",
+  "cyber-neon-777": "/games/cyber-neon-777.jpg",
   "pharaoh-gold-deluxe": "/games/pharaoh-gold-deluxe.jpg",
   "sugar-rush-frenzy": "/games/sugar-rush-frenzy.jpg",
   "dragon-fortune-888": "/games/dragon-fortune-888.jpg",
