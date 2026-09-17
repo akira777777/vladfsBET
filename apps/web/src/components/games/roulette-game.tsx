@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ProvablyFairDialog } from "./provably-fair-dialog";
@@ -40,12 +40,28 @@ export function RouletteGame({ game }: RouletteGameProps) {
     { num: 33, color: "BLACK" },
   ]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [ballPhase, setBallPhase] = useState<"IDLE" | "SPINNING" | "SETTLED">("IDLE");
+  const [ballOrbitDur, setBallOrbitDur] = useState(0.5); // seconds per revolution
+  const ballAnimRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSpin = async () => {
     if (spinning) return;
     setSpinning(true);
     setErrorMsg(null);
     setLastResult(null);
+
+    // Launch ball fast, then decelerate
+    setBallPhase("SPINNING");
+    setBallOrbitDur(0.35);
+    if (ballAnimRef.current) clearTimeout(ballAnimRef.current);
+
+    // Gradual deceleration: 3 phases
+    ballAnimRef.current = setTimeout(() => setBallOrbitDur(0.65), 800);
+    ballAnimRef.current = setTimeout(() => setBallOrbitDur(1.2), 1800);
+    ballAnimRef.current = setTimeout(() => setBallOrbitDur(2.5), 2800);
+    ballAnimRef.current = setTimeout(() => {
+      setBallPhase("SETTLED");
+    }, 3500);
 
     try {
       const res = await api<{
@@ -87,9 +103,15 @@ export function RouletteGame({ game }: RouletteGameProps) {
       }, 3500);
     } catch (err) {
       setSpinning(false);
+      setBallPhase("IDLE");
       setErrorMsg(err instanceof Error ? err.message : "Failed to place bet");
     }
   };
+
+  // Cleanup ball timers on unmount
+  useEffect(() => {
+    return () => { if (ballAnimRef.current) clearTimeout(ballAnimRef.current); };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -158,6 +180,39 @@ export function RouletteGame({ game }: RouletteGameProps) {
             </div>
             {/* Pointer / Marker */}
             <div className="absolute top-0 h-4 w-3 bg-gold clip-polygon shadow-md" style={{ clipPath: "polygon(50% 100%, 0 0, 100% 0)" }} />
+
+            {/* Animated Ivory Ball — orbits counter-clockwise at full-speed then decelerates */}
+            {ballPhase !== "IDLE" && (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  animation: ballPhase === "SPINNING"
+                    ? `ballOrbit ${ballOrbitDur}s linear infinite`
+                    : "none",
+                  "--orbit-r": "calc(50% - 14px)",
+                  "--orbit-dur": `${ballOrbitDur}s`,
+                } as React.CSSProperties}
+              >
+                <div
+                  className="absolute top-1/2 left-1/2"
+                  style={{
+                    width: 10,
+                    height: 10,
+                    marginTop: -5,
+                    marginLeft: -5,
+                    transform: `rotate(0deg) translateX(calc(50% * 0.82))`,
+                    animation: ballPhase === "SPINNING" ? `ballOrbit ${ballOrbitDur}s linear infinite reverse` : "none",
+                  }}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_6px_2px_rgba(255,255,255,0.8)]"
+                    style={{
+                      background: "radial-gradient(circle at 35% 35%, #ffffff, #d4d4d4)",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {lastResult && (

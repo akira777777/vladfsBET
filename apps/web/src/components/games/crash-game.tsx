@@ -373,12 +373,35 @@ export function CrashGame({ game }: CrashGameProps) {
     };
   }, []);
 
+  const canvasRenderRef = useRef<{
+    stars: { x: number; y: number; vy: number; len: number; alpha: number }[];
+    plume: { x: number; y: number; vx: number; vy: number; life: number; r: number; hot: boolean }[];
+    shockRings: { x: number; y: number; r: number; maxR: number; alpha: number }[];
+    initialized: boolean;
+  }>({ stars: [], plume: [], shockRings: [], initialized: false });
+
   // Canvas Rocket Flight & Particles Drawing
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    const fx = canvasRenderRef.current;
+
+    // Init starfield once
+    if (!fx.initialized) {
+      fx.initialized = true;
+      for (let i = 0; i < 90; i++) {
+        fx.stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vy: 0.3 + Math.random() * 1.2,
+          len: 2 + Math.random() * 4,
+          alpha: 0.2 + Math.random() * 0.6,
+        });
+      }
+    }
 
     let particleFrame: number;
     const particles: { x: number; y: number; vx: number; vy: number; life: number; color: string }[] = [];
@@ -387,6 +410,20 @@ export function CrashGame({ game }: CrashGameProps) {
       const w = canvas.width;
       const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
+
+      // Warp starfield — streaks accelerate with multiplier
+      const warpSpeed = roomState === "FLYING" ? Math.min(8, 1 + (currentMultiplier - 1) * 0.35) : 0.5;
+      fx.stars.forEach((s) => {
+        s.y += s.vy * warpSpeed;
+        if (s.y > h) { s.y = 0; s.x = Math.random() * w; }
+        const streakLen = s.len * warpSpeed;
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x, s.y + streakLen);
+        ctx.strokeStyle = `rgba(255,255,255,${s.alpha})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
 
       // Deep space grid
       ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
@@ -445,9 +482,74 @@ export function CrashGame({ game }: CrashGameProps) {
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // Exhaust Particles
+        // Plasma shield ring at high multipliers (10x+)
+        if (roomState === "FLYING" && currentMultiplier >= 10) {
+          const shieldPulse = (Date.now() % 800) / 800;
+          const shieldR = 28 + shieldPulse * 10;
+          const shieldAlpha = 0.5 - shieldPulse * 0.4;
+          ctx.beginPath();
+          ctx.arc(endX, endY, shieldR, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(139,92,246,${shieldAlpha})`;
+          ctx.lineWidth = 2;
+          ctx.shadowColor = "#8b5cf6";
+          ctx.shadowBlur = 20;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Second ring offset
+          ctx.beginPath();
+          ctx.arc(endX, endY, shieldR * 0.65, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(236,72,153,${shieldAlpha * 0.7})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // Thruster plume particles (hot core + outer glow)
         if (roomState === "FLYING") {
-          for (let i = 0; i < 3; i++) {
+          for (let i = 0; i < 5; i++) {
+            const isHot = Math.random() > 0.4;
+            fx.plume.push({
+              x: endX - 8 + (Math.random() - 0.5) * 6,
+              y: endY + 10,
+              vx: -(Math.random() * 3.5 + 1.5) + (Math.random() - 0.5) * 1.2,
+              vy: Math.random() * 2.5 - 1.0,
+              life: 1.0,
+              r: isHot ? 2 + Math.random() * 3 : 4 + Math.random() * 5,
+              hot: isHot,
+            });
+          }
+          // Keep plume manageable
+          if (fx.plume.length > 120) fx.plume.splice(0, fx.plume.length - 120);
+        }
+
+        // Draw and update plume
+        for (let i = fx.plume.length - 1; i >= 0; i--) {
+          const p = fx.plume[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= 0.035;
+          if (p.life <= 0) { fx.plume.splice(i, 1); continue; }
+
+          const grad2 = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * p.life);
+          if (p.hot) {
+            grad2.addColorStop(0, `rgba(255,255,220,${p.life})`);
+            grad2.addColorStop(0.4, `rgba(255,165,0,${p.life * 0.8})`);
+            grad2.addColorStop(1, `rgba(239,68,68,0)`);
+          } else {
+            grad2.addColorStop(0, `rgba(251,191,36,${p.life * 0.6})`);
+            grad2.addColorStop(1, `rgba(239,68,68,0)`);
+          }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * (0.4 + p.life * 0.6), 0, Math.PI * 2);
+          ctx.fillStyle = grad2;
+          ctx.globalAlpha = p.life;
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+        }
+
+        // Legacy exhaust particles
+        if (roomState === "FLYING") {
+          for (let i = 0; i < 2; i++) {
             particles.push({
               x: endX - 10,
               y: endY + 8,
@@ -459,7 +561,7 @@ export function CrashGame({ game }: CrashGameProps) {
           }
         }
 
-        // Draw and update particles
+        // Draw and update legacy particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
           p.x += p.vx;
@@ -475,6 +577,33 @@ export function CrashGame({ game }: CrashGameProps) {
           ctx.globalAlpha = p.life;
           ctx.fill();
           ctx.globalAlpha = 1.0;
+        }
+
+        // Crash shockwave rings
+        if (roomState === "CRASHED") {
+          // Spawn one ring on crash (idempotent via low ring count check)
+          if (fx.shockRings.length === 0) {
+            for (let r = 0; r < 3; r++) {
+              fx.shockRings.push({ x: endX, y: endY, r: 10 + r * 8, maxR: 90 + r * 30, alpha: 0.9 - r * 0.2 });
+            }
+          }
+          for (let i = fx.shockRings.length - 1; i >= 0; i--) {
+            const sr = fx.shockRings[i];
+            sr.r += (sr.maxR - sr.r) * 0.12;
+            sr.alpha -= 0.018;
+            if (sr.alpha <= 0) { fx.shockRings.splice(i, 1); continue; }
+            ctx.beginPath();
+            ctx.arc(sr.x, sr.y, sr.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(239,68,68,${sr.alpha})`;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = "#ef4444";
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+        } else {
+          // Clear rings when round restarts
+          fx.shockRings.length = 0;
         }
 
         // Draw Rocket Icon

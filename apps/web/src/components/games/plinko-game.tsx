@@ -207,14 +207,38 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       const balls = ballsRef.current;
 
       // Draw Pegs
+      const now = Date.now();
       pegs.forEach((peg) => {
-        const isLit = Date.now() - peg.highlightTime < 250;
+        const hitAge = now - peg.highlightTime;
+        const isLit = hitAge < 280;
+
+        // Neon shockwave rings on collision
+        if (isLit) {
+          const ringProgress = hitAge / 280;
+          for (let ring = 0; ring < 3; ring++) {
+            const ringDelay = ring * 0.25;
+            const rp = Math.max(0, Math.min(1, (ringProgress - ringDelay) * 2));
+            if (rp <= 0) continue;
+            const ringR = peg.radius * (1.5 + rp * 3.5 + ring * 1.2);
+            const ringAlpha = (1 - rp) * (0.7 - ring * 0.2);
+            ctx.beginPath();
+            ctx.arc(peg.x, peg.y, ringR, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(251,191,36,${ringAlpha})`;
+            ctx.lineWidth = 2 - ring * 0.4;
+            ctx.shadowColor = "#f59e0b";
+            ctx.shadowBlur = 8;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+          }
+        }
+
+        // Core peg
         ctx.beginPath();
-        ctx.arc(peg.x, peg.y, isLit ? peg.radius * 1.5 : peg.radius, 0, Math.PI * 2);
+        ctx.arc(peg.x, peg.y, isLit ? peg.radius * 1.8 : peg.radius, 0, Math.PI * 2);
         ctx.fillStyle = isLit ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
         if (isLit) {
           ctx.shadowColor = "#f59e0b";
-          ctx.shadowBlur = 12;
+          ctx.shadowBlur = 18;
         }
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -328,10 +352,30 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
         else if (mult >= 4) binColor = "#eab308";
         else if (mult >= 1.5) binColor = "#10b981";
 
+        // Spotlight beam above lit bin
+        if (isLit) {
+          const beamGrad = ctx.createLinearGradient(bx + binWidth / 2, by - 80, bx + binWidth / 2, by);
+          beamGrad.addColorStop(0, "rgba(255,255,255,0)");
+          beamGrad.addColorStop(1, `${binColor}44`);
+          ctx.beginPath();
+          ctx.moveTo(bx + binWidth * 0.1, by);
+          ctx.lineTo(bx + binWidth * 0.9, by);
+          ctx.lineTo(bx + binWidth * 0.7, by - 80);
+          ctx.lineTo(bx + binWidth * 0.3, by - 80);
+          ctx.closePath();
+          ctx.fillStyle = beamGrad;
+          ctx.fill();
+        }
+
         ctx.beginPath();
         ctx.roundRect(bx + 1, by + (isLit ? 4 : 0), binWidth - 2, 28, 6);
         ctx.fillStyle = isLit ? "#ffffff" : binColor;
+        if (isLit) {
+          ctx.shadowColor = binColor;
+          ctx.shadowBlur = 20;
+        }
         ctx.fill();
+        ctx.shadowBlur = 0;
 
         ctx.fillStyle = isLit ? "#000000" : "#ffffff";
         ctx.font = binWidth > 28 ? "bold 10px sans-serif" : "bold 8px sans-serif";

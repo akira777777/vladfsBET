@@ -188,9 +188,13 @@ export function BlackjackGame({ game }: BlackjackGameProps) {
                 dealerCards.map((c, idx) => (
                   <div
                     key={idx}
-                    className={`h-24 w-16 rounded-lg bg-white p-2 text-black shadow-lg flex flex-col justify-between font-bold animate-in fade-in slide-in-from-top-2 ${
+                    className={`h-24 w-16 rounded-lg bg-white p-2 text-black shadow-lg flex flex-col justify-between font-bold animate-card-deal ${
                       c.color === "RED" ? "text-red-600" : "text-zinc-900"
                     }`}
+                    style={{
+                      animationDelay: `${idx * 90}ms`,
+                      perspective: "600px",
+                    }}
                   >
                     <span className="text-sm leading-none">{c.rank}</span>
                     <span className="text-xl self-center leading-none">{c.suit}</span>
@@ -203,6 +207,13 @@ export function BlackjackGame({ game }: BlackjackGameProps) {
 
           {/* Table Center / Result Banner */}
           <div className="flex justify-center min-h-[32px]">
+            {/* Natural 21 Golden Banner */}
+            {playerCards.length === 2 && playerScore === 21 && roundStatus !== "RESOLVED" && (
+              <div className="inline-flex items-center gap-2 rounded-full px-5 py-1.5 text-sm font-black text-black ring-2 ring-yellow-400/60 animate-natural-21"
+                style={{ background: "linear-gradient(90deg, #f59e0b, #fde68a, #f59e0b)", boxShadow: "0 0 30px rgba(251,191,36,0.8)" }}>
+                ♠ BLACKJACK! Natural 21 ♠
+              </div>
+            )}
             {resultMessage && (
               <div className="inline-flex items-center gap-2 rounded-full bg-black/60 px-5 py-1.5 text-sm font-bold text-gold ring-1 ring-gold/30 animate-in zoom-in">
                 {resultMessage} {lastWin && <span className="text-emerald-400">{lastWin}</span>}
@@ -224,9 +235,14 @@ export function BlackjackGame({ game }: BlackjackGameProps) {
                 playerCards.map((c, idx) => (
                   <div
                     key={idx}
-                    className={`h-24 w-16 rounded-lg bg-white p-2 text-black shadow-lg flex flex-col justify-between font-bold animate-in fade-in slide-in-from-bottom-2 ${
+                    className={`h-24 w-16 rounded-lg bg-white p-2 text-black shadow-lg flex flex-col justify-between font-bold animate-card-deal ${
                       c.color === "RED" ? "text-red-600" : "text-zinc-900"
                     }`}
+                    style={{
+                      animationDelay: `${idx * 90 + 45}ms`,
+                      perspective: "600px",
+                      boxShadow: playerScore === 21 && playerCards.length === 2 ? "0 0 20px rgba(251,191,36,0.6)" : undefined,
+                    }}
                   >
                     <span className="text-sm leading-none">{c.rank}</span>
                     <span className="text-xl self-center leading-none">{c.suit}</span>

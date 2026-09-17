@@ -517,6 +517,19 @@ export function MinesGame({ game }: MinesGameProps) {
                         : "bg-gradient-to-b from-[#1e293b] to-[#0f172a] border-white/10 hover:border-gold/50 hover:brightness-125 active:scale-95"
                     }`}
                   >
+                    {/* Gem reveal light beam */}
+                    {isRevealedGem && (
+                      <div className="absolute inset-x-1/4 top-0 bottom-0 pointer-events-none z-10 animate-gem-beam"
+                        style={{
+                          background: "linear-gradient(180deg, rgba(52,211,153,0.9) 0%, rgba(52,211,153,0.3) 50%, transparent 100%)",
+                          borderRadius: "0 0 50% 50%",
+                        }}
+                      />
+                    )}
+                    {/* Mine detonation shockwave ring */}
+                    {isRevealedMine && (
+                      <div className="absolute inset-0 rounded-2xl border-4 border-rose-400 pointer-events-none z-10 animate-mine-shockwave" />
+                    )}
                     {isRevealedGem && "💎"}
                     {isRevealedMine && "💥"}
                     {isTranslucentMine && "💣"}
