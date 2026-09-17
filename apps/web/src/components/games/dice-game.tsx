@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,7 @@ export function DiceGame({ game }: DiceGameProps) {
 
   // Auto-Betting Hook
   const { config: autoConfig, setConfig: setAutoConfig, startAuto, stopAuto, recordRound } = useAutoBet(stake);
+  const scrambleRef = useRef<number | null>(null);
 
   const toggleMute = () => {
     const next = gameAudio.toggleMute();
@@ -93,6 +94,21 @@ export function DiceGame({ game }: DiceGameProps) {
         setProvablyFairData(res.provablyFair);
       }
     } catch {}
+
+    if (scrambleRef.current) cancelAnimationFrame(scrambleRef.current);
+    const started = Date.now();
+    await new Promise<void>((resolve) => {
+      const tick = () => {
+        setLastWon(null);
+        setLastRolled(Math.floor(Math.random() * 10000) / 100);
+        if (Date.now() - started < 620) {
+          scrambleRef.current = requestAnimationFrame(tick);
+        } else {
+          resolve();
+        }
+      };
+      tick();
+    });
 
     setLastRolled(rolled);
     setLastWon(won);
@@ -294,12 +310,14 @@ export function DiceGame({ game }: DiceGameProps) {
               <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Rolled Outcome</p>
               <div className="flex items-center justify-center">
                 <span
-                  className={`text-7xl sm:text-8xl font-black font-mono tracking-tight drop-shadow-lg transition-all duration-300 ${
+                  className={`text-7xl sm:text-8xl font-black font-mono tracking-tight drop-shadow-lg ${
                     lastRolled === null
                       ? "text-slate-600"
+                      : isRolling
+                      ? "text-white/80"
                       : lastWon
-                      ? "text-emerald-400 drop-shadow-[0_0_30px_rgba(52,211,153,0.8)]"
-                      : "text-rose-500 drop-shadow-[0_0_30px_rgba(244,63,94,0.8)]"
+                      ? "text-emerald-400 drop-shadow-[0_0_30px_rgba(52,211,153,0.8)] animate-result-pop"
+                      : "text-rose-500 drop-shadow-[0_0_30px_rgba(244,63,94,0.8)] animate-result-pop"
                   }`}
                 >
                   {lastRolled !== null ? lastRolled.toFixed(2) : "50.00"}
@@ -331,7 +349,9 @@ export function DiceGame({ game }: DiceGameProps) {
 
                 {lastRolled !== null && (
                   <div
-                    className="absolute top-0 bottom-0 w-2 bg-white ring-4 ring-black rounded-full shadow-lg transition-all duration-300 -translate-x-1/2"
+                    className={`absolute -top-1.5 h-9 w-3 rounded-full shadow-lg -translate-x-1/2 ${
+                      isRolling ? "bg-white/70" : lastWon ? "bg-emerald-300 ring-4 ring-emerald-500/40" : "bg-white ring-4 ring-black"
+                    }`}
                     style={{ left: `${Math.min(99.5, Math.max(0.5, lastRolled))}%` }}
                   />
                 )}

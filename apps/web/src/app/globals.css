@@ -200,6 +200,7 @@ body {
   .animate-crash-shake,
   .animate-tile-flip,
   .animate-board-shake,
+  .animate-result-pop,
   .live-dot {
     animation: none !important;
   }
@@ -597,4 +598,13 @@ body {
   background:
     radial-gradient(circle at 30% 20%, rgba(255, 215, 120, 0.28), transparent 40%),
     repeating-linear-gradient(45deg, #1a2744 0 6px, #122033 6px 12px);
+}
+
+@keyframes resultPop {
+  0%   { transform: scale(0.72); opacity: 0.4; }
+  55%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-result-pop {
+  animation: resultPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }

@@ -38,6 +38,7 @@ export function HiloGame({ game }: HiloGameProps) {
     clientSeed: "vladfs_hilo_seed",
     nonce: 924,
   });
+  const [cardKey, setCardKey] = useState(0);
 
   const toggleMute = () => {
     const next = gameAudio.toggleMute();
@@ -65,21 +66,7 @@ export function HiloGame({ game }: HiloGameProps) {
 
     setCurrentCard(startCard);
     setCardHistory([{ card: startCard, won: true, mult: 1.0 }]);
-
-    try {
-      const res = await api<{
-        provablyFair?: { serverSeedHash: string; clientSeed: string; nonce: number };
-      }>(`/api/games/${game.slug}/play`, {
-        method: "POST",
-        body: JSON.stringify({
-          betAmount: stake.toString(),
-          gameData: { currentCardValue: startCard.value, guess: "START" },
-        }),
-      });
-      if (res.provablyFair) {
-        setProvablyFairData(res.provablyFair);
-      }
-    } catch {}
+    setCardKey((k) => k + 1);
   };
 
   // Guess Higher or Lower
@@ -114,11 +101,13 @@ export function HiloGame({ game }: HiloGameProps) {
       const nextAcc = Math.round(accumulatedMultiplier * stepMult * 100) / 100;
       setAccumulatedMultiplier(nextAcc);
       setCurrentCard(nextCard);
+      setCardKey((k) => k + 1);
       setCardHistory((prev) => [{ card: nextCard, won: true, mult: nextAcc }, ...prev]);
       gameAudio.playGemReveal(cardHistory.length);
     } else {
       setGameState("BUSTED");
       setCurrentCard(nextCard);
+      setCardKey((k) => k + 1);
       setCardHistory((prev) => [{ card: nextCard, won: false, mult: 0 }, ...prev]);
       gameAudio.playLossThud();
       void refreshWallet();
@@ -140,6 +129,7 @@ export function HiloGame({ game }: HiloGameProps) {
       value: randomRankIdx + 2,
     };
     setCurrentCard(newCard);
+    setCardKey((k) => k + 1);
   };
 
   // Cashout
@@ -325,9 +315,10 @@ export function HiloGame({ game }: HiloGameProps) {
 
           <div className="relative rounded-3xl border border-white/10 bg-gradient-to-b from-[#0d101c] via-[#101424] to-[#080a12] p-10 flex flex-col items-center justify-center min-h-[420px] shadow-2xl">
             <div
-              className={`relative h-64 w-44 rounded-2xl border-2 bg-white text-slate-900 shadow-2xl p-4 flex flex-col justify-between transition-all duration-300 ${
+              key={cardKey}
+              className={`relative h-64 w-44 rounded-2xl border-2 bg-white text-slate-900 shadow-[0_18px_40px_rgba(0,0,0,0.45)] p-4 flex flex-col justify-between animate-card-deal ${
                 isRedSuit ? "text-rose-600 border-rose-200" : "text-slate-900 border-slate-200"
-              }`}
+              } ${gameState === "BUSTED" ? "ring-4 ring-rose-500/50" : gameState === "CASHOUT" ? "ring-4 ring-emerald-400/50" : ""}`}
             >
               <div className="text-left font-black text-2xl leading-none">
                 {currentCard.rank}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,8 +36,10 @@ export function LimboGame({ game }: LimboGameProps) {
 
   // Result State
   const [currentRolled, setCurrentRolled] = useState<number | null>(null);
+  const [displayRolled, setDisplayRolled] = useState<number>(1);
   const [isWon, setIsWon] = useState<boolean | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const countRef = useRef<number | null>(null);
   const [history, setHistory] = useState<{ rolled: number; won: boolean; target: number }[]>([
     { rolled: 1.45, won: false, target: 2.0 },
     { rolled: 3.12, won: true, target: 2.0 },
@@ -99,6 +101,27 @@ export function LimboGame({ game }: LimboGameProps) {
       won = rolled >= clampedTarget;
     }
 
+    if (countRef.current) cancelAnimationFrame(countRef.current);
+    const from = 1;
+    const to = rolled;
+    const started = Date.now();
+    const duration = Math.min(1400, 380 + Math.log10(Math.max(1.01, to)) * 420);
+    await new Promise<void>((resolve) => {
+      const tick = () => {
+        const p = Math.min(1, (Date.now() - started) / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        setDisplayRolled(from + (to - from) * eased);
+        setIsWon(null);
+        if (p < 1) {
+          countRef.current = requestAnimationFrame(tick);
+        } else {
+          resolve();
+        }
+      };
+      tick();
+    });
+
+    setDisplayRolled(rolled);
     setCurrentRolled(rolled);
     setIsWon(won);
     setIsRolling(false);
@@ -323,20 +346,23 @@ export function LimboGame({ game }: LimboGameProps) {
             ))}
           </div>
 
-          <div className="relative rounded-3xl border border-white/10 bg-gradient-to-b from-[#100d1f] via-[#16102b] to-[#0a0714] p-12 text-center shadow-2xl flex flex-col items-center justify-center min-h-[360px]">
+          <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#100d1f] via-[#16102b] to-[#0a0714] p-12 text-center shadow-2xl flex flex-col items-center justify-center min-h-[360px] ${isWon === false ? "animate-crash-shake border-rose-500/40" : ""}`}>
+            <div className="pointer-events-none absolute inset-0 opacity-40" style={{ background: "radial-gradient(600px 220px at 50% 120%, rgba(168,85,247,0.35), transparent 70%)" }} />
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Multiplied Result</p>
             
             <div className="relative">
               <span
-                className={`text-8xl sm:text-9xl font-black font-mono tracking-tight transition-all duration-300 ${
-                  currentRolled === null
+                className={`text-8xl sm:text-9xl font-black font-mono tracking-tight ${
+                  currentRolled === null && !isRolling
                     ? "text-slate-600"
+                    : isRolling
+                    ? "text-fuchsia-200 drop-shadow-[0_0_28px_rgba(232,121,249,0.55)]"
                     : isWon
-                    ? "text-emerald-400 drop-shadow-[0_0_40px_rgba(52,211,153,0.9)] scale-105"
-                    : "text-rose-500 drop-shadow-[0_0_40px_rgba(244,63,94,0.9)]"
+                    ? "text-emerald-400 drop-shadow-[0_0_40px_rgba(52,211,153,0.9)] animate-result-pop"
+                    : "text-rose-500 drop-shadow-[0_0_40px_rgba(244,63,94,0.9)] animate-result-pop"
                 }`}
               >
-                {currentRolled !== null ? currentRolled.toFixed(2) : "1.00"}
+                {displayRolled.toFixed(2)}
                 <span className="text-5xl sm:text-6xl text-purple-400">x</span>
               </span>
             </div>
