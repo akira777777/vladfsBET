@@ -201,6 +201,10 @@ body {
   .animate-tile-flip,
   .animate-board-shake,
   .animate-result-pop,
+  .animate-reel-strip,
+  .animate-reel-strip-fast,
+  .animate-symbol-fall,
+  .animate-celebration-flash,
   .live-dot {
     animation: none !important;
   }
@@ -305,6 +309,38 @@ body {
 }
 .animate-reel-spin {
   animation: reelSpin 0.15s linear infinite;
+}
+
+/* Seamless two-copy strip (parent is 200% tall, 5 visible rows) */
+@keyframes reelStripLoop {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+.animate-reel-strip {
+  animation: reelStripLoop 0.2s linear infinite;
+  will-change: transform;
+  filter: blur(1.6px);
+}
+.animate-reel-strip-fast {
+  animation: reelStripLoop 0.11s linear infinite;
+  will-change: transform;
+  filter: blur(2px);
+}
+
+@keyframes symbolFall {
+  from { transform: translateY(var(--fall-from, -120%)); }
+  to { transform: translateY(0); }
+}
+.animate-symbol-fall {
+  animation: symbolFall 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes celebrationFlash {
+  0% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+.animate-celebration-flash {
+  animation: celebrationFlash 0.4s ease-out forwards;
 }
 
 /* ── Reel Stop Bounce ── */
