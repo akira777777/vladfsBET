@@ -14,30 +14,31 @@
 
 ---
 
-## 3. AML Risk Engine & Velocity Controls
-- **Deposit Velocity Limits**: Max 5 deposits within a 1-hour window.
-- **High Single-Transaction Gating**: Transactions exceeding €5,000 trigger automated KYC escalation and compliance hold.
-- **Rapid Turnaround Rule**: Immediate withdrawal requests following deposits without adequate game wagering automatically generate an AML review alert.
-- **Account Multiplicity Check**: Duplicate IP, device fingerprint, and beneficiary bank details trigger fraud review flags.
+## 3. Balance Funding Policy
+- A player receives one $1,000 virtual starting balance during registration.
+- Deposit, faucet, promo-code credit, VIP cashback, and manual balance-adjustment routes are disabled.
+- Game stakes and payouts continue to use the double-entry ledger.
 
 ---
 
 ## 4. Role-Based Access Control (RBAC) & Dual Control
 - Admin endpoints strictly enforce staff authorization.
-- Sensitive administrative operations (e.g. manual ledger balance adjustments, KYC approvals, account suspensions) require mandatory reason codes and are immutably written to `AuditLog`.
+- Sensitive administrative operations such as KYC approvals and account suspensions require reason codes and are written to `AuditLog`.
 
 ---
 
 ## 5. DDoS Mitigation & Application-Level Rate Limiting
 - **Multi-Tier Rate Limiting (Sliding Window)**:
   - **Auth (`/api/auth/*`)**: 10 requests / min per IP to eliminate brute-force and credential stuffing.
-  - **Wallet (`/api/wallet/*`)**: 20 requests / min per IP/account to prevent ledger contention and withdrawal flooding.
-  - **Gameplay & Sports (`/api/games/*/play`, `/api/sports/bets`)**: 60 requests / min to block automated bot clickers.
-  - **Global API (`/api/*`)**: 120 requests / min per IP.
+  - **Burst**: 40 requests / 10 seconds per client.
+  - **Wallet (`/api/wallet/*`)**: 30 requests / min per client.
+  - **Gameplay & Sports (`/api/games/*/play`, `/api/sports/bet`)**: 60 requests / min.
+  - **Global API (`/api/*`)**: 240 requests / min per client.
   - Returns standard `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, and `Retry-After` (HTTP 429).
+  - Production instances share counters through `REDIS_URL`; a bounded in-process limiter remains active if Redis is temporarily unavailable.
 - **Payload Size Guards (`bodyLimit`)**:
   - Global API requests strictly capped at **128 KB** to prevent Event Loop blocking and Memory Exhaustion (HTTP 413).
-  - KYC document uploads (`/api/kyc/documents`) gated separately up to **10 MB**.
+  - KYC document uploads (`/api/kyc/upload`) are capped at **4 MB**.
 - **Request Timeout Defense**:
   - Global 15-second execution timeout prevents Slowloris and connection starvation attacks (HTTP 504).
 - **Security Headers**:
@@ -45,9 +46,9 @@
 
 ---
 
-## 6. Edge & Reverse-Proxy Topology (Cloudflare + Nginx)
-- **Origin Cloaking**: The origin server IP must never be exposed publicly. All public ingress must be routed through Cloudflare Anycast CDN with Authenticated Origin Pulls (or Cloudflare Tunnel).
-- **Firewall Rules (UFW / Security Groups)**: Ingress ports 80/443 strictly whitelisted to Cloudflare IP blocks.
-- **Client IP Resolution**: Hono API extracts genuine client IP using `CF-Connecting-IP` -> `X-Real-IP` -> sanitized multi-hop `X-Forwarded-For`.
-- **Nginx Hardening**: Configured with strict client body/header timeouts, connection limits (`limit_conn`), and buffer limits to shed volumetric Layer 7 floods before touching Node.js.
+## 6. Edge & Reverse-Proxy Requirements
+- Application rate limiting protects database and CPU work; volumetric DDoS traffic must be absorbed by the hosting edge or reverse proxy.
+- Standalone Node binds to `127.0.0.1` by default and limits headers, connection count, keep-alive time, and request duration.
+- Forwarding headers are ignored unless Vercel, Cloudflare, or trusted proxy CIDRs are explicitly configured.
+- On Vercel, the platform-owned `x-vercel-forwarded-for` header is used. For Cloudflare, expose the origin only through Cloudflare before setting `TRUSTED_PROXY_PROVIDER=cloudflare`.
 
