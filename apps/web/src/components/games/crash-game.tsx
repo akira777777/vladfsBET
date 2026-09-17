@@ -8,7 +8,7 @@ import { ProvablyFairDialog } from "./provably-fair-dialog";
 import { RealityCheckBar } from "./reality-check-bar";
 import { api } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
-import { Rocket, Send, Volume2, VolumeX, Users, MessageSquare, ShieldCheck, Flame, Zap } from "lucide-react";
+import { Rocket, Send, Volume2, VolumeX, Users, MessageSquare, Flame, Zap } from "lucide-react";
 import { gameAudio } from "./game-audio";
 import { formatMoney } from "@/lib/format";
 
@@ -50,6 +50,17 @@ const AVATAR_COLORS = [
   "bg-cyan-600", "bg-indigo-600", "bg-orange-600", "bg-pink-600", "bg-teal-600"
 ];
 
+function calculateCrashTarget(): number {
+  let crashTarget = 2.0 + Math.random() * 4.0;
+  if (Math.random() < 0.25) crashTarget = 1.1 + Math.random() * 0.8;
+  if (Math.random() < 0.08) crashTarget = 1.0; // Instant crash
+  return crashTarget;
+}
+
+function getNow(): number {
+  return Date.now();
+}
+
 export function CrashGame({ game }: CrashGameProps) {
   const { user, wallet, refreshWallet } = useAuth();
   const currency = wallet?.currency ?? user?.currency ?? "USD";
@@ -72,9 +83,8 @@ export function CrashGame({ game }: CrashGameProps) {
   const [roomState, setRoomState] = useState<"WAITING" | "COUNTDOWN" | "FLYING" | "CRASHED">("WAITING");
   const [countdown, setCountdown] = useState(5.0);
   const [currentMultiplier, setCurrentMultiplier] = useState(1.0);
-  const [actualCrashPoint, setActualCrashPoint] = useState(2.35);
+  const [, setActualCrashPoint] = useState(2.35);
   const [history, setHistory] = useState<number[]>([1.84, 3.42, 1.15, 12.8, 2.05, 1.48, 5.2, 1.02, 8.44]);
-  const [roundId, setRoundId] = useState<string>("rnd-" + Math.floor(Math.random() * 100000));
   const [provablyFairData, setProvablyFairData] = useState({
     serverSeedHash: "a7e8f1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
     clientSeed: "vladfs_player_seed_crash",
@@ -211,7 +221,7 @@ export function CrashGame({ game }: CrashGameProps) {
   };
 
   // Start Game Round Loop
-  const startNewRound = async () => {
+  const handleStartNewRound = async () => {
     setRoomState("COUNTDOWN");
     setCountdown(5.0);
     setCurrentMultiplier(1.0);
@@ -221,9 +231,7 @@ export function CrashGame({ game }: CrashGameProps) {
     setBet2Win(null);
 
     // Settle backend demo round if bets active
-    let crashTarget = 2.0 + Math.random() * 4.0;
-    if (Math.random() < 0.25) crashTarget = 1.1 + Math.random() * 0.8;
-    if (Math.random() < 0.08) crashTarget = 1.0; // Instant crash
+    let crashTarget = calculateCrashTarget();
 
     try {
       if (isBet1Active || isBet2Active) {
@@ -262,7 +270,7 @@ export function CrashGame({ game }: CrashGameProps) {
       cd -= 0.1;
       if (cd <= 0) {
         clearInterval(cdInterval);
-        launchRocket(crashTarget);
+        handleLaunchRocket(crashTarget);
       } else {
         setCountdown(Math.max(0, Math.round(cd * 10) / 10));
       }
@@ -270,9 +278,9 @@ export function CrashGame({ game }: CrashGameProps) {
   };
 
   // Launch Rocket Flight Animation
-  const launchRocket = (crashAt: number) => {
+  const handleLaunchRocket = (crashAt: number) => {
     setRoomState("FLYING");
-    flightStartTimeRef.current = Date.now();
+    flightStartTimeRef.current = getNow();
     gameAudio.playBet();
 
     const speed = 0.055; // Multiplier growth rate
@@ -343,7 +351,7 @@ export function CrashGame({ game }: CrashGameProps) {
 
         // Wait 4 seconds and restart room countdown
         setTimeout(() => {
-          void startNewRound();
+          void handleStartNewRound();
         }, 4000);
       } else {
         setCurrentMultiplier(mult);
@@ -356,8 +364,11 @@ export function CrashGame({ game }: CrashGameProps) {
 
   // Initial boot
   useEffect(() => {
-    void startNewRound();
+    const timer = setTimeout(() => {
+      void handleStartNewRound();
+    }, 0);
     return () => {
+      clearTimeout(timer);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, []);

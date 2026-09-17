@@ -26,8 +26,8 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ email, password }),
       });
       router.push("/admin");
-    } catch (err: any) {
-      setErrorMsg(err.message || "Invalid administrator credentials");
+    } catch (err: unknown) {
+      setErrorMsg((err as Error).message || "Invalid administrator credentials");
     } finally {
       setLoading(false);
     }

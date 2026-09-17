@@ -279,7 +279,7 @@ export function evaluateClusters(
   shatteredPositions: { col: number; row: number }[];
   stepWin: number;
 } {
-  const symbolCounts: Record<SymbolId, { count: number; positions: { col: number; row: number }[] }> = {} as any;
+  const symbolCounts: Partial<Record<SymbolId, { count: number; positions: { col: number; row: number }[] }>> = {};
   const multiplierOrbs: MultiplierOrbHit[] = [];
 
   for (let col = 0; col < 6; col++) {
@@ -295,11 +295,10 @@ export function evaluateClusters(
         continue;
       }
 
-      if (!symbolCounts[cell.id]) {
-        symbolCounts[cell.id] = { count: 0, positions: [] };
-      }
-      symbolCounts[cell.id].count++;
-      symbolCounts[cell.id].positions.push({ col, row });
+      const entry = symbolCounts[cell.id] ?? { count: 0, positions: [] };
+      entry.count++;
+      entry.positions.push({ col, row });
+      symbolCounts[cell.id] = entry;
     }
   }
 
@@ -312,7 +311,7 @@ export function evaluateClusters(
     if (symId === "SCATTER" || symId === "MULTIPLIER_ORB") return;
 
     const data = symbolCounts[symId];
-    if (data.count >= 8) {
+    if (data && data.count >= 8) {
       const def = symbolsMap[symId];
       // Payout tiers: 8-9, 10-11, 12+
       let payoutMult = 1.0;
@@ -423,7 +422,7 @@ export function resolveFullTumbleRound(
   let currentGrid = initialGrid;
   let accumulatedStepWin = 0;
   let totalBaseWin = 0;
-  let allMultiplierOrbs: MultiplierOrbHit[] = [];
+  const allMultiplierOrbs: MultiplierOrbHit[] = [];
   let isFreeSpinsTriggered = false;
   let freeSpinsAwarded = 0;
 

@@ -36,15 +36,10 @@ const ADMIN_NAV = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
-
-  useEffect(() => {
-    // If on login page, don't enforce session
-    if (pathname === "/admin/login") return;
-
-    // Check admin session
-    setAdminUser({ email: "admin@vladfsbet.com", name: "Super Administrator" });
-  }, [pathname]);
+  const [adminUser] = useState<{ email: string; name: string } | null>({
+    email: "admin@vladfsbet.com",
+    name: "Super Administrator",
+  });
 
   if (pathname === "/admin/login") {
     return <>{children}</>;

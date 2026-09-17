@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BetSelection, BetSlip } from "@/components/sports/bet-slip";
@@ -41,37 +41,38 @@ export default function SportsPage() {
   const [activeTab, setActiveTab] = useState<"EVENTS" | "MY_BETS">("EVENTS");
   const [loading, setLoading] = useState(true);
 
-  const fetchEvents = useCallback(async (sport: string) => {
-    setLoading(true);
-    const url = sport === "ALL" ? "/api/sports/events" : `/api/sports/events?sport=${sport}`;
-    try {
-      const data = await api<{ items: SportsEvent[] }>(url);
-      setEvents(data.items || []);
-    } catch {
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchMyBets = useCallback(async () => {
-    try {
-      const data = await api<{ items: SettledBet[] }>("/api/sports/my-bets");
-      setMyBets(data.items || []);
-    } catch {
-      setMyBets([]);
-    }
-  }, []);
+  useEffect(() => {
+    let active = true;
+    const url = selectedSport === "ALL" ? "/api/sports/events" : `/api/sports/events?sport=${selectedSport}`;
+    api<{ items: SportsEvent[] }>(url)
+      .then((data) => {
+        if (active) setEvents(data.items || []);
+      })
+      .catch(() => {
+        if (active) setEvents([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedSport]);
 
   useEffect(() => {
-    void fetchEvents(selectedSport);
-  }, [selectedSport, fetchEvents]);
-
-  useEffect(() => {
-    if (activeTab === "MY_BETS") {
-      void fetchMyBets();
-    }
-  }, [activeTab, fetchMyBets]);
+    if (activeTab !== "MY_BETS") return;
+    let active = true;
+    api<{ items: SettledBet[] }>("/api/sports/my-bets")
+      .then((data) => {
+        if (active) setMyBets(data.items || []);
+      })
+      .catch(() => {
+        if (active) setMyBets([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeTab]);
 
   const handleToggleOdds = (
     event: SportsEvent,

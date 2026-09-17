@@ -48,10 +48,15 @@ export function SlotTumbleGrid({
   // Trigger screen shake on tumble hit
   useEffect(() => {
     if (shatteredPositions.length > 0) {
-      setActiveShatterKey((k) => k + 1);
-      setShaking(true);
-      const timer = setTimeout(() => setShaking(false), 400);
-      return () => clearTimeout(timer);
+      const timer1 = setTimeout(() => {
+        setActiveShatterKey((k) => k + 1);
+        setShaking(true);
+      }, 0);
+      const timer2 = setTimeout(() => setShaking(false), 400);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [shatteredPositions]);
 
@@ -67,9 +72,12 @@ export function SlotTumbleGrid({
           offsetY: Math.random() * -10,
         }))
       );
-      setSparkles(newSparkles);
-      const timer = setTimeout(() => setSparkles([]), 1000);
-      return () => clearTimeout(timer);
+      const timer1 = setTimeout(() => setSparkles(newSparkles), 0);
+      const timer2 = setTimeout(() => setSparkles([]), 1000);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [shatteredPositions]);
 

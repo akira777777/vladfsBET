@@ -20,6 +20,19 @@ interface MinesGameProps {
 
 type TileState = "HIDDEN" | "GEM" | "MINE" | "REVEALED_MINE" | "REVEALED_GEM";
 
+function pickRandomItem<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function sampleMinePositions(mineCount: number): number[] {
+  const sample: number[] = [];
+  while (sample.length < mineCount) {
+    const idx = Math.floor(Math.random() * 25);
+    if (!sample.includes(idx)) sample.push(idx);
+  }
+  return sample;
+}
+
 export function MinesGame({ game }: MinesGameProps) {
   const { user, wallet, refreshWallet } = useAuth();
   const currency = wallet?.currency ?? user?.currency ?? "USD";
@@ -142,7 +155,7 @@ export function MinesGame({ game }: MinesGameProps) {
     if (gameState !== "PLAYING") return;
     const unrevealed = Array.from({ length: 25 }, (_, i) => i).filter((i) => !revealedIndices.includes(i));
     if (unrevealed.length === 0) return;
-    const randomChoice = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    const randomChoice = pickRandomItem(unrevealed);
     handleTileClick(randomChoice);
   };
 
@@ -187,11 +200,7 @@ export function MinesGame({ game }: MinesGameProps) {
     gameAudio.playBet();
     const currentBet = betAmount;
 
-    const sample: number[] = [];
-    while (sample.length < mineCount) {
-      const idx = Math.floor(Math.random() * 25);
-      if (!sample.includes(idx)) sample.push(idx);
-    }
+    const sample = sampleMinePositions(mineCount);
 
     const hitMine = selectedAutoTiles.some((idx) => sample.includes(idx));
     const newTiles: TileState[] = Array(25).fill("HIDDEN");

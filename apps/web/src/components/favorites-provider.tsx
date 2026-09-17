@@ -21,9 +21,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!authReady) return;
     if (!user) {
-      setSlugs(new Set());
-      setReady(true);
-      return;
+      const t = setTimeout(() => {
+        setSlugs(new Set());
+        setReady(true);
+      }, 0);
+      return () => clearTimeout(t);
     }
     let active = true;
     api<{ slugs: string[] }>("/api/games/favorites")

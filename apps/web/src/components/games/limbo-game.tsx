@@ -17,6 +17,13 @@ interface LimboGameProps {
   game: { slug: string; title: string; minBet?: string | null; maxBet?: string | null };
 }
 
+function getFallbackLimboMultiplier(): number {
+  const rand = Math.random();
+  return rand >= 0.99
+    ? Math.min(1000000, Math.floor((99 / (1 - rand)) * 100) / 100)
+    : Math.max(1.0, Math.floor((99 / (100 - rand * 100)) * 100) / 100);
+}
+
 export function LimboGame({ game }: LimboGameProps) {
   const { user, wallet, refreshWallet } = useAuth();
   const currency = wallet?.currency ?? user?.currency ?? "USD";
@@ -88,8 +95,7 @@ export function LimboGame({ game }: LimboGameProps) {
         setProvablyFairData(res.provablyFair);
       }
     } catch {
-      const rand = Math.random();
-      rolled = rand >= 0.99 ? Math.min(1000000, Math.floor((99 / (1 - rand)) * 100) / 100) : Math.max(1.0, Math.floor((99 / (100 - rand * 100)) * 100) / 100);
+      rolled = getFallbackLimboMultiplier();
       won = rolled >= clampedTarget;
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,16 +31,29 @@ export default function AdminKycPage() {
   const [reviewNote, setReviewNote] = useState("");
   const [reviewing, setReviewing] = useState(false);
 
-  const fetchCases = () => {
-    setLoading(true);
+  const fetchCases = useCallback((showSpinner = false) => {
+    if (showSpinner) setLoading(true);
     api<{ items: AdminKycCase[] }>("/api/admin/kyc")
       .then((data) => setCases(data.items || []))
       .catch(() => setCases([]))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
-    fetchCases();
+    let active = true;
+    api<{ items: AdminKycCase[] }>("/api/admin/kyc")
+      .then((data) => {
+        if (active) setCases(data.items || []);
+      })
+      .catch(() => {
+        if (active) setCases([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDecision = async (decision: "APPROVED" | "REJECTED" | "REQUIRES_INFORMATION") => {
@@ -54,9 +67,9 @@ export default function AdminKycPage() {
       });
       setSelectedCase(null);
       setReviewNote("");
-      fetchCases();
-    } catch (err: any) {
-      alert(err.message || "Failed to submit KYC review");
+      fetchCases(true);
+    } catch (err: unknown) {
+      alert((err as Error).message || "Failed to submit KYC review");
     } finally {
       setReviewing(false);
     }

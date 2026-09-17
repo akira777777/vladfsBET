@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx src/lib/slots/slot-engine.test.ts",
+    "test": "npx tsx src/lib/slots/slot-engine.test.ts && npx tsx src/lib/provably-fair.test.ts",
     "test:originals": "npx tsx src/lib/provably-fair.test.ts",
-    "test:all": "npx tsx src/lib/slots/slot-engine.test.ts && npx tsx src/lib/provably-fair.test.ts"
+    "test:all": "npx tsx src/lib/slots/slot-engine.test.ts && npx tsx src/lib/provably-fair.test.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

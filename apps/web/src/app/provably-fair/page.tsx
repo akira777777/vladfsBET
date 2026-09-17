@@ -229,7 +229,7 @@ export default function ProvablyFairPage() {
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Risk Level</label>
                   <select
                     value={plinkoRisk}
-                    onChange={(e) => setPlinkoRisk(e.target.value as any)}
+                    onChange={(e) => setPlinkoRisk(e.target.value as "LOW" | "MEDIUM" | "HIGH")}
                     className="w-full h-10 rounded-md bg-black/60 border border-white/10 px-3 text-xs font-bold text-white"
                   >
                     <option value="LOW">Low Risk</option>

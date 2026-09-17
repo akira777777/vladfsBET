@@ -17,22 +17,17 @@ export function SlotMascot({
   lastWin,
   scatterCount,
 }: SlotMascotProps) {
-  const [charging, setCharging] = useState(false);
+  const charging = scatterCount >= 2;
   const [striking, setStriking] = useState(false);
 
   useEffect(() => {
-    if (scatterCount >= 2) {
-      setCharging(true);
-    } else {
-      setCharging(false);
-    }
-  }, [scatterCount]);
-
-  useEffect(() => {
     if (lastWin > 0) {
-      setStriking(true);
-      const timer = setTimeout(() => setStriking(false), 2000);
-      return () => clearTimeout(timer);
+      const timer1 = setTimeout(() => setStriking(true), 10);
+      const timer2 = setTimeout(() => setStriking(false), 2000);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [lastWin]);
 
@@ -173,7 +168,7 @@ export function SlotMascot({
           {/* Dynamic Dialogue / Shout Bubble */}
           {striking && (
             <div className="absolute -top-10 -left-6 bg-gradient-to-r from-amber-400 to-yellow-300 text-black font-black text-[11px] px-3 py-1 rounded-full border-2 border-white shadow-[0_0_20px_rgba(251,191,36,0.9)] animate-bounce tracking-wider uppercase">
-              ⚡ BY ZEUS'S POWER!
+              ⚡ BY ZEUS&apos;S POWER!
             </div>
           )}
           {charging && !striking && (

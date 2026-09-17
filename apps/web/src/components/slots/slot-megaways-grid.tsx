@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Grid, MegawaysSpinResult } from "@/lib/slots/slot-engine";
+import { MegawaysSpinResult } from "@/lib/slots/slot-engine";
 import { SlotTheme } from "@/lib/slots/slot-themes";
 import { SlotSymbolIcon } from "./slot-symbols";
 
@@ -27,12 +27,16 @@ export function SlotMegawaysGrid({ result, theme, isSpinning }: SlotMegawaysGrid
   // Animate reveal of symbols after spin stops
   useEffect(() => {
     if (!isSpinning && result) {
-      setRevealed(false);
+      const t1 = setTimeout(() => setRevealed(false), 0);
       const timer = setTimeout(() => setRevealed(true), 80);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(timer);
+      };
     }
     if (isSpinning) {
-      setRevealed(false);
+      const t = setTimeout(() => setRevealed(false), 0);
+      return () => clearTimeout(t);
     }
   }, [isSpinning, result]);
 

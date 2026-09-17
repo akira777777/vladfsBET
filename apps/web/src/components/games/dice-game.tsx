@@ -18,6 +18,10 @@ interface DiceGameProps {
   game: { slug: string; title: string; minBet?: string | null; maxBet?: string | null };
 }
 
+function getFallbackDiceRoll(): number {
+  return Math.floor(Math.random() * 10000) / 100;
+}
+
 export function DiceGame({ game }: DiceGameProps) {
   const { user, wallet, refreshWallet } = useAuth();
   const currency = wallet?.currency ?? user?.currency ?? "USD";
@@ -64,7 +68,7 @@ export function DiceGame({ game }: DiceGameProps) {
     setIsRolling(true);
     gameAudio.playDiceRoll();
 
-    let rolled = Math.floor(Math.random() * 10000) / 100;
+    let rolled = getFallbackDiceRoll();
     let won = isRollUnder ? rolled < target : rolled > target;
 
     try {

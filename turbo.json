@@ -1,5 +1,16 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "DATABASE_URL",
+    "REDIS_URL",
+    "NODE_ENV",
+    "REAL_MONEY_ENABLED",
+    "TRUSTED_PROXY_CIDRS",
+    "TRUSTED_PROXY_PROVIDER",
+    "RATE_LIMIT_USE_REDIS",
+    "API_HOST",
+    "API_MAX_CONNECTIONS"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -11,7 +22,9 @@
     },
     "lint": {},
     "test": {},
-    "typecheck": {},
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
     "db:migrate": {
       "cache": false
     },

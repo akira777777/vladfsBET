@@ -7,7 +7,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "esbuild src/serverless.ts --bundle --platform=node --target=node20 --format=esm --external:@prisma/client --external:@prisma/client/* --external:redis --external:@redis/* --outfile=api/index.js",
     "start": "tsx src/index.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",

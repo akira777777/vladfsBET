@@ -14,7 +14,7 @@ interface AuditLogItem {
   entity: string;
   entityId?: string;
   ip?: string;
-  payload?: any;
+  payload?: Record<string, unknown>;
   createdAt: string;
 }
 

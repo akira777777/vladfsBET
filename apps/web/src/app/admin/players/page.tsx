@@ -27,16 +27,29 @@ export default function AdminPlayersPage() {
   const [statusReason, setStatusReason] = useState("");
   const [updating, setUpdating] = useState(false);
 
-  const fetchPlayers = () => {
+  const fetchPlayers = useCallback(() => {
     setLoading(true);
     api<{ items: AdminPlayer[] }>(`/api/admin/players${search ? `?search=${search}` : ""}`)
       .then((data) => setPlayers(data.items || []))
       .catch(() => setPlayers([]))
       .finally(() => setLoading(false));
-  };
+  }, [search]);
 
   useEffect(() => {
-    fetchPlayers();
+    let active = true;
+    api<{ items: AdminPlayer[] }>(`/api/admin/players${search ? `?search=${search}` : ""}`)
+      .then((data) => {
+        if (active) setPlayers(data.items || []);
+      })
+      .catch(() => {
+        if (active) setPlayers([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [search]);
 
   const handleUpdateStatus = async (newStatus: string) => {
@@ -51,8 +64,8 @@ export default function AdminPlayersPage() {
       setSelectedPlayer(null);
       setStatusReason("");
       fetchPlayers();
-    } catch (err: any) {
-      alert(err.message || "Failed to update player status");
+    } catch (err: unknown) {
+      alert((err as Error).message || "Failed to update player status");
     } finally {
       setUpdating(false);
     }

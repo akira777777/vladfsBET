@@ -34,7 +34,7 @@ export default function AdminSupportPage() {
   const [isInternal, setIsInternal] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const fetchTickets = () => {
+  const fetchTickets = useCallback(() => {
     setLoading(true);
     api<{ items: AdminTicket[] }>("/api/admin/support/tickets")
       .then((data) => {
@@ -46,10 +46,23 @@ export default function AdminSupportPage() {
       })
       .catch(() => setTickets([]))
       .finally(() => setLoading(false));
-  };
+  }, [selectedTicket]);
 
   useEffect(() => {
-    fetchTickets();
+    let active = true;
+    api<{ items: AdminTicket[] }>("/api/admin/support/tickets")
+      .then((data) => {
+        if (active) setTickets(data.items || []);
+      })
+      .catch(() => {
+        if (active) setTickets([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSendReply = async (e: React.FormEvent) => {
@@ -64,8 +77,8 @@ export default function AdminSupportPage() {
       });
       setReplyBody("");
       fetchTickets();
-    } catch (err: any) {
-      alert(err.message || "Failed to send response");
+    } catch (err: unknown) {
+      alert((err as Error).message || "Failed to send response");
     } finally {
       setSending(false);
     }

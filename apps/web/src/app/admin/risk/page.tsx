@@ -12,7 +12,7 @@ interface AdminAmlAlert {
   userId: string;
   ruleKey: string;
   severity: string;
-  payload: any;
+  payload: Record<string, unknown>;
   open: boolean;
   createdAt: string;
   user: { email: string; country: string };
@@ -25,16 +25,29 @@ export default function AdminRiskPage() {
   const [notes, setNotes] = useState("");
   const [resolving, setResolving] = useState(false);
 
-  const fetchAlerts = () => {
+  const fetchAlerts = useCallback(() => {
     setLoading(true);
     api<{ items: AdminAmlAlert[] }>("/api/admin/risk/alerts")
       .then((data) => setAlerts(data.items || []))
       .catch(() => setAlerts([]))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
-    fetchAlerts();
+    let active = true;
+    api<{ items: AdminAmlAlert[] }>("/api/admin/risk/alerts")
+      .then((data) => {
+        if (active) setAlerts(data.items || []);
+      })
+      .catch(() => {
+        if (active) setAlerts([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleResolve = async () => {
@@ -49,8 +62,8 @@ export default function AdminRiskPage() {
       setSelectedAlert(null);
       setNotes("");
       fetchAlerts();
-    } catch (err: any) {
-      alert(err.message || "Failed to resolve alert");
+    } catch (err: unknown) {
+      alert((err as Error).message || "Failed to resolve alert");
     } finally {
       setResolving(false);
     }

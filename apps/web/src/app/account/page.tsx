@@ -110,8 +110,8 @@ export default function AccountPage() {
         body: JSON.stringify({ firstName, lastName, city }),
       });
       setProfileMsg("Personal details updated successfully!");
-    } catch (err: any) {
-      alert(err.message || "Failed to update profile");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update profile");
     }
   };
 
@@ -127,8 +127,8 @@ export default function AccountPage() {
       setPassMsg("Password successfully changed!");
       setOldPassword("");
       setNewPassword("");
-    } catch (err: any) {
-      setPassError(err.message || "Failed to change password");
+    } catch (err) {
+      setPassError(err instanceof Error ? err.message : "Failed to change password");
     }
   };
 
@@ -138,8 +138,8 @@ export default function AccountPage() {
       setSessionMsg("All other active device sessions revoked!");
       const data = await api<{ sessions: UserSession[] }>("/api/auth/sessions");
       setSessions(data.sessions || []);
-    } catch (err: any) {
-      alert(err.message || "Failed to revoke sessions");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to revoke sessions");
     }
   };
 
@@ -158,8 +158,8 @@ export default function AccountPage() {
       setDocName("");
       const data = await api<{ kycCase: { documents: KycDocumentItem[] } }>("/api/kyc/case");
       setKycDocs(data.kycCase?.documents || []);
-    } catch (err: any) {
-      alert(err.message || "Failed to upload document");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to upload document");
     } finally {
       setUploadingKyc(false);
     }
@@ -184,8 +184,8 @@ export default function AccountPage() {
       setTicketMessage("");
       const data = await api<{ items: PlayerTicketItem[] }>("/api/support/tickets");
       setTickets(data.items || []);
-    } catch (err: any) {
-      alert(err.message || "Failed to create ticket");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to create ticket");
     } finally {
       setCreatingTicket(false);
     }
@@ -428,7 +428,7 @@ export default function AccountPage() {
               <label className="text-xs font-semibold text-muted-foreground">Document Type</label>
               <select
                 value={docType}
-                onChange={(e) => setDocType(e.target.value as any)}
+                onChange={(e) => setDocType(e.target.value as "PASSPORT" | "NATIONAL_ID" | "DRIVERS_LICENSE" | "UTILITY_BILL")}
                 className="w-full h-10 rounded-md border border-white/10 bg-black/40 px-3 text-xs text-white"
               >
                 <option value="PASSPORT">Passport</option>

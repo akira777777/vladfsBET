@@ -36,7 +36,10 @@ function CasinoLobby() {
   const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
 
   useEffect(() => {
-    setCategory(searchParams.get("category") ?? "ALL");
+    const timer = setTimeout(() => {
+      setCategory(searchParams.get("category") ?? "ALL");
+    }, 0);
+    return () => clearTimeout(timer);
   }, [searchParams]);
 
   useEffect(() => {
@@ -125,7 +128,7 @@ function CasinoLobby() {
           {/* Sort Selector */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as "POPULAR" | "RTP" | "NAME")}
             className="h-11 rounded-2xl border border-white/10 bg-black/40 px-4 text-xs font-bold text-white"
           >
             <option value="POPULAR">🔥 Most Popular</option>
