@@ -83,22 +83,6 @@ export function MinesGame({ game }: MinesGameProps) {
     setRevealedIndices([]);
     setLastWinAmount(null);
 
-    // Call API demo bet
-    try {
-      const res = await api<{
-        provablyFair?: { serverSeedHash: string; clientSeed: string; nonce: number };
-      }>(`/api/games/${game.slug}/play`, {
-        method: "POST",
-        body: JSON.stringify({
-          betAmount: stake.toString(),
-          gameData: { mineCount, action: "START" },
-        }),
-      });
-      if (res.provablyFair) {
-        setProvablyFairData(res.provablyFair);
-      }
-    } catch {}
-
     // Generate deterministic/simulated mine placement
     const sample: number[] = [];
     while (sample.length < mineCount) {
@@ -481,8 +465,8 @@ export function MinesGame({ game }: MinesGameProps) {
             )}
           </div>
 
-          <div className="relative aspect-square max-w-[560px] mx-auto rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e131f] to-[#070a12] p-4 sm:p-6 shadow-2xl">
-            <div className="grid grid-cols-5 gap-2 sm:gap-3 h-full w-full">
+          <div className={`relative aspect-square max-w-[560px] mx-auto rounded-3xl border border-white/10 bg-gradient-to-b from-[#0e131f] to-[#070a12] p-4 sm:p-6 shadow-2xl ${gameState === "BUSTED" ? "animate-board-shake border-rose-500/40" : ""}`}>
+            <div className="grid grid-cols-5 gap-2 sm:gap-3 h-full w-full" style={{ perspective: "800px" }}>
               {Array.from({ length: 25 }).map((_, idx) => {
                 const state = tiles[idx];
                 const isRevealedGem = state === "GEM";
@@ -505,16 +489,16 @@ export function MinesGame({ game }: MinesGameProps) {
                     }}
                     className={`relative rounded-2xl flex items-center justify-center transition-all duration-300 font-black text-2xl sm:text-3xl shadow-md border ${
                       isRevealedGem
-                        ? "bg-emerald-950/80 border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.5)] scale-95"
+                        ? "bg-emerald-950/80 border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.5)] scale-95 animate-tile-flip"
                         : isRevealedMine
-                        ? "bg-rose-950/90 border-rose-500 text-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.6)] animate-bounce"
+                        ? "bg-rose-950/90 border-rose-500 text-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.6)] animate-tile-flip"
                         : isTranslucentMine
                         ? "bg-rose-950/20 border-rose-500/20 text-rose-500/40 opacity-50"
                         : isTranslucentGem
                         ? "bg-emerald-950/20 border-emerald-500/20 text-emerald-400/40 opacity-40"
                         : isAutoSelected
                         ? "bg-amber-500/30 border-amber-400 text-amber-300 ring-2 ring-gold/60"
-                        : "bg-gradient-to-b from-[#1e293b] to-[#0f172a] border-white/10 hover:border-gold/50 hover:brightness-125 active:scale-95"
+                        : "bg-gradient-to-b from-[#334155] to-[#0f172a] border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] hover:border-gold/50 hover:brightness-125 active:scale-95"
                     }`}
                   >
                     {/* Gem reveal light beam */}

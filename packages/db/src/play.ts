@@ -115,6 +115,15 @@ function simulateRoulette(betDetails: Record<string, unknown> | undefined, randF
     multiplier = 2;
   } else if (betType === "ODD" && !isEven && winningNumber !== 0) {
     multiplier = 2;
+  } else if (betType === "LOW" && winningNumber >= 1 && winningNumber <= 18) {
+    multiplier = 2;
+  } else if (betType === "HIGH" && winningNumber >= 19 && winningNumber <= 36) {
+    multiplier = 2;
+  } else if (betType === "DOZEN") {
+    const dozen = selectedNumber;
+    if (dozen === 1 && winningNumber >= 1 && winningNumber <= 12) multiplier = 3;
+    else if (dozen === 2 && winningNumber >= 13 && winningNumber <= 24) multiplier = 3;
+    else if (dozen === 3 && winningNumber >= 25 && winningNumber <= 36) multiplier = 3;
   }
 
   return {

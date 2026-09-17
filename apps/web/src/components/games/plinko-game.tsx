@@ -36,6 +36,7 @@ interface Ball {
   currentRow: number;
   path: number[];
   step: number;
+  trail: { x: number; y: number }[];
 }
 
 interface Peg {
@@ -179,6 +180,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       currentRow: 0,
       path,
       step: 0,
+      trail: [],
     };
 
     ballsRef.current.push(newBall);
@@ -232,10 +234,14 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
           }
         }
 
-        // Core peg
+        const pr = isLit ? peg.radius * 1.8 : peg.radius;
+        const pegGrad = ctx.createRadialGradient(peg.x - 1, peg.y - 1, 0.4, peg.x, peg.y, pr);
+        pegGrad.addColorStop(0, isLit ? "#ffffff" : "rgba(248,250,252,0.95)");
+        pegGrad.addColorStop(0.45, isLit ? "#fde68a" : "rgba(148,163,184,0.85)");
+        pegGrad.addColorStop(1, isLit ? "#f59e0b" : "rgba(51,65,85,0.9)");
         ctx.beginPath();
-        ctx.arc(peg.x, peg.y, isLit ? peg.radius * 1.8 : peg.radius, 0, Math.PI * 2);
-        ctx.fillStyle = isLit ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
+        ctx.arc(peg.x, peg.y, pr, 0, Math.PI * 2);
+        ctx.fillStyle = pegGrad;
         if (isLit) {
           ctx.shadowColor = "#f59e0b";
           ctx.shadowBlur = 18;
@@ -255,6 +261,17 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
         ball.vy *= damping;
         ball.x += ball.vx;
         ball.y += ball.vy;
+        ball.trail.push({ x: ball.x, y: ball.y });
+        if (ball.trail.length > 14) ball.trail.shift();
+
+        if (ball.x < ball.radius + 4) {
+          ball.x = ball.radius + 4;
+          ball.vx = Math.abs(ball.vx) * restitution;
+        }
+        if (ball.x > w - ball.radius - 4) {
+          ball.x = w - ball.radius - 4;
+          ball.vx = -Math.abs(ball.vx) * restitution;
+        }
 
         if (ball.path.length > 0) {
           const currentStep = Math.min(rows - 1, Math.floor((ball.y - 35) / ((h - 100) / rows)));
@@ -292,6 +309,16 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
           }
         });
 
+        if (ball.y > h - 130) {
+          const binCount = rows + 1;
+          const binWidth = Math.min(36, (w * 0.88) / binCount);
+          const totalBinsWidth = binCount * binWidth;
+          const startBinX = (w - totalBinsWidth) / 2;
+          const targetX = startBinX + ball.targetBin * binWidth + binWidth / 2;
+          ball.x += (targetX - ball.x) * 0.18;
+          ball.vx *= 0.72;
+        }
+
         // Bottom Landing Detection
         if (ball.y >= h - 65) {
           ball.completed = true;
@@ -319,12 +346,26 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
           }
         }
 
-        // Render Ball
+        for (let t = 0; t < ball.trail.length; t++) {
+          const p = ball.trail[t];
+          const a = (t + 1) / ball.trail.length;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, ball.radius * (0.25 + a * 0.55), 0, Math.PI * 2);
+          ctx.fillStyle = ball.color;
+          ctx.globalAlpha = a * 0.35;
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        const ballGrad = ctx.createRadialGradient(ball.x - 2, ball.y - 2, 1, ball.x, ball.y, ball.radius);
+        ballGrad.addColorStop(0, "#ffffff");
+        ballGrad.addColorStop(0.35, ball.color);
+        ballGrad.addColorStop(1, "#0f172a");
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        ctx.fillStyle = ball.color;
+        ctx.fillStyle = ballGrad;
         ctx.shadowColor = ball.color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 14;
         ctx.fill();
         ctx.shadowBlur = 0;
       });

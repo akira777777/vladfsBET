@@ -24,6 +24,7 @@ interface ActivePlayer {
   betAmount: number;
   cashedOutAt: number | null;
   winAmount: number | null;
+  cashoutTarget: number | null;
   isUser?: boolean;
 }
 
@@ -59,6 +60,77 @@ function calculateCrashTarget(): number {
 
 function getNow(): number {
   return Date.now();
+}
+
+function multiplierHue(mult: number): string {
+  if (mult >= 10) return "text-fuchsia-300 drop-shadow-[0_0_30px_rgba(217,70,239,0.85)]";
+  if (mult >= 5) return "text-orange-300 drop-shadow-[0_0_30px_rgba(251,146,60,0.85)]";
+  if (mult >= 2) return "text-amber-200 drop-shadow-[0_0_30px_rgba(251,191,36,0.8)]";
+  return "text-white drop-shadow-[0_0_30px_rgba(251,191,36,0.55)]";
+}
+
+function drawRocket(ctx: CanvasRenderingContext2D, x: number, y: number, crashed: boolean, now: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(crashed ? 0.55 : -0.58);
+
+  if (!crashed) {
+    const flicker = 10 + Math.sin(now / 45) * 4 + Math.sin(now / 17) * 2;
+    const flame = ctx.createLinearGradient(0, 8, 0, 8 + flicker + 10);
+    flame.addColorStop(0, "rgba(255,255,230,0.95)");
+    flame.addColorStop(0.35, "rgba(251,191,36,0.9)");
+    flame.addColorStop(1, "rgba(239,68,68,0)");
+    ctx.beginPath();
+    ctx.moveTo(-5, 10);
+    ctx.lineTo(0, 12 + flicker);
+    ctx.lineTo(5, 10);
+    ctx.closePath();
+    ctx.fillStyle = flame;
+    ctx.fill();
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(-9, 10);
+  ctx.lineTo(-14, 16);
+  ctx.lineTo(-4, 12);
+  ctx.closePath();
+  ctx.fillStyle = "#dc2626";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(9, 10);
+  ctx.lineTo(14, 16);
+  ctx.lineTo(4, 12);
+  ctx.closePath();
+  ctx.fill();
+
+  const body = ctx.createLinearGradient(-8, -18, 10, 14);
+  body.addColorStop(0, "#f8fafc");
+  body.addColorStop(0.45, "#cbd5e1");
+  body.addColorStop(1, "#64748b");
+  ctx.beginPath();
+  ctx.moveTo(0, -20);
+  ctx.quadraticCurveTo(9, -2, 7, 12);
+  ctx.lineTo(-7, 12);
+  ctx.quadraticCurveTo(-9, -2, 0, -20);
+  ctx.closePath();
+  ctx.fillStyle = body;
+  ctx.fill();
+  ctx.strokeStyle = "rgba(15,23,42,0.35)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  ctx.fillStyle = "#d4af37";
+  ctx.fillRect(-2, -6, 4, 14);
+
+  ctx.beginPath();
+  ctx.arc(0, -6, 3.2, 0, Math.PI * 2);
+  ctx.fillStyle = "#38bdf8";
+  ctx.shadowColor = "#7dd3fc";
+  ctx.shadowBlur = 8;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
 }
 
 export function CrashGame({ game }: CrashGameProps) {
@@ -114,7 +186,7 @@ export function CrashGame({ game }: CrashGameProps) {
   };
 
   // Generate simulated network players for each round
-  const generateRoomPlayers = (includeUser1: boolean, includeUser2: boolean) => {
+  const generateRoomPlayers = (includeUser1: boolean, includeUser2: boolean, crashAt: number) => {
     const count = 8 + Math.floor(Math.random() * 8);
     const players: ActivePlayer[] = [];
 
@@ -127,6 +199,7 @@ export function CrashGame({ game }: CrashGameProps) {
         betAmount: bet1,
         cashedOutAt: null,
         winAmount: null,
+        cashoutTarget: null,
         isUser: true,
       });
     }
@@ -139,6 +212,7 @@ export function CrashGame({ game }: CrashGameProps) {
         betAmount: bet2,
         cashedOutAt: null,
         winAmount: null,
+        cashoutTarget: null,
         isUser: true,
       });
     }
@@ -148,6 +222,10 @@ export function CrashGame({ game }: CrashGameProps) {
       const initials = name.slice(0, 2).toUpperCase();
       const amounts = [5, 10, 20, 50, 100, 250, 500, 1000];
       const bet = amounts[Math.floor(Math.random() * amounts.length)];
+      const ridesOut = Math.random() < 0.22;
+      const target = ridesOut
+        ? crashAt + 1
+        : Math.round((1.08 + Math.pow(Math.random(), 1.35) * Math.max(0.2, crashAt * 0.82 - 1.08)) * 100) / 100;
       players.push({
         id: `bot-${i}`,
         name,
@@ -156,6 +234,7 @@ export function CrashGame({ game }: CrashGameProps) {
         betAmount: bet,
         cashedOutAt: null,
         winAmount: null,
+        cashoutTarget: target,
       });
     }
     return players;
@@ -262,7 +341,7 @@ export function CrashGame({ game }: CrashGameProps) {
     }
 
     setActualCrashPoint(crashTarget);
-    setActivePlayers(generateRoomPlayers(isBet1Active, isBet2Active));
+    setActivePlayers(generateRoomPlayers(isBet1Active, isBet2Active, crashTarget));
 
     // Countdown interval
     let cd = 5.0;
@@ -317,17 +396,14 @@ export function CrashGame({ game }: CrashGameProps) {
         );
       }
 
-      // Simulate Bot Player Cashouts as Multiplier rises
       setActivePlayers((prev) =>
         prev.map((p) => {
-          if (p.isUser || p.cashedOutAt !== null) return p;
-          // Random probability to cash out between 1.2x and currentMultiplier
-          const target = 1.1 + Math.random() * (crashAt * 0.9);
-          if (mult >= target && mult < crashAt) {
+          if (p.isUser || p.cashedOutAt !== null || p.cashoutTarget == null) return p;
+          if (mult >= p.cashoutTarget && p.cashoutTarget < crashAt) {
             return {
               ...p,
-              cashedOutAt: mult,
-              winAmount: Math.round(p.betAmount * mult * 100) / 100,
+              cashedOutAt: p.cashoutTarget,
+              winAmount: Math.round(p.betAmount * p.cashoutTarget * 100) / 100,
             };
           }
           return p;
@@ -606,26 +682,21 @@ export function CrashGame({ game }: CrashGameProps) {
           fx.shockRings.length = 0;
         }
 
-        // Draw Rocket Icon
         if (roomState === "FLYING") {
-          ctx.save();
-          ctx.translate(endX, endY);
-          ctx.rotate(-0.35);
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "28px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("🚀", 0, 0);
-          ctx.restore();
+          drawRocket(ctx, endX, endY, false, Date.now());
         } else if (roomState === "CRASHED") {
           ctx.save();
           ctx.translate(endX, endY);
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "34px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("💥", 0, 0);
+          const burst = ctx.createRadialGradient(0, 0, 2, 0, 0, 38);
+          burst.addColorStop(0, "rgba(255,255,200,0.95)");
+          burst.addColorStop(0.35, "rgba(251,146,60,0.75)");
+          burst.addColorStop(1, "rgba(239,68,68,0)");
+          ctx.beginPath();
+          ctx.arc(0, 0, 38, 0, Math.PI * 2);
+          ctx.fillStyle = burst;
+          ctx.fill();
           ctx.restore();
+          drawRocket(ctx, endX + 6, endY + 8, true, Date.now());
         }
       }
 
@@ -706,7 +777,7 @@ export function CrashGame({ game }: CrashGameProps) {
         {/* Left Arena */}
         <div className="space-y-6">
           {/* Rocket Canvas Display */}
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0b0e17] via-[#0d121f] to-[#080a10] shadow-2xl">
+          <div className={`relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#0b0e17] via-[#0d121f] to-[#080a10] shadow-2xl ${roomState === "CRASHED" ? "animate-crash-shake border-rose-500/40" : ""}`}>
             <canvas ref={canvasRef} width={800} height={450} className="h-full w-full object-cover" />
 
             {/* Central Multiplier HUD */}
@@ -723,7 +794,7 @@ export function CrashGame({ game }: CrashGameProps) {
 
               {roomState === "FLYING" && (
                 <div className="text-center">
-                  <p className="text-7xl sm:text-8xl font-black tracking-tight font-mono text-white drop-shadow-[0_0_30px_rgba(251,191,36,0.8)]">
+                  <p className={`text-7xl sm:text-8xl font-black tracking-tight font-mono ${multiplierHue(currentMultiplier)}`}>
                     {currentMultiplier.toFixed(2)}
                     <span className="text-4xl sm:text-5xl text-gold">x</span>
                   </p>
