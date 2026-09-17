@@ -28,9 +28,7 @@ Base URL: `http://127.0.0.1:4000/api` (or `/api` via Next.js reverse proxy).
 | `/api/wallet` | `GET` | Get balance snapshot (`available`, `bonus`, `locked`, `pending`) | Yes |
 | `/api/wallet/transactions` | `GET` | Get immutable ledger transaction history | Yes |
 | `/api/wallet/payment-methods`| `GET` | List available deposit & withdrawal payment gateways | Yes |
-| `/api/wallet/deposit` | `POST` | Execute sandbox virtual deposit | Yes |
 | `/api/wallet/withdrawal` | `POST` | Submit withdrawal request (reserves balance into `PENDING`) | Yes |
-| `/api/wallet/demo-credit` | `POST` | Faucet credit sandbox funds | Yes |
 
 ---
 
@@ -61,9 +59,6 @@ Base URL: `http://127.0.0.1:4000/api` (or `/api` via Next.js reverse proxy).
 | Endpoint | Method | Description | Auth Required |
 | :--- | :--- | :--- | :--- |
 | `/api/bonuses/templates` | `GET` | List available bonus campaigns | No |
-| `/api/bonuses/claim` | `POST` | Activate bonus campaign | Yes |
-| `/api/bonuses/redeem-code`| `POST` | Redeem promotional bonus code | Yes |
-| `/api/vip/claim-cashback`| `POST` | Claim accrued VIP weekly cashback | Yes |
 
 ---
 
@@ -91,7 +86,6 @@ Base URL: `http://127.0.0.1:4000/api` (or `/api` via Next.js reverse proxy).
 | `/api/admin/withdrawals` | `GET` | List pending withdrawal review queue | ADMIN |
 | `/api/admin/withdrawals/:id/approve` | `POST` | Approve withdrawal and post settlement ledger journal | ADMIN |
 | `/api/admin/withdrawals/:id/reject` | `POST` | Reject withdrawal and refund funds from `PENDING` to `AVAILABLE` | ADMIN |
-| `/api/admin/ledger/adjust` | `POST` | Execute dual-control manual balance adjustment | ADMIN |
 | `/api/admin/kyc` | `GET` | List open KYC verification cases | ADMIN / COMPLIANCE |
 | `/api/admin/kyc/:id/review` | `POST` | Approve, Reject, or Request Info for KYC case | ADMIN / COMPLIANCE |
 | `/api/admin/risk/alerts` | `GET` | List AML risk and anomaly alerts | ADMIN / COMPLIANCE |

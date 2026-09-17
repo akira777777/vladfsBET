@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { createApp } from "./app.js";
 import { getClientIp, resetRateLimitStore } from "./middleware/rate-limiter.js";
 
@@ -6,6 +6,7 @@ describe("Anti-DDoS & Security Middleware", () => {
   const app = createApp();
 
   beforeEach(() => {
+    vi.unstubAllEnvs();
     resetRateLimitStore();
   });
 
@@ -20,7 +21,7 @@ describe("Anti-DDoS & Security Middleware", () => {
   });
 
   describe("Client IP Extraction", () => {
-    it("prioritizes cf-connecting-ip over x-forwarded-for", () => {
+    it("ignores untrusted forwarding headers", () => {
       const c = {
         req: {
           header: (name: string) => {
@@ -30,14 +31,15 @@ describe("Anti-DDoS & Security Middleware", () => {
           },
         },
       };
-      expect(getClientIp(c)).toBe("203.0.113.195");
+      expect(getClientIp(c)).toBe("local");
     });
 
-    it("parses first IP from multi-hop x-forwarded-for", () => {
+    it("uses the platform-owned client header on Vercel", () => {
+      vi.stubEnv("VERCEL", "1");
       const c = {
         req: {
           header: (name: string) => {
-            if (name === "x-forwarded-for") return "198.51.100.42, 10.0.0.1, 10.0.0.2";
+            if (name === "x-vercel-forwarded-for") return "198.51.100.42";
             return undefined;
           },
         },
@@ -45,13 +47,13 @@ describe("Anti-DDoS & Security Middleware", () => {
       expect(getClientIp(c)).toBe("198.51.100.42");
     });
 
-    it("falls back to 127.0.0.1 if no proxy headers are present", () => {
+    it("uses a common local bucket when no peer address is available", () => {
       const c = {
         req: {
           header: () => undefined,
         },
       };
-      expect(getClientIp(c)).toBe("127.0.0.1");
+      expect(getClientIp(c)).toBe("local");
     });
   });
 
@@ -87,12 +89,13 @@ describe("Anti-DDoS & Security Middleware", () => {
 
       const body = await blockedRes.json();
       expect(body).toMatchObject({
-        error: "RATE_LIMIT_EXCEEDED",
+        error: "RATE_LIMITED",
       });
       expect(typeof body.retryAfter).toBe("number");
     });
 
     it("isolates rate limits by client IP", async () => {
+      vi.stubEnv("VERCEL", "1");
       const ipA = "192.0.2.101";
       const ipB = "192.0.2.102";
 
@@ -100,7 +103,7 @@ describe("Anti-DDoS & Security Middleware", () => {
       for (let i = 0; i < 10; i++) {
         await app.request("/api/auth/login", {
           method: "POST",
-          headers: { "content-type": "application/json", "cf-connecting-ip": ipA },
+          headers: { "content-type": "application/json", "x-vercel-forwarded-for": ipA },
           body: JSON.stringify({ email: "invalid-a", password: "short" }),
         });
       }
@@ -108,7 +111,7 @@ describe("Anti-DDoS & Security Middleware", () => {
       // ipA is blocked
       const resA = await app.request("/api/auth/login", {
         method: "POST",
-        headers: { "content-type": "application/json", "cf-connecting-ip": ipA },
+        headers: { "content-type": "application/json", "x-vercel-forwarded-for": ipA },
         body: JSON.stringify({ email: "invalid-a", password: "short" }),
       });
       expect(resA.status).toBe(429);
@@ -116,7 +119,7 @@ describe("Anti-DDoS & Security Middleware", () => {
       // ipB is NOT blocked
       const resB = await app.request("/api/auth/login", {
         method: "POST",
-        headers: { "content-type": "application/json", "cf-connecting-ip": ipB },
+        headers: { "content-type": "application/json", "x-vercel-forwarded-for": ipB },
         body: JSON.stringify({ email: "invalid-b", password: "short" }),
       });
       expect(resB.status).not.toBe(429);

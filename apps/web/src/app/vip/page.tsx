@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/components/auth-provider";
-import { api } from "@/lib/api";
-import { Crown, Sparkles, CheckCircle2 } from "lucide-react";
+import { Crown, Sparkles } from "lucide-react";
 
 const VIP_TIERS = [
   {
@@ -51,32 +48,10 @@ const VIP_TIERS = [
 ];
 
 export default function VipPage() {
-  const { user, refreshWallet } = useAuth();
-  const [claiming, setClaiming] = useState(false);
-  const [claimMsg, setClaimMsg] = useState<string | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const currentTier = user?.vipTier?.name ?? "Bronze";
   const points = parseInt(user?.vipTier?.points ?? "0") || 0;
-
-  const handleClaimCashback = async () => {
-    if (!user) return;
-    setClaiming(true);
-    setErrorMsg(null);
-    setClaimMsg(null);
-
-    try {
-      const res = await api<{ result: { amount: string; tier: string } }>("/api/vip/claim-cashback", {
-        method: "POST",
-      });
-      setClaimMsg(`Claimed $${res.result.amount} cashback for ${res.result.tier} VIP tier!`);
-      await refreshWallet();
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "No cashback currently available to claim.");
-    } finally {
-      setClaiming(false);
-    }
-  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
@@ -91,7 +66,7 @@ export default function VipPage() {
             VIP Club
           </h1>
           <p className="text-sm text-muted-foreground md:text-base">
-            Every $1 sandbox wager earns 1 VIP point. Weekly cashback is virtual credit, not payable cash.
+            Every $1 sandbox wager earns 1 VIP point. Cash balance rewards are disabled.
           </p>
         </div>
       </div>
@@ -111,15 +86,6 @@ export default function VipPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleClaimCashback}
-                disabled={claiming}
-                className="bg-gradient-to-r from-gold via-yellow-500 to-amber-600 text-black font-bold text-xs hover:brightness-110 shadow-lg shadow-gold/20 h-11 px-6"
-              >
-                {claiming ? "Claiming..." : "Claim VIP Rakeback & Cashback"}
-              </Button>
-            </div>
           </div>
 
           {/* Progress to Next VIP Tier */}
@@ -143,18 +109,6 @@ export default function VipPage() {
             </div>
           </div>
 
-          {claimMsg && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-400">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>{claimMsg}</span>
-            </div>
-          )}
-
-          {errorMsg && (
-            <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-3 text-xs text-red-400">
-              {errorMsg}
-            </div>
-          )}
         </Card>
       )}
 

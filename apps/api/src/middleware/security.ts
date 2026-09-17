@@ -33,15 +33,15 @@ export const defaultBodyLimit = bodyLimit({
 });
 
 /**
- * Body size limiter for KYC document uploads (10 MB)
+ * Body size limiter for KYC document uploads (4 MB, below serverless platform limits)
  */
 export const kycUploadBodyLimit = bodyLimit({
-  maxSize: 10 * 1024 * 1024, // 10 MB
+  maxSize: 4 * 1024 * 1024,
   onError: (c) => {
     return c.json(
       {
         error: "PAYLOAD_TOO_LARGE",
-        message: "KYC document exceeds 10MB limit.",
+        message: "KYC document exceeds 4MB limit.",
       },
       413,
     );
@@ -49,7 +49,7 @@ export const kycUploadBodyLimit = bodyLimit({
 });
 
 /**
- * Adaptive body limit middleware: applies 10MB to KYC uploads, 128KB to all other endpoints
+ * Adaptive body limit middleware: applies 4MB to KYC uploads, 128KB to all other endpoints
  */
 export const adaptiveBodyLimit: MiddlewareHandler = async (c, next) => {
   // Only apply body limit to requests with a payload
@@ -58,7 +58,7 @@ export const adaptiveBodyLimit: MiddlewareHandler = async (c, next) => {
     return next();
   }
 
-  if (c.req.path.startsWith("/api/kyc/documents")) {
+  if (c.req.path === "/api/kyc/upload") {
     return kycUploadBodyLimit(c, next);
   }
 
@@ -80,4 +80,3 @@ export const requestTimeout = timeout(15_000, (c) => {
     ),
   });
 });
-

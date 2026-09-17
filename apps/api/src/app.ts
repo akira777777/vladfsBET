@@ -2,8 +2,9 @@ import "./setup-env.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { HTTPException } from "hono/http-exception";
 import { ZodError, z } from "zod";
-import { getClientIp, globalBurstProtection, rateLimitProfiles } from "./middleware/rate-limiter.js";
+import { getClientIp, createRateLimiters } from "./middleware/rate-limiter.js";
 import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./middleware/security.js";
 import {
   AdminError,
@@ -24,8 +25,6 @@ import {
   applyCoolingOff,
   applySelfExclusion,
   changePassword,
-  claimBonusTemplate,
-  claimVipCashback,
   createPlayerTicket,
   getAdminStatsOverview,
   getAdminTickets,
@@ -42,7 +41,6 @@ import {
   placeSportBet,
   postJournal,
   prisma,
-  redeemPromoCode,
   registerPlayer,
   requestWithdrawal,
   resolveAmlAlert,
@@ -111,14 +109,6 @@ const sportBetSchema = z.object({
   stake: z.string(),
 });
 
-const promoCodeSchema = z.object({
-  code: z.string().min(1),
-});
-
-const claimBonusSchema = z.object({
-  templateSlug: z.string(),
-});
-
 const kycUploadSchema = z.object({
   type: z.enum(["PASSPORT", "NATIONAL_ID", "DRIVERS_LICENSE", "UTILITY_BILL", "BANK_STATEMENT"]),
   fileName: z.string(),
@@ -173,14 +163,15 @@ function setSessionCookie(c: Parameters<typeof setCookie>[0], token: string, nam
 
 export function createApp() {
   const app = new Hono();
+  const limiters = createRateLimiters();
 
-  // 1. Instance burst flood protection (40 requests in 5s burst)
-  app.use("*", globalBurstProtection(40, 5000));
+  // 1. Per-client burst flood protection (40 requests in 10s)
+  app.use("*", limiters.burst);
 
-  // 2. Security Headers (HSTS, frameguard, nosniff, referrer-policy)
+  // 2. Security headers (HSTS, frameguard, nosniff, referrer-policy)
   app.use("*", platformSecureHeaders);
 
-  // 3. Request timeout protection (15s) against slowloris and stalled connections
+  // 3. Start the deadline before reading the request body.
   app.use("*", requestTimeout);
 
   // 4. Adaptive payload size limits (128KB standard, 10MB for KYC documents)
@@ -198,12 +189,12 @@ export function createApp() {
   );
 
   // 6. Rate Limiting layers
-  app.use("/api/*", rateLimitProfiles.global);
-  app.use("/api/auth/*", rateLimitProfiles.auth);
-  app.use("/api/admin/auth/*", rateLimitProfiles.auth);
-  app.use("/api/wallet/*", rateLimitProfiles.wallet);
-  app.use("/api/games/*/play", rateLimitProfiles.gameplay);
-  app.use("/api/sports/bets", rateLimitProfiles.gameplay);
+  app.use("/api/*", limiters.global);
+  app.use("/api/auth/*", limiters.auth);
+  app.use("/api/admin/auth/*", limiters.auth);
+  app.use("/api/wallet/*", limiters.wallet);
+  app.use("/api/games/*/play", limiters.gameplay);
+  app.use("/api/sports/bet", limiters.gameplay);
 
   app.onError((error, c) => {
     if (error instanceof HTTPException) {
@@ -610,32 +601,6 @@ export function createApp() {
       orderBy: { createdAt: "desc" },
     });
     return c.json({ items: templates });
-  });
-
-  app.post("/api/bonuses/claim", async (c) => {
-    const user = await getSessionUser(prisma, getCookie(c, COOKIE));
-    if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
-    const body = claimBonusSchema.parse(await c.req.json());
-    const bonus = await claimBonusTemplate(prisma, user.id, body.templateSlug);
-    const wallet = await getWalletSnapshot(prisma, user.id, user.currency);
-    return c.json({ bonus, wallet });
-  });
-
-  app.post("/api/bonuses/redeem-code", async (c) => {
-    const user = await getSessionUser(prisma, getCookie(c, COOKIE));
-    if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
-    const body = promoCodeSchema.parse(await c.req.json());
-    const result = await redeemPromoCode(prisma, user.id, body.code);
-    const wallet = await getWalletSnapshot(prisma, user.id, user.currency);
-    return c.json({ result, wallet });
-  });
-
-  app.post("/api/vip/claim-cashback", async (c) => {
-    const user = await getSessionUser(prisma, getCookie(c, COOKIE));
-    if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
-    const result = await claimVipCashback(prisma, user.id);
-    const wallet = await getWalletSnapshot(prisma, user.id, user.currency);
-    return c.json({ result, wallet });
   });
 
   // ----------------------------------------------------

@@ -4,8 +4,6 @@ import { useState } from "react";
 import { Package, Sparkles, Crown, Gift, CheckCircle2, Lock, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useAuth } from "@/components/auth-provider";
-import { api } from "@/lib/api";
 
 interface LootCrate {
   id: string;
@@ -82,7 +80,6 @@ const CRATES: LootCrate[] = [
 ];
 
 export default function LootBoxesPage() {
-  const { user, refreshWallet } = useAuth();
   const [userVipPoints, setUserVipPoints] = useState(1250);
   const [opening, setOpening] = useState<string | null>(null);
   const [unboxedPrize, setUnboxedPrize] = useState<{ crateName: string; label: string; amount: number } | null>(null);
@@ -100,7 +97,7 @@ export default function LootBoxesPage() {
     else if (rand > 0.75) won = crate.possiblePrizes[2];
     else if (rand > 0.45) won = crate.possiblePrizes[1];
 
-    setTimeout(async () => {
+    setTimeout(() => {
       setOpening(null);
       setUnboxedPrize({
         crateName: crate.name,
@@ -108,14 +105,6 @@ export default function LootBoxesPage() {
         amount: won.amount,
       });
 
-      // Credit wallet
-      try {
-        await api("/api/wallet/demo-credit", {
-          method: "POST",
-          body: JSON.stringify({ amount: won.amount.toString() }),
-        });
-        void refreshWallet();
-      } catch {}
     }, 3000);
   };
 
@@ -224,7 +213,7 @@ export default function LootBoxesPage() {
               </span>
               <h3 className="text-3xl font-black text-white">{unboxedPrize.label}</h3>
               <p className="text-xs text-muted-foreground">
-                +${unboxedPrize.amount.toFixed(2)} has been credited instantly to your demo balance!
+                Showcase reward only — your fixed demo balance is unchanged.
               </p>
             </div>
 

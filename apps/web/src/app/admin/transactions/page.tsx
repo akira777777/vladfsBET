@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { CreditCard, CheckCircle2, XCircle, ArrowUpRight, ArrowDownLeft, Shield } from "lucide-react";
+import { CreditCard, CheckCircle2, XCircle, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
 interface AdminWithdrawal {
   id: string;
@@ -25,14 +25,6 @@ export default function AdminTransactionsPage() {
   const [reviewNote, setReviewNote] = useState("");
   const [selectedWd, setSelectedWd] = useState<AdminWithdrawal | null>(null);
   const [decision, setDecision] = useState<"APPROVE" | "REJECT" | null>(null);
-
-  // Manual Adjustment Form
-  const [adjUserId, setAdjUserId] = useState("");
-  const [adjAmount, setAdjAmount] = useState("");
-  const [adjDirection, setAdjDirection] = useState<"CREDIT" | "DEBIT">("CREDIT");
-  const [adjReason, setAdjReason] = useState<"CORRECTION" | "DISPUTE_SETTLEMENT" | "GOODWILL" | "TEST_CREDIT">("CORRECTION");
-  const [adjNotes, setAdjNotes] = useState("");
-  const [adjMsg, setAdjMsg] = useState<string | null>(null);
 
   const fetchWithdrawals = () => {
     setLoading(true);
@@ -68,30 +60,6 @@ export default function AdminTransactionsPage() {
       fetchWithdrawals();
     } catch (err: any) {
       alert(err.message || "Failed to process withdrawal");
-    }
-  };
-
-  const handleManualAdjustment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAdjMsg(null);
-
-    try {
-      await api("/api/admin/ledger/adjust", {
-        method: "POST",
-        body: JSON.stringify({
-          targetUserId: adjUserId,
-          amount: adjAmount,
-          direction: adjDirection,
-          reasonCode: adjReason,
-          notes: adjNotes,
-        }),
-      });
-
-      setAdjMsg(`Successfully posted ${adjDirection} of $${adjAmount} to double-entry ledger.`);
-      setAdjAmount("");
-      setAdjNotes("");
-    } catch (err: any) {
-      alert(err.message || "Failed to post ledger adjustment");
     }
   };
 
@@ -195,98 +163,6 @@ export default function AdminTransactionsPage() {
           </div>
         </Card>
       </div>
-
-      {/* Manual Balance Adjustment Tool */}
-      <Card className="border-white/10 bg-[#0A0E17] p-6 text-white space-y-4 shadow-xl">
-        <div>
-          <h2 className="text-base font-bold flex items-center gap-2">
-            <Shield className="h-4 w-4 text-gold" /> Dual-Control Balance Adjustment Tool
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Execute audited balance adjustments with mandatory reason codes. Posts an immutable double-entry journal.
-          </p>
-        </div>
-
-        <form onSubmit={handleManualAdjustment} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Player User ID (UUID)</label>
-            <Input
-              type="text"
-              placeholder="e.g. 550e8400-e29b-41d4-a716..."
-              value={adjUserId}
-              required
-              onChange={(e) => setAdjUserId(e.target.value)}
-              className="h-9 text-xs bg-black/40 border-white/10 font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Amount ($)</label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="100.00"
-              value={adjAmount}
-              required
-              onChange={(e) => setAdjAmount(e.target.value)}
-              className="h-9 text-xs bg-black/40 border-white/10 font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Direction</label>
-            <select
-              value={adjDirection}
-              onChange={(e) => setAdjDirection(e.target.value as any)}
-              className="w-full h-9 rounded-md border border-white/10 bg-black/40 px-3 text-xs text-white"
-            >
-              <option value="CREDIT">CREDIT (Add to Player)</option>
-              <option value="DEBIT">DEBIT (Deduct from Player)</option>
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Reason Code</label>
-            <select
-              value={adjReason}
-              onChange={(e) => setAdjReason(e.target.value as any)}
-              className="w-full h-9 rounded-md border border-white/10 bg-black/40 px-3 text-xs text-white"
-            >
-              <option value="CORRECTION">Ledger Correction</option>
-              <option value="DISPUTE_SETTLEMENT">Dispute Settlement</option>
-              <option value="GOODWILL">Goodwill Gesture</option>
-              <option value="TEST_CREDIT">QA / Sandbox Credit</option>
-            </select>
-          </div>
-
-          <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
-            <label className="text-xs font-semibold text-muted-foreground">Mandatory Audit Note</label>
-            <Input
-              type="text"
-              placeholder="Detailed explanation of reason for adjustment..."
-              value={adjNotes}
-              required
-              onChange={(e) => setAdjNotes(e.target.value)}
-              className="h-9 text-xs bg-black/40 border-white/10"
-            />
-          </div>
-
-          <div className="flex items-end">
-            <Button
-              type="submit"
-              className="w-full h-9 bg-gold text-black font-bold text-xs hover:bg-gold/90"
-            >
-              Post Ledger Adjustment
-            </Button>
-          </div>
-        </form>
-
-        {adjMsg && (
-          <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2.5 text-xs text-emerald-400 font-semibold">
-            {adjMsg}
-          </div>
-        )}
-      </Card>
 
       {/* Decision Modal */}
       {selectedWd && decision && (

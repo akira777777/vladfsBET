@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles, Gift, Timer, Trophy, Crown, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useAuth } from "@/components/auth-provider";
-import { api } from "@/lib/api";
 
 const SEGMENTS = [
   { label: "$500 JACKPOT", color: "#facc15", text: "#000000", value: 500, type: "CASH" },
@@ -19,7 +17,6 @@ const SEGMENTS = [
 ];
 
 export default function RewardsPage() {
-  const { user, refreshWallet } = useAuth();
   const [spinning, setSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [wonPrize, setWonPrize] = useState<typeof SEGMENTS[0] | null>(null);
@@ -42,21 +39,11 @@ export default function RewardsPage() {
 
     setRotation(targetAngle);
 
-    setTimeout(async () => {
+    setTimeout(() => {
       setSpinning(false);
       setWonPrize(SEGMENTS[winningIndex]);
       setCanSpin(false);
 
-      // Credit wallet if cash prize
-      if (SEGMENTS[winningIndex].type === "CASH") {
-        try {
-          await api("/api/wallet/demo-credit", {
-            method: "POST",
-            body: JSON.stringify({ amount: SEGMENTS[winningIndex].value.toString() }),
-          });
-          void refreshWallet();
-        } catch {}
-      }
     }, 5000);
   };
 
@@ -71,7 +58,7 @@ export default function RewardsPage() {
           Daily Lucky Wheel of Fortune
         </h1>
         <p className="text-sm text-neutral-300 leading-relaxed">
-          Spin the wheel once every 24 hours for guaranteed free demo credits, bonus spins, and VIP multiplier boosts.
+          Preview the daily reward wheel. Showcase prizes do not change your fixed demo balance.
         </p>
       </div>
 

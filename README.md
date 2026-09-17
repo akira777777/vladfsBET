@@ -121,7 +121,6 @@ npm run build
 | :--- | :--- | :--- | :--- |
 | **Super Admin** | `admin@vladfsbet.com` | `Admin123456!` | Full Administrative & Compliance Console (`/admin`) |
 | **Compliance Officer** | `compliance@vladfsbet.com` | `Admin123456!` | KYC Review & AML Alerts Queue |
-| **Demo Player** | `player1@vladfsbet.com` | `Player123456!` | Authenticated Player Portal with $1,000 Starting Balance |
 
 ---
 

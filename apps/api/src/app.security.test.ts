@@ -45,6 +45,9 @@ describe("API flood protection", () => {
     "/api/wallet/demo-credit",
     "/api/wallet/deposit",
     "/api/admin/ledger/adjust",
+    "/api/bonuses/claim",
+    "/api/bonuses/redeem-code",
+    "/api/vip/claim-cashback",
   ])("does not expose manual balance funding at %s", async (path) => {
     const app = createApp();
     const response = await app.request(path, {

@@ -184,7 +184,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       const effectiveStake = isBonus ? 0 : anteBetActive ? betAmount * 1.25 : betAmount;
 
       if (currentBalance < effectiveStake && !isBonus) {
-        alert("Insufficient balance! Click '+1,000 Credits' to reload demo credits.");
+        alert("Insufficient demo balance.");
         setIsAutoPlaying(false);
         return;
       }
@@ -320,23 +320,6 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPaytableOpen, celebrationWin, activeBonusModal, spin]);
 
-  const handleReloadCredits = async () => {
-    slotAudio.playButtonClick();
-    if (wallet) {
-      try {
-        await api("/api/wallet/demo-credit", {
-          method: "POST",
-          body: JSON.stringify({ amount: "1000" }),
-        });
-        await refreshWallet();
-      } catch {
-        setDemoBalance((prev) => prev + 1000);
-      }
-    } else {
-      setDemoBalance((prev) => prev + 1000);
-    }
-  };
-
   const handleBuyBonus = () => {
     const cost = betAmount * 100;
     if (currentBalance < cost) {
@@ -402,17 +385,6 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           </button>
         </div>
 
-        {/* Reload Demo Credits */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleReloadCredits}
-            className="h-10 px-3 rounded-xl border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 font-bold text-xs"
-          >
-            +1,000 Credits
-          </Button>
-        </div>
       </div>
 
       {/* Main Luxury Slot Cabinet */}
