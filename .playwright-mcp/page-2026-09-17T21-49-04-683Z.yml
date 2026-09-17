@@ -1,0 +1,225 @@
+- generic [active] [ref=f4e1]:
+  - banner [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - link "VLADFSBET Demo" [ref=f4e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f4e5]: VLADFSBET
+        - generic [ref=f4e6]: Demo
+      - navigation [ref=f4e7]:
+        - link "Casino" [ref=f4e8] [cursor=pointer]:
+          - /url: /casino
+        - link "Live" [ref=f4e13] [cursor=pointer]:
+          - /url: /live-casino
+        - link "Sports" [ref=f4e21] [cursor=pointer]:
+          - /url: /sports
+        - link "Tournaments" [ref=f4e29] [cursor=pointer]:
+          - /url: /tournaments
+        - link "Lucky Wheel" [ref=f4e33] [cursor=pointer]:
+          - /url: /rewards
+        - link "Loot Boxes" [ref=f4e39] [cursor=pointer]:
+          - /url: /lootboxes
+        - link "VIP" [ref=f4e45] [cursor=pointer]:
+          - /url: /vip
+      - button "Search" [ref=f4e50]
+  - main [ref=f4e52]:
+    - generic [ref=f4e53]:
+      - generic [ref=f4e54]:
+        - generic [ref=f4e57]:
+          - generic [ref=f4e58]:
+            - generic [ref=f4e59]: Demo
+            - generic [ref=f4e60]: VLADFSBET NEXT-GEN SLOTS
+          - heading "Cyber Neon 777 Deluxe" [level=1] [ref=f4e61]
+        - generic [ref=f4e62]:
+          - button "6×5 Tumble" [ref=f4e63]
+          - button "Megaways" [ref=f4e64]
+      - generic [ref=f4e65]:
+        - generic [ref=f4e66]:
+          - generic [ref=f4e67]:
+            - generic [ref=f4e68]: ★ MINI ★
+            - generic [ref=f4e69]: US$100.00
+          - generic [ref=f4e70]:
+            - generic [ref=f4e71]: ★ MINOR ★
+            - generic [ref=f4e72]: US$250.00
+          - generic [ref=f4e73]:
+            - generic [ref=f4e74]: ★ MAJOR ★
+            - generic [ref=f4e75]: US$1,000.00
+          - generic [ref=f4e76]:
+            - generic [ref=f4e77]: ★ GRAND ★
+            - generic [ref=f4e78]: US$10,000.00
+        - generic [ref=f4e79]:
+          - generic [ref=f4e80]:
+            - generic [ref=f4e81]: 💰
+            - generic [ref=f4e82]:
+              - paragraph [ref=f4e83]: AVAILABLE BALANCE
+              - paragraph [ref=f4e84]: US$5,000.00
+          - generic [ref=f4e85]: ★ MAX WIN UP TO 10,000x ★
+          - generic [ref=f4e87]:
+            - generic [ref=f4e88]:
+              - paragraph [ref=f4e89]: ROUND WIN
+              - paragraph [ref=f4e90]: US$0.00
+            - generic [ref=f4e91]: 🏆
+        - generic [ref=f4e92]:
+          - generic [ref=f4e94]:
+            - generic [ref=f4e96]:
+              - generic [ref=f4e97]: "Grid Mode:"
+              - generic [ref=f4e98]: 6x5 CLUSTER PAYS (8+ ANYWHERE)
+            - generic [ref=f4e99]:
+              - generic [ref=f4e100]:
+                - generic [ref=f4e101]: A
+                - generic [ref=f4e106]: K
+                - generic [ref=f4e111]: Q
+                - generic [ref=f4e116]: J
+                - generic [ref=f4e121]: "10"
+              - generic [ref=f4e126]:
+                - generic [ref=f4e127]: Bell
+                - generic [ref=f4e135]: Plasma
+                - generic [ref=f4e143]: Neon
+                - generic [ref=f4e151]: A
+                - generic [ref=f4e156]: K
+              - generic [ref=f4e161]:
+                - generic [ref=f4e162]: Q
+                - generic [ref=f4e167]: J
+                - generic [ref=f4e172]: "10"
+                - generic [ref=f4e177]: Bell
+                - generic [ref=f4e185]: Plasma
+              - generic [ref=f4e193]:
+                - generic [ref=f4e194]: Neon
+                - generic [ref=f4e202]: A
+                - generic [ref=f4e207]: K
+                - generic [ref=f4e212]: Q
+                - generic [ref=f4e217]: J
+              - generic [ref=f4e222]:
+                - generic [ref=f4e223]: "10"
+                - generic [ref=f4e228]: Bell
+                - generic [ref=f4e236]: Plasma
+                - generic [ref=f4e244]: Neon
+                - generic [ref=f4e252]: A
+              - generic [ref=f4e257]:
+                - generic [ref=f4e258]: K
+                - generic [ref=f4e263]: Q
+                - generic [ref=f4e268]: J
+                - generic [ref=f4e273]: "10"
+                - generic [ref=f4e278]: Bell
+          - generic [ref=f4e286]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: 🐉
+                  - generic: GOLD DRAGON
+        - generic [ref=f4e288]:
+          - generic [ref=f4e289]:
+            - generic [ref=f4e290]:
+              - button "⚡ DOUBLE CHANCE ANTE BET OFF" [ref=f4e291]:
+                - generic [ref=f4e292]: ⚡
+                - generic [ref=f4e293]:
+                  - generic [ref=f4e294]: DOUBLE CHANCE
+                  - generic [ref=f4e295]: ANTE BET OFF
+              - button "👑 BUY FREE SPINS (US$1,000.00)" [ref=f4e296]:
+                - generic [ref=f4e297]: 👑
+                - generic [ref=f4e298]: BUY FREE SPINS (US$1,000.00)
+            - generic [ref=f4e299]:
+              - button "⚡ TURBO" [ref=f4e300]:
+                - generic [ref=f4e301]: ⚡
+                - generic [ref=f4e302]: TURBO
+              - button "🔊" [ref=f4e303]
+              - button "ℹ️" [ref=f4e304]
+          - generic [ref=f4e305]:
+            - generic [ref=f4e307]:
+              - generic [ref=f4e308]: TOTAL BET
+              - generic [ref=f4e309]:
+                - button "-" [ref=f4e310]
+                - button "US$10.00" [ref=f4e311]
+                - button "+" [ref=f4e312]
+            - generic [ref=f4e313]:
+              - button "🔁 AUTO" [ref=f4e315]:
+                - generic [ref=f4e316]: 🔁
+                - generic [ref=f4e317]: AUTO
+              - button "SPIN" [ref=f4e318] [cursor=pointer]
+      - generic [ref=f4e323]:
+        - generic [ref=f4e324]: "🛠️ Instant Feature Sandbox:"
+        - generic [ref=f4e326]:
+          - button "4 scatters · free spins" [ref=f4e327]
+          - button "💣 75x Multiplier Bomb" [ref=f4e328]
+          - button "🏆 Big Cluster Win" [ref=f4e329]
+          - button "💎 150x Mega Jackpot" [ref=f4e330]
+  - contentinfo [ref=f4e331]:
+    - generic [ref=f4e332]:
+      - generic [ref=f4e333]:
+        - generic [ref=f4e334]:
+          - text: VLADFSBET
+          - paragraph [ref=f4e335]: Demo casino and sportsbook. Virtual credits only. Provably fair originals, double-entry ledger, and player-protection tools — not a licensed real-money operator.
+          - generic [ref=f4e336]:
+            - generic [ref=f4e337]: 18+ ONLY
+            - generic [ref=f4e338]: PROVABLY FAIR
+            - generic [ref=f4e339]: SANDBOX DEMO
+        - generic [ref=f4e340]:
+          - heading "Gaming" [level=3] [ref=f4e341]
+          - list [ref=f4e342]:
+            - listitem [ref=f4e343]:
+              - link "Casino Lobby" [ref=f4e344] [cursor=pointer]:
+                - /url: /casino
+            - listitem [ref=f4e345]:
+              - link "Originals" [ref=f4e346] [cursor=pointer]:
+                - /url: /casino?category=ORIGINALS
+            - listitem [ref=f4e347]:
+              - link "Live Casino" [ref=f4e348] [cursor=pointer]:
+                - /url: /live-casino
+            - listitem [ref=f4e349]:
+              - link "Sportsbook" [ref=f4e350] [cursor=pointer]:
+                - /url: /sports
+            - listitem [ref=f4e351]:
+              - link "Promotions" [ref=f4e352] [cursor=pointer]:
+                - /url: /promotions
+            - listitem [ref=f4e353]:
+              - link "VIP Club" [ref=f4e354] [cursor=pointer]:
+                - /url: /vip
+        - generic [ref=f4e355]:
+          - heading "Protection" [level=3] [ref=f4e356]
+          - list [ref=f4e357]:
+            - listitem [ref=f4e358]:
+              - link "Responsible Gaming" [ref=f4e359] [cursor=pointer]:
+                - /url: /responsible-gaming
+            - listitem [ref=f4e360]:
+              - link "Provably Fair" [ref=f4e361] [cursor=pointer]:
+                - /url: /provably-fair
+            - listitem [ref=f4e362]:
+              - link "Terms of Service" [ref=f4e363] [cursor=pointer]:
+                - /url: /terms
+            - listitem [ref=f4e364]:
+              - link "Privacy Policy" [ref=f4e365] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f4e366]:
+              - link "Cookie Preferences" [ref=f4e367] [cursor=pointer]:
+                - /url: /cookies
+            - listitem [ref=f4e368]:
+              - link "AML Policy" [ref=f4e369] [cursor=pointer]:
+                - /url: /aml-policy
+            - listitem [ref=f4e370]:
+              - link "KYC Policy" [ref=f4e371] [cursor=pointer]:
+                - /url: /kyc-policy
+        - generic [ref=f4e372]:
+          - heading "Support" [level=3] [ref=f4e373]
+          - list [ref=f4e374]:
+            - listitem [ref=f4e375]:
+              - link "About" [ref=f4e376] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f4e377]:
+              - link "Help Center" [ref=f4e378] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f4e379]:
+              - link "Contact" [ref=f4e380] [cursor=pointer]:
+                - /url: /contact
+            - listitem [ref=f4e381]:
+              - link "Account" [ref=f4e382] [cursor=pointer]:
+                - /url: /account
+            - listitem [ref=f4e383]:
+              - link "Cashier" [ref=f4e384] [cursor=pointer]:
+                - /url: /wallet
+      - generic [ref=f4e385]:
+        - generic [ref=f4e386]: Responsible Gaming
+        - paragraph [ref=f4e390]: "Gambling can be addictive. Play with virtual credits only in this demonstration environment. Underage gambling is prohibited. Help: BeGambleAware (www.begambleaware.org) or GamCare (www.gamcare.org.uk)."
+      - generic [ref=f4e391]:
+        - paragraph [ref=f4e392]: © 2026 VladfsBET. Virtual credits. Not real money.
+        - paragraph [ref=f4e393]: HMAC-SHA256 provably fair originals.
+  - button "Open Live Community Chat" [ref=f4e394]
+  - button "Open Next.js Dev Tools" [ref=f4e403] [cursor=pointer]

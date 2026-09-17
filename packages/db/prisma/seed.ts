@@ -1,5 +1,14 @@
+import { config } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { randomBytes } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
-import { hashPassword } from "../src/auth";
+import { hashPassword, registerPlayer } from "../src/auth";
+import { ensureHouseWallet } from "../src/ledger";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+config({ path: resolve(root, ".env") });
+config({ path: resolve(root, "packages/db/.env") });
 
 const prisma = new PrismaClient();
 
@@ -659,14 +668,34 @@ async function main() {
     });
   }
 
-  // 10. Seed Admin Account
-  const adminPasswordHash = await hashPassword("Admin123456!");
+  const complianceRole = await prisma.role.upsert({
+    where: { slug: "compliance" },
+    update: {},
+    create: {
+      slug: "compliance",
+      name: "Compliance Officer",
+      description: "KYC review, AML alerts, and audit read access",
+    },
+  });
+
+  const complianceKeys = ["players.read", "kyc.review", "risk.review", "audit.read"];
+  for (const key of complianceKeys) {
+    const permissionId = permEntities[key];
+    if (!permissionId) continue;
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: complianceRole.id, permissionId } },
+      update: {},
+      create: { roleId: complianceRole.id, permissionId },
+    });
+  }
+
+  const staffPasswordHash = await hashPassword("Admin123456!");
   const adminUser = await prisma.adminUser.upsert({
     where: { email: "admin@vladfsbet.com" },
-    update: { passwordHash: adminPasswordHash, active: true },
+    update: { passwordHash: staffPasswordHash, active: true, name: "Vladfs Administrator" },
     create: {
       email: "admin@vladfsbet.com",
-      passwordHash: adminPasswordHash,
+      passwordHash: staffPasswordHash,
       name: "Vladfs Administrator",
       active: true,
     },
@@ -678,8 +707,54 @@ async function main() {
     create: { adminUserId: adminUser.id, roleId: superRole.id },
   });
 
+  const complianceUser = await prisma.adminUser.upsert({
+    where: { email: "compliance@vladfsbet.com" },
+    update: { passwordHash: staffPasswordHash, active: true, name: "Compliance Officer" },
+    create: {
+      email: "compliance@vladfsbet.com",
+      passwordHash: staffPasswordHash,
+      name: "Compliance Officer",
+      active: true,
+    },
+  });
+
+  await prisma.adminUserRole.upsert({
+    where: { adminUserId_roleId: { adminUserId: complianceUser.id, roleId: complianceRole.id } },
+    update: {},
+    create: { adminUserId: complianceUser.id, roleId: complianceRole.id },
+  });
+
+  await ensureHouseWallet(prisma, "USD");
+  await ensureHouseWallet(prisma, "EUR");
+  const house = await prisma.user.findUnique({ where: { email: "house@internal.vladfsbet" } });
+  if (house && house.passwordHash === "unusable") {
+    await prisma.user.update({
+      where: { id: house.id },
+      data: { passwordHash: await hashPassword(randomBytes(32).toString("hex")) },
+    });
+  }
+
+  const demoEmail = "player@vladfsbet.com";
+  const existingDemo = await prisma.user.findUnique({ where: { email: demoEmail } });
+  if (!existingDemo) {
+    await registerPlayer(prisma, {
+      firstName: "Demo",
+      lastName: "Player",
+      email: demoEmail,
+      password: "Player123456!",
+      country: "ZZ",
+      currency: "USD",
+      dateOfBirth: "1994-04-12",
+      termsAccepted: true,
+      privacyAccepted: true,
+      rgAcknowledged: true,
+    });
+  }
+
   console.log("Seeding completed successfully!");
-  console.log("Admin credentials: admin@vladfsbet.com / Admin123456!");
+  console.log("Admin:      admin@vladfsbet.com / Admin123456!");
+  console.log("Compliance: compliance@vladfsbet.com / Admin123456!");
+  console.log("Player:     player@vladfsbet.com / Player123456!");
 }
 
 main()

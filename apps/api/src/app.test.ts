@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
+import { hashPassword, prisma } from "@vladfsbet/db";
 import { createApp } from "./app.js";
 import { resetRateLimitStore } from "./middleware/rate-limiter.js";
 
@@ -88,5 +89,61 @@ describe("api", () => {
     expect(res2.status).toBe(200);
     const body2 = await res2.json();
     expect(body2).toEqual(body1);
+  });
+
+  it("echoes x-request-id and rejects unauthenticated admin routes", async () => {
+    const health = await app.request("/health", { headers: { "x-request-id": "req-test-1" } });
+    expect(health.headers.get("x-request-id")).toBe("req-test-1");
+
+    const overview = await app.request("/api/admin/overview");
+    expect(overview.status).toBe(401);
+    expect(overview.headers.get("x-request-id")).toBeTruthy();
+    expect(await overview.json()).toMatchObject({ error: "UNAUTHENTICATED" });
+  });
+
+  it("allows a staff session and blocks missing admin permissions", async () => {
+    const email = `staff-${randomUUID()}@vladfsbet.local`;
+    const admin = await prisma.adminUser.create({
+      data: {
+        email,
+        passwordHash: await hashPassword("Admin123456!"),
+        name: "API Staff",
+        active: true,
+      },
+    });
+    const role = await prisma.role.create({
+      data: { slug: `api-role-${randomUUID()}`, name: "Readers" },
+    });
+    const permission = await prisma.permission.upsert({
+      where: { key: "players.read" },
+      update: {},
+      create: { key: "players.read", description: "Read players" },
+    });
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: role.id, permissionId: permission.id } },
+      update: {},
+      create: { roleId: role.id, permissionId: permission.id },
+    });
+    await prisma.adminUserRole.create({ data: { adminUserId: admin.id, roleId: role.id } });
+
+    const login = await app.request("/api/admin/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password: "Admin123456!" }),
+    });
+    expect(login.status).toBe(200);
+    const cookie = cookieFrom(login);
+    expect(cookie.startsWith("vladfsbet_admin_session=")).toBe(true);
+
+    const me = await app.request("/api/admin/auth/me", { headers: { cookie } });
+    expect(me.status).toBe(200);
+
+    const forbidden = await app.request("/api/admin/players/not-a-user/status", {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie },
+      body: JSON.stringify({ status: "LOCKED", reason: "test lock" }),
+    });
+    expect(forbidden.status).toBe(403);
+    expect(await forbidden.json()).toMatchObject({ error: "FORBIDDEN" });
   });
 });

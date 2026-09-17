@@ -52,7 +52,7 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-function hashToken(token: string): string {
+export function hashSessionToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
@@ -118,7 +118,7 @@ async function createSession(
   await db.session.create({
     data: {
       userId,
-      tokenHash: hashToken(sessionToken),
+      tokenHash: hashSessionToken(sessionToken),
       ip: meta?.ip,
       userAgent: meta?.userAgent,
       expiresAt: new Date(Date.now() + SESSION_TTL_MS),
@@ -220,6 +220,16 @@ export async function registerPlayer(db: PrismaClient, input: RegisterInput) {
   }
 
   const sessionToken = await createSession(db, user.id, input);
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: user.id,
+      action: "PLAYER_REGISTERED",
+      entity: "User",
+      entityId: user.id,
+      ip: input.ip,
+    },
+  });
   return { user: publicUser(user), sessionToken };
 }
 
@@ -251,6 +261,16 @@ export async function loginPlayer(db: PrismaClient, input: LoginInput) {
   await db.loginEvent.create({
     data: { userId: user.id, success: true, ip: input.ip, userAgent: input.userAgent },
   });
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: user.id,
+      action: "PLAYER_LOGIN",
+      entity: "User",
+      entityId: user.id,
+      ip: input.ip,
+    },
+  });
 
   const sessionToken = await createSession(db, user.id, input);
   return { user: publicUser(user), sessionToken };
@@ -261,7 +281,7 @@ export async function getSessionUser(db: PrismaClient, sessionToken: string | un
     return null;
   }
   const session = await db.session.findUnique({
-    where: { tokenHash: hashToken(sessionToken) },
+    where: { tokenHash: hashSessionToken(sessionToken) },
     include: { user: true },
   });
   if (!session || session.revokedAt || session.expiresAt.getTime() <= Date.now()) {
@@ -279,13 +299,13 @@ export async function revokeSession(db: PrismaClient, sessionToken: string | und
     return;
   }
   await db.session.updateMany({
-    where: { tokenHash: hashToken(sessionToken), revokedAt: null },
+    where: { tokenHash: hashSessionToken(sessionToken), revokedAt: null },
     data: { revokedAt: new Date() },
   });
 }
 
 export async function getUserSessions(db: PrismaClient, userId: string, currentSessionToken?: string) {
-  const currentHash = currentSessionToken ? hashToken(currentSessionToken) : null;
+  const currentHash = currentSessionToken ? hashSessionToken(currentSessionToken) : null;
   const sessions = await db.session.findMany({
     where: { userId, revokedAt: null, expiresAt: { gt: new Date() } },
     orderBy: { lastSeenAt: "desc" },
@@ -302,7 +322,7 @@ export async function getUserSessions(db: PrismaClient, userId: string, currentS
 }
 
 export async function revokeOtherSessions(db: PrismaClient, userId: string, currentSessionToken: string) {
-  const currentHash = hashToken(currentSessionToken);
+  const currentHash = hashSessionToken(currentSessionToken);
   return db.session.updateMany({
     where: {
       userId,

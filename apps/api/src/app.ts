@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
@@ -7,6 +8,8 @@ import { getClientIp, createRateLimiters } from "./middleware/rate-limiter.js";
 import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./middleware/security.js";
 import {
   AdminError,
+  type AdminActor,
+  assertAdminPermission,
   AuthError,
   BonusError,
   KycError,
@@ -25,6 +28,7 @@ import {
   applySelfExclusion,
   changePassword,
   createPlayerTicket,
+  getAdminSession,
   getAdminStatsOverview,
   getAdminTickets,
   getOrCreatePlayerKycCase,
@@ -43,6 +47,7 @@ import {
   registerPlayer,
   requestWithdrawal,
   resolveAmlAlert,
+  revokeAdminSession,
   revokeOtherSessions,
   revokeSession,
   setResponsibleGamingLimit,
@@ -54,6 +59,13 @@ import { evaluateTransactionRisk } from "@vladfsbet/db";
 
 const COOKIE = "vladfsbet_session";
 const ADMIN_COOKIE = "vladfsbet_admin_session";
+
+type AppEnv = {
+  Variables: {
+    requestId: string;
+    admin?: AdminActor;
+  };
+};
 
 // In-memory high performance TTL cache
 const responseCache = new Map<string, { data: unknown; expiresAt: number }>();
@@ -181,9 +193,46 @@ function setSessionCookie(c: Parameters<typeof setCookie>[0], token: string, nam
   });
 }
 
+function requireAdminPermission(c: { get: (key: "admin") => AdminActor | undefined }, key: string) {
+  const admin = c.get("admin");
+  if (!admin) {
+    throw new AdminError("UNAUTHORIZED", "Admin sign in required");
+  }
+  assertAdminPermission(admin, key);
+  return admin;
+}
+
 export function createApp() {
-  const app = new Hono();
+  const app = new Hono<AppEnv>();
   const limiters = createRateLimiters();
+
+  app.use("*", async (c, next) => {
+    const incoming = c.req.header("x-request-id")?.trim();
+    const requestId = incoming && incoming.length <= 128 ? incoming : randomUUID();
+    c.set("requestId", requestId);
+    c.header("x-request-id", requestId);
+    const started = Date.now();
+    await next();
+    const status = c.res.status;
+    const level = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
+    const line = JSON.stringify({
+      ts: new Date().toISOString(),
+      level,
+      requestId,
+      method: c.req.method,
+      path: c.req.path,
+      status,
+      ms: Date.now() - started,
+      ip: getClientIp(c),
+    });
+    if (level === "error") {
+      console.error(line);
+    } else if (level === "warn") {
+      console.warn(line);
+    } else {
+      console.log(line);
+    }
+  });
 
   // 1. Per-client burst flood protection (40 requests in 10s)
   app.use("*", limiters.burst);
@@ -216,15 +265,37 @@ export function createApp() {
   app.use("/api/games/*/play", limiters.gameplay);
   app.use("/api/sports/bet", limiters.gameplay);
 
+  app.use("/api/admin/*", async (c, next) => {
+    if (c.req.path === "/api/admin/auth/login") {
+      return next();
+    }
+    const admin = await getAdminSession(prisma, getCookie(c, ADMIN_COOKIE));
+    if (!admin) {
+      return c.json(
+        { error: "UNAUTHENTICATED", message: "Admin sign in required", requestId: c.get("requestId") },
+        401,
+      );
+    }
+    c.set("admin", admin);
+    await next();
+  });
+
   app.onError((error, c) => {
+    const requestId = c.get("requestId");
     if (error instanceof HTTPException) {
       return error.getResponse();
     }
     if (error instanceof ZodError) {
-      return c.json({ error: "INVALID_INPUT", message: error.issues[0]?.message ?? "Invalid input" }, 400);
+      return c.json({ error: "INVALID_INPUT", message: error.issues[0]?.message ?? "Invalid input", requestId }, 400);
     }
     if (error instanceof AuthError && error.code === "UNDERAGE") {
-      return c.json({ error: error.code, message: error.message }, 403);
+      return c.json({ error: error.code, message: error.message, requestId }, 403);
+    }
+    if (error instanceof AdminError && error.code === "UNAUTHORIZED") {
+      return c.json({ error: error.code, message: error.message, requestId }, 401);
+    }
+    if (error instanceof AdminError && error.code === "FORBIDDEN") {
+      return c.json({ error: error.code, message: error.message, requestId }, 403);
     }
     if (
       error instanceof AuthError ||
@@ -238,10 +309,10 @@ export function createApp() {
       error instanceof SupportError ||
       error instanceof AdminError
     ) {
-      return c.json({ error: error.code, message: error.message }, 400);
+      return c.json({ error: error.code, message: error.message, requestId }, 400);
     }
     console.error("API error:", error);
-    return c.json({ error: "INTERNAL", message: (error as Error)?.message ?? "Unexpected error" }, 500);
+    return c.json({ error: "INTERNAL", message: (error as Error)?.message ?? "Unexpected error", requestId }, 500);
   });
 
   // Root & Health checks
@@ -767,8 +838,18 @@ export function createApp() {
   app.post("/api/admin/auth/login", async (c) => {
     const body = loginSchema.parse(await c.req.json());
     const result = await loginAdmin(prisma, { ...body, ...clientMeta(c) });
-    setSessionCookie(c, `admin_${result.admin.id}`, ADMIN_COOKIE);
-    return c.json(result);
+    setSessionCookie(c, result.sessionToken, ADMIN_COOKIE);
+    return c.json({ admin: result.admin });
+  });
+
+  app.get("/api/admin/auth/me", async (c) => {
+    return c.json({ admin: c.get("admin") });
+  });
+
+  app.post("/api/admin/auth/logout", async (c) => {
+    await revokeAdminSession(prisma, getCookie(c, ADMIN_COOKIE));
+    deleteCookie(c, ADMIN_COOKIE, { path: "/" });
+    return c.json({ ok: true });
   });
 
   app.get("/api/admin/overview", async (c) => {
@@ -777,6 +858,7 @@ export function createApp() {
   });
 
   app.get("/api/admin/players", async (c) => {
+    requireAdminPermission(c, "players.read");
     const search = c.req.query("search");
     const players = await prisma.user.findMany({
       where: {
@@ -807,12 +889,14 @@ export function createApp() {
   });
 
   app.post("/api/admin/players/:id/status", async (c) => {
+    const admin = requireAdminPermission(c, "players.write");
     const body = z.object({ status: z.any(), reason: z.string() }).parse(await c.req.json());
-    const updated = await adminUpdatePlayerStatus(prisma, "admin-system", c.req.param("id"), body.status, body.reason);
+    const updated = await adminUpdatePlayerStatus(prisma, admin.id, c.req.param("id"), body.status, body.reason);
     return c.json({ player: updated });
   });
 
   app.get("/api/admin/withdrawals", async (c) => {
+    requireAdminPermission(c, "withdrawals.review");
     const withdrawals = await prisma.withdrawal.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, kycStatus: true } }, provider: true },
@@ -822,18 +906,21 @@ export function createApp() {
   });
 
   app.post("/api/admin/withdrawals/:id/approve", async (c) => {
+    const admin = requireAdminPermission(c, "withdrawals.review");
     const body = z.object({ reviewNote: z.string().optional() }).parse((await c.req.json().catch(() => ({}))) ?? {});
-    const updated = await adminApproveWithdrawal(prisma, c.req.param("id"), "admin-system", body.reviewNote);
+    const updated = await adminApproveWithdrawal(prisma, c.req.param("id"), admin.id, body.reviewNote);
     return c.json({ withdrawal: updated });
   });
 
   app.post("/api/admin/withdrawals/:id/reject", async (c) => {
+    const admin = requireAdminPermission(c, "withdrawals.review");
     const body = z.object({ reason: z.string().min(3) }).parse(await c.req.json());
-    const updated = await adminRejectWithdrawal(prisma, c.req.param("id"), "admin-system", body.reason);
+    const updated = await adminRejectWithdrawal(prisma, c.req.param("id"), admin.id, body.reason);
     return c.json({ withdrawal: updated });
   });
 
   app.get("/api/admin/kyc", async (c) => {
+    requireAdminPermission(c, "kyc.review");
     const cases = await prisma.kycCase.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, country: true } }, documents: true },
@@ -850,11 +937,13 @@ export function createApp() {
       })
       .parse(await c.req.json());
 
-    const updated = await adminReviewKycCase(prisma, c.req.param("id"), "admin-system", body.decision, body.reviewNote);
+    const admin = requireAdminPermission(c, "kyc.review");
+    const updated = await adminReviewKycCase(prisma, c.req.param("id"), admin.id, body.decision, body.reviewNote);
     return c.json({ kycCase: updated });
   });
 
   app.get("/api/admin/risk/alerts", async (c) => {
+    requireAdminPermission(c, "risk.review");
     const alerts = await prisma.amlAlert.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, country: true } } },
@@ -865,7 +954,8 @@ export function createApp() {
 
   app.post("/api/admin/risk/alerts/:id/resolve", async (c) => {
     const body = z.object({ notes: z.string().optional() }).parse((await c.req.json().catch(() => ({}))) ?? {});
-    const updated = await resolveAmlAlert(prisma, c.req.param("id"), "admin-system", body.notes);
+    const admin = requireAdminPermission(c, "risk.review");
+    const updated = await resolveAmlAlert(prisma, c.req.param("id"), admin.id, body.notes);
     return c.json({ alert: updated });
   });
 
@@ -875,14 +965,17 @@ export function createApp() {
   });
 
   app.post("/api/admin/support/tickets/:id/message", async (c) => {
+    const admin = c.get("admin");
     const body = z.object({ body: z.string().min(1), internal: z.boolean().default(false) }).parse(await c.req.json());
-    const message = await addTicketMessage(prisma, c.req.param("id"), "admin-system", "ADMIN", body.body, body.internal);
+    const message = await addTicketMessage(prisma, c.req.param("id"), admin?.id ?? "", "ADMIN", body.body, body.internal);
     return c.json({ message });
   });
 
   app.get("/api/admin/audit-logs", async (c) => {
+    requireAdminPermission(c, "audit.read");
     const logs = await prisma.auditLog.findMany({
       orderBy: { createdAt: "desc" },
+      include: { admin: { select: { email: true, name: true } } },
       take: 100,
     });
     return c.json({ items: logs });

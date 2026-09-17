@@ -15,7 +15,6 @@ import {
   ScrollText,
   Settings,
   LogOut,
-  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -36,13 +35,45 @@ const ADMIN_NAV = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [adminUser] = useState<{ email: string; name: string } | null>({
-    email: "admin@vladfsbet.com",
-    name: "Super Administrator",
-  });
+  const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
+  const [ready, setReady] = useState(pathname === "/admin/login");
+
+  useEffect(() => {
+    if (pathname === "/admin/login") {
+      setReady(true);
+      return;
+    }
+    let active = true;
+    api<{ admin: { email: string; name: string } }>("/api/admin/auth/me")
+      .then((data) => {
+        if (active) setAdminUser(data.admin);
+      })
+      .catch(() => {
+        if (active) router.replace("/admin/login");
+      })
+      .finally(() => {
+        if (active) setReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [pathname, router]);
+
+  async function logout() {
+    await api("/api/admin/auth/logout", { method: "POST" }).catch(() => undefined);
+    router.replace("/admin/login");
+  }
 
   if (pathname === "/admin/login") {
     return <>{children}</>;
+  }
+
+  if (!ready || !adminUser) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#05070c] text-xs text-muted-foreground">
+        Checking staff session…
+      </div>
+    );
   }
 
   return (
@@ -95,6 +126,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="w-full text-xs border-white/10" asChild>
               <Link href="/">Back to Player Site</Link>
+            </Button>
+            <Button variant="outline" size="sm" className="text-xs border-white/10" onClick={() => void logout()}>
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

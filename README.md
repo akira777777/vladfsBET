@@ -89,10 +89,11 @@ vladfsBET/
 # 1. Clone repository & install dependencies
 npm install
 
-# 2. Configure environment variables
+# 2. Configure environment variables (Postgres password matches docker-compose.yml)
 copy .env.example .env
 
-# 3. Initialize database & run seed script
+# 3. Start Postgres + Redis, then migrate & seed
+npm run docker:up
 npm run db:generate
 npm run db:migrate
 npm run db:seed
@@ -119,8 +120,9 @@ npm run build
 
 | Role | Email | Password | Access Level |
 | :--- | :--- | :--- | :--- |
+| **Demo Player** | `player@vladfsbet.com` | `Player123456!` | Player portal (`/login`) with $1,000 demo credits |
 | **Super Admin** | `admin@vladfsbet.com` | `Admin123456!` | Full Administrative & Compliance Console (`/admin`) |
-| **Compliance Officer** | `compliance@vladfsbet.com` | `Admin123456!` | KYC Review & AML Alerts Queue |
+| **Compliance Officer** | `compliance@vladfsbet.com` | `Admin123456!` | KYC Review, AML Alerts, Audit read |
 
 ---
 

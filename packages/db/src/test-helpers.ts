@@ -1,5 +1,12 @@
+import { config } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+config({ path: resolve(root, ".env") });
+config({ path: resolve(root, "packages/db/.env") });
 
 export const db = new PrismaClient();
 

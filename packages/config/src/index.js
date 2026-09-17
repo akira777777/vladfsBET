@@ -2,7 +2,7 @@ import { z } from 'zod';
 export const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().default(4000),
-    DATABASE_URL: z.string().url().default('postgresql://vladfsbet:vladfsbet_dev@127.0.0.1:5432/vladfsbet'),
+    DATABASE_URL: z.string().url().default('postgresql://vladfsbet:vladfsbet@127.0.0.1:5432/vladfsbet'),
     REDIS_URL: z.string().default('redis://127.0.0.1:6379'),
     SESSION_SECRET: z.string().default('vladfsbet-super-secret-session-key-must-be-changed-in-prod'),
     JWT_SECRET: z.string().default('vladfsbet-super-secret-jwt-key-must-be-changed-in-prod'),

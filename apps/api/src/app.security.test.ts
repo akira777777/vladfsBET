@@ -55,6 +55,6 @@ describe("API flood protection", () => {
       headers: { "content-type": "application/json" },
       body: "{}",
     });
-    expect(response.status).toBe(404);
+    expect([401, 404]).toContain(response.status);
   });
 });

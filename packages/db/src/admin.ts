@@ -1,7 +1,9 @@
 import { Prisma, PrismaClient, PlayerStatus } from "@prisma/client";
-import { hashPassword, verifyPassword } from "./auth";
+import { hashSessionToken, verifyPassword } from "./auth";
 import { postJournal } from "./ledger";
 import { randomBytes } from "node:crypto";
+
+const ADMIN_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 export class AdminError extends Error {
   constructor(
@@ -22,20 +24,83 @@ export type AdminLoginInput = {
   email: string;
   password: string;
   ip?: string;
+  userAgent?: string;
 };
+
+export type AdminActor = {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+  permissions: string[];
+};
+
+const adminRoleInclude = {
+  roles: {
+    include: {
+      role: {
+        include: { permissions: { include: { permission: true } } },
+      },
+    },
+  },
+} as const;
+
+function toAdminActor(admin: {
+  id: string;
+  email: string;
+  name: string;
+  roles: Array<{
+    role: {
+      name: string;
+      permissions: Array<{ permission: { key: string } }>;
+    };
+  }>;
+}): AdminActor {
+  const permissions = new Set<string>();
+  const roleNames: string[] = [];
+  for (const ar of admin.roles) {
+    roleNames.push(ar.role.name);
+    for (const rp of ar.role.permissions) {
+      permissions.add(rp.permission.key);
+    }
+  }
+  return {
+    id: admin.id,
+    email: admin.email,
+    name: admin.name,
+    roles: roleNames,
+    permissions: Array.from(permissions),
+  };
+}
+
+async function createAdminSession(
+  db: PrismaClient,
+  adminUserId: string,
+  meta?: { ip?: string; userAgent?: string },
+) {
+  const sessionToken = randomBytes(32).toString("hex");
+  await db.adminSession.create({
+    data: {
+      adminUserId,
+      tokenHash: hashSessionToken(sessionToken),
+      ip: meta?.ip,
+      userAgent: meta?.userAgent,
+      expiresAt: new Date(Date.now() + ADMIN_SESSION_TTL_MS),
+    },
+  });
+  return sessionToken;
+}
+
+export function assertAdminPermission(admin: AdminActor, key: string) {
+  if (!admin.permissions.includes(key)) {
+    throw new AdminError("FORBIDDEN", `Missing permission: ${key}`);
+  }
+}
 
 export async function loginAdmin(db: PrismaClient, input: AdminLoginInput) {
   const admin = await db.adminUser.findUnique({
     where: { email: input.email.trim().toLowerCase() },
-    include: {
-      roles: {
-        include: {
-          role: {
-            include: { permissions: { include: { permission: true } } },
-          },
-        },
-      },
-    },
+    include: adminRoleInclude,
   });
 
   if (!admin || !admin.active) {
@@ -52,17 +117,9 @@ export async function loginAdmin(db: PrismaClient, input: AdminLoginInput) {
     data: { lastLoginAt: new Date() },
   });
 
-  const permissions = new Set<string>();
-  const roleNames: string[] = [];
+  const actor = toAdminActor(admin);
+  const sessionToken = await createAdminSession(db, admin.id, input);
 
-  for (const ar of admin.roles) {
-    roleNames.push(ar.role.name);
-    for (const rp of ar.role.permissions) {
-      permissions.add(rp.permission.key);
-    }
-  }
-
-  // Audit log
   await db.auditLog.create({
     data: {
       actorType: "ADMIN",
@@ -74,15 +131,40 @@ export async function loginAdmin(db: PrismaClient, input: AdminLoginInput) {
     },
   });
 
-  return {
-    admin: {
-      id: admin.id,
-      email: admin.email,
-      name: admin.name,
-      roles: roleNames,
-      permissions: Array.from(permissions),
-    },
-  };
+  return { admin: actor, sessionToken };
+}
+
+export async function getAdminSession(db: PrismaClient, sessionToken: string | undefined | null) {
+  if (!sessionToken) {
+    return null;
+  }
+  const session = await db.adminSession.findUnique({
+    where: { tokenHash: hashSessionToken(sessionToken) },
+    include: { admin: { include: adminRoleInclude } },
+  });
+  if (
+    !session ||
+    session.revokedAt ||
+    session.expiresAt.getTime() <= Date.now() ||
+    !session.admin.active
+  ) {
+    return null;
+  }
+  await db.adminSession.update({
+    where: { id: session.id },
+    data: { lastSeenAt: new Date() },
+  });
+  return toAdminActor(session.admin);
+}
+
+export async function revokeAdminSession(db: PrismaClient, sessionToken: string | undefined | null) {
+  if (!sessionToken) {
+    return;
+  }
+  await db.adminSession.updateMany({
+    where: { tokenHash: hashSessionToken(sessionToken), revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
 }
 
 export async function getAdminStatsOverview(db: PrismaClient) {
