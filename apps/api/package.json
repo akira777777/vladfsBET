@@ -22,6 +22,8 @@
     "@vladfsbet/utils": "*",
     "dotenv": "^16.4.7",
     "hono": "^4.6.14",
+    "ipaddr.js": "^2.5.0",
+    "redis": "^5.12.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {

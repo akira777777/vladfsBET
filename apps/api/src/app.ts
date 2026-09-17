@@ -2,7 +2,10 @@ import "./setup-env.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { HTTPException } from "hono/http-exception";
 import { ZodError, z } from "zod";
+import { getClientIp, rateLimitProfiles } from "./middleware/rate-limiter.js";
+import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./middleware/security.js";
 import {
   AdminError,
   AuthError,
@@ -167,7 +170,7 @@ const ticketMessageSchema = z.object({
 
 function clientMeta(c: { req: { header: (name: string) => string | undefined } }) {
   return {
-    ip: c.req.header("x-forwarded-for") ?? "127.0.0.1",
+    ip: getClientIp(c),
     userAgent: c.req.header("user-agent") ?? undefined,
   };
 }
@@ -185,6 +188,16 @@ function setSessionCookie(c: Parameters<typeof setCookie>[0], token: string, nam
 export function createApp() {
   const app = new Hono();
 
+  // 1. Security Headers (HSTS, frameguard, nosniff, referrer-policy)
+  app.use("*", platformSecureHeaders);
+
+  // 2. Request timeout protection (15s) against slowloris and stalled connections
+  app.use("*", requestTimeout);
+
+  // 3. Adaptive payload size limits (128KB standard, 10MB for KYC documents)
+  app.use("*", adaptiveBodyLimit);
+
+  // 4. CORS
   app.use(
     "*",
     cors({
@@ -195,7 +208,17 @@ export function createApp() {
     }),
   );
 
+  // 5. Rate Limiting layers
+  app.use("/api/*", rateLimitProfiles.global);
+  app.use("/api/auth/*", rateLimitProfiles.auth);
+  app.use("/api/wallet/*", rateLimitProfiles.wallet);
+  app.use("/api/games/*/play", rateLimitProfiles.gameplay);
+  app.use("/api/sports/bets", rateLimitProfiles.gameplay);
+
   app.onError((error, c) => {
+    if (error instanceof HTTPException) {
+      return error.getResponse();
+    }
     if (error instanceof ZodError) {
       return c.json({ error: "INVALID_INPUT", message: error.issues[0]?.message ?? "Invalid input" }, 400);
     }

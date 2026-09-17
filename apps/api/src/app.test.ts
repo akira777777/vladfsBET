@@ -1,8 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "./app.js";
+import { resetRateLimitStore } from "./middleware/rate-limiter.js";
 
 const app = createApp();
+
+beforeEach(() => {
+  resetRateLimitStore();
+});
 
 function cookieFrom(response: Response): string {
   const raw = response.headers.get("set-cookie") ?? "";
