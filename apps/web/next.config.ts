@@ -16,7 +16,7 @@ function rewriteApiOrigin(): string | null {
 const API_ORIGIN = rewriteApiOrigin();
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
   compress: true,
   poweredByHeader: false,
   compiler: {
