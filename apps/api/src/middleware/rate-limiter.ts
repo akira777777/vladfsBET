@@ -140,8 +140,15 @@ async function sharedRedisStore(key: string, now: number, windowMs: number, limi
 }
 
 function shouldUseRedis(): boolean {
-  return Boolean(process.env.REDIS_URL) &&
-    (process.env.NODE_ENV === "production" || process.env.RATE_LIMIT_USE_REDIS === "true");
+  const url = process.env.REDIS_URL?.trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname;
+    if (host === "127.0.0.1" || host === "localhost") return false;
+  } catch {
+    return false;
+  }
+  return process.env.NODE_ENV === "production" || process.env.RATE_LIMIT_USE_REDIS === "true";
 }
 
 export function createRateLimiters() {

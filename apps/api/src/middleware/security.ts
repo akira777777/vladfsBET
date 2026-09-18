@@ -87,7 +87,11 @@ const registrationRequestTimeout = timeoutMiddleware(30);
  * it performs password hashing and several ledger writes against the remote DB.
  */
 export const requestTimeout: MiddlewareHandler = (c, next) => {
-  if (c.req.path === "/api/auth/register") {
+  if (
+    c.req.path === "/api/auth/register" ||
+    c.req.path === "/api/auth/login" ||
+    c.req.path === "/api/admin/auth/login"
+  ) {
     return registrationRequestTimeout(c, next);
   }
   return standardRequestTimeout(c, next);

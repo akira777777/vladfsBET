@@ -23,7 +23,17 @@ for (const raw of readFileSync(envPath, "utf8").split(/\n/)) {
   parsed[line.slice(0, i)] = value;
 }
 
+function buildDirectUrl() {
+  const host = parsed.POSTGRES_HOST;
+  const user = parsed.POSTGRES_USER || "postgres";
+  const password = parsed.POSTGRES_PASSWORD;
+  const database = parsed.POSTGRES_DATABASE || "postgres";
+  if (!host || !password || password === "[SENSITIVE]") return null;
+  return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:5432/${database}?sslmode=require`;
+}
+
 const url =
+  buildDirectUrl() ||
   parsed.POSTGRES_URL_NON_POOLING ||
   parsed.POSTGRES_PRISMA_URL ||
   parsed.POSTGRES_URL;

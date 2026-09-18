@@ -1,6 +1,19 @@
 import type { NextConfig } from "next";
 
-const API_ORIGIN = process.env.API_ORIGIN ?? "http://127.0.0.1:4000";
+function rewriteApiOrigin(): string | null {
+  const origin = (process.env.API_ORIGIN ?? "http://127.0.0.1:4000").trim().replace(/\/$/, "");
+  try {
+    const host = new URL(origin).hostname;
+    if (process.env.VERCEL && (host === "127.0.0.1" || host === "localhost")) {
+      return null;
+    }
+  } catch {
+    return process.env.VERCEL ? null : "http://127.0.0.1:4000";
+  }
+  return origin;
+}
+
+const API_ORIGIN = rewriteApiOrigin();
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -27,9 +40,8 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      { source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` },
-    ];
+    if (!API_ORIGIN) return [];
+    return [{ source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` }];
   },
 };
 
