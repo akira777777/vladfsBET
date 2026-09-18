@@ -26,7 +26,8 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "api:dev": "npm run dev -w @vladfsbet/api",
-    "web:dev": "npm run dev -w @vladfsbet/web"
+    "web:dev": "npm run dev -w @vladfsbet/web",
+    "env:sync": "node scripts/sync-env-to-vercel.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
