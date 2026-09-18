@@ -24,6 +24,16 @@ function parseIp(value: string | undefined): ipaddr.IPv4 | ipaddr.IPv6 | undefin
 
 function canonicalIp(value: string | undefined): string | undefined { return parseIp(value)?.toString(); }
 
+function peerAddressFrom(env: unknown): string | undefined {
+  if (!env || typeof env !== "object" || !("incoming" in env)) return undefined;
+  const incoming = (env as { incoming?: unknown }).incoming;
+  if (!incoming || typeof incoming !== "object" || !("socket" in incoming)) return undefined;
+  const socket = (incoming as { socket?: unknown }).socket;
+  if (!socket || typeof socket !== "object" || !("remoteAddress" in socket)) return undefined;
+  const remoteAddress = (socket as { remoteAddress?: unknown }).remoteAddress;
+  return typeof remoteAddress === "string" ? remoteAddress : undefined;
+}
+
 function configuredProxyRanges(): Array<[ipaddr.IPv4 | ipaddr.IPv6, number]> {
   return (process.env.TRUSTED_PROXY_CIDRS ?? "").split(",").map((value) => value.trim()).filter(Boolean)
     .flatMap((value) => { try { return [ipaddr.parseCIDR(value)]; } catch { return []; } });
@@ -38,7 +48,7 @@ function trustedProxy(value: string | undefined): boolean {
 /** Uses forwarding headers only when the hosting platform or proxy is explicitly trusted. */
 export function getClientIp(c: {
   req: { header: (name: string) => string | undefined };
-  env?: { incoming?: { socket?: { remoteAddress?: string } } };
+  env?: unknown;
 }): string {
   if (process.env.VERCEL === "1") {
     return canonicalIp(c.req.header("x-vercel-forwarded-for")?.split(",")[0]) ?? "unknown";
@@ -47,7 +57,7 @@ export function getClientIp(c: {
     return canonicalIp(c.req.header("cf-connecting-ip")) ?? "unknown";
   }
 
-  const peer = canonicalIp(c.env?.incoming?.socket?.remoteAddress);
+  const peer = canonicalIp(peerAddressFrom(c.env));
   if (peer && trustedProxy(peer)) {
     const forwarded = (c.req.header("x-forwarded-for") ?? "").split(",")
       .map((value) => canonicalIp(value)).filter(Boolean) as string[];
