@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/serverless.ts --bundle --platform=node --target=node20 --format=esm --external:@prisma/client --external:@prisma/client/* --external:redis --external:@redis/* --outfile=api/index.js",
+    "build": "esbuild src/serverless.ts --bundle --platform=node --target=node20 --format=esm --external:@prisma/client --external:@prisma/client/* --external:redis --external:@redis/* --outfile=api/index.js && esbuild src/fetch.ts --bundle --platform=node --target=node20 --format=esm --external:@prisma/client --external:@prisma/client/* --external:redis --external:@redis/* --outfile=api/fetch.js",
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

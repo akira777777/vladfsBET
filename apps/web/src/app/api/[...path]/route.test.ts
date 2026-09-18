@@ -1,6 +1,5 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { POST } from "./route";
 
 const originalVercel = process.env.VERCEL;
 const originalApiOrigin = process.env.API_ORIGIN;
@@ -14,6 +13,14 @@ describe("production API route", () => {
   it("serves the embedded API when the configured origin is loopback", async () => {
     process.env.VERCEL = "1";
     process.env.API_ORIGIN = "http://127.0.0.1:4000";
+
+    const nativeRequest = globalThis.Request;
+    const nativeResponse = globalThis.Response;
+    vi.resetModules();
+    const { POST } = await import("./route");
+
+    expect(globalThis.Request).toBe(nativeRequest);
+    expect(globalThis.Response).toBe(nativeResponse);
 
     const request = new NextRequest("https://example.test/api/auth/register", {
       method: "POST",

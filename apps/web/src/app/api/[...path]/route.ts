@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { fetchApp } from "../../../../../api/api/index.js";
+import { fetchApp } from "../../../../../api/api/fetch.js";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
