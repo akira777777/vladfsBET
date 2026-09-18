@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { fetchApp } from "../../../../../api/api/index.js";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,13 +21,7 @@ function apiOrigin(): string | null {
 async function proxy(request: NextRequest, path: string[]) {
   const origin = apiOrigin();
   if (!origin) {
-    return NextResponse.json(
-      {
-        error: "API_UNAVAILABLE",
-        message: "Set API_ORIGIN to the public API URL (not localhost) for this deployment.",
-      },
-      { status: 502 },
-    );
+    return fetchApp(request);
   }
 
   const target = `${origin}/api/${path.join("/")}${request.nextUrl.search}`;

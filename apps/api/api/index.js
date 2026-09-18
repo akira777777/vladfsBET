@@ -7981,7 +7981,15 @@ async function sharedRedisStore(key, now, windowMs, limit) {
   }
 }
 function shouldUseRedis() {
-  return Boolean(process.env.REDIS_URL) && (process.env.NODE_ENV === "production" || process.env.RATE_LIMIT_USE_REDIS === "true");
+  const url = process.env.REDIS_URL?.trim();
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname;
+    if (host === "127.0.0.1" || host === "localhost") return false;
+  } catch {
+    return false;
+  }
+  return process.env.NODE_ENV === "production" || process.env.RATE_LIMIT_USE_REDIS === "true";
 }
 function createRateLimiters() {
   const local = createMemoryStore();
@@ -8316,7 +8324,7 @@ function timeoutMiddleware(seconds) {
 var standardRequestTimeout = timeoutMiddleware(15);
 var registrationRequestTimeout = timeoutMiddleware(30);
 var requestTimeout = (c, next) => {
-  if (c.req.path === "/api/auth/register") {
+  if (c.req.path === "/api/auth/register" || c.req.path === "/api/auth/login" || c.req.path === "/api/admin/auth/login") {
     return registrationRequestTimeout(c, next);
   }
   return standardRequestTimeout(c, next);
@@ -10436,8 +10444,30 @@ async function adminUpdatePlayerStatus(db, adminUserId, targetUserId, newStatus,
 }
 
 // ../../packages/db/dist/index.js
-if (process.env.DATABASE_URL_UNPOOLED) {
-  process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
+var hostedDatabaseUrl = (process.env.VERCEL ? [
+  process.env.POSTGRES_PRISMA_URL,
+  process.env.POSTGRES_URL,
+  process.env.POSTGRES_URL_NON_POOLING,
+  process.env.DATABASE_URL_UNPOOLED,
+  process.env.DATABASE_URL
+] : [
+  process.env.POSTGRES_URL_NON_POOLING,
+  process.env.POSTGRES_PRISMA_URL,
+  process.env.POSTGRES_URL,
+  process.env.DATABASE_URL_UNPOOLED,
+  process.env.DATABASE_URL
+]).find((value) => {
+  if (!value)
+    return false;
+  try {
+    const { hostname } = new URL(value);
+    return hostname !== "127.0.0.1" && hostname !== "localhost";
+  } catch {
+    return false;
+  }
+});
+if (hostedDatabaseUrl) {
+  process.env.DATABASE_URL = hostedDatabaseUrl;
 }
 var globalForPrisma = globalThis;
 var prismaInstance;
@@ -11263,6 +11293,7 @@ function createApp() {
 
 // src/serverless.ts
 var app = createApp();
+var fetchApp = async (request) => app.fetch(request);
 var GET = handle(app);
 var POST = handle(app);
 var PUT = handle(app);
@@ -11277,5 +11308,6 @@ export {
   PATCH,
   POST,
   PUT,
-  serverless_default as default
+  serverless_default as default,
+  fetchApp
 };
