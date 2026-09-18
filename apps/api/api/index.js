@@ -4,13 +4,7 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
-}) : x)(function(x) {
-  if (typeof require !== "undefined") return require.apply(this, arguments);
-  throw Error('Dynamic require of "' + x + '" is not supported');
-});
-var __commonJS = (cb, mod) => function __require2() {
+var __commonJS = (cb, mod) => function __require() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   } catch (e) {
@@ -1472,6 +1466,9 @@ var getRequestListener = (fetchCallback, options = {}) => {
 var handle = (app2) => {
   return getRequestListener(app2.fetch);
 };
+
+// src/app.ts
+import { randomUUID as randomUUID3 } from "node:crypto";
 
 // ../../node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
@@ -7877,6 +7874,15 @@ function parseIp(value) {
 function canonicalIp(value) {
   return parseIp(value)?.toString();
 }
+function peerAddressFrom(env) {
+  if (!env || typeof env !== "object" || !("incoming" in env)) return void 0;
+  const incoming = env.incoming;
+  if (!incoming || typeof incoming !== "object" || !("socket" in incoming)) return void 0;
+  const socket = incoming.socket;
+  if (!socket || typeof socket !== "object" || !("remoteAddress" in socket)) return void 0;
+  const remoteAddress = socket.remoteAddress;
+  return typeof remoteAddress === "string" ? remoteAddress : void 0;
+}
 function configuredProxyRanges() {
   return (process.env.TRUSTED_PROXY_CIDRS ?? "").split(",").map((value) => value.trim()).filter(Boolean).flatMap((value) => {
     try {
@@ -7897,7 +7903,7 @@ function getClientIp(c) {
   if (process.env.TRUSTED_PROXY_PROVIDER === "cloudflare") {
     return canonicalIp(c.req.header("cf-connecting-ip")) ?? "unknown";
   }
-  const peer = canonicalIp(c.env?.incoming?.socket?.remoteAddress);
+  const peer = canonicalIp(peerAddressFrom(c.env));
   if (peer && trustedProxy(peer)) {
     const forwarded = (c.req.header("x-forwarded-for") ?? "").split(",").map((value) => canonicalIp(value)).filter(Boolean);
     let client = peer;
@@ -8006,7 +8012,13 @@ function createRateLimiters() {
   return {
     burst: limiter({ keyPrefix: "burst", windowMs: 1e4, limit: 40, message: "Request burst limit exceeded." }),
     global: limiter({ keyPrefix: "global", windowMs: 6e4, limit: 240 }),
-    auth: limiter({ keyPrefix: "auth", windowMs: 6e4, limit: 10, message: "Too many authentication attempts." }),
+    auth: limiter({
+      keyPrefix: "auth",
+      windowMs: 6e4,
+      limit: 10,
+      message: "Too many authentication attempts.",
+      skip: (c) => c.req.method === "GET" || c.req.path.endsWith("/logout")
+    }),
     wallet: limiter({ keyPrefix: "wallet", windowMs: 6e4, limit: 30, message: "Too many wallet requests." }),
     gameplay: limiter({ keyPrefix: "gameplay", windowMs: 6e4, limit: 60, message: "Action velocity limit reached." }),
     reset: local.reset
@@ -8623,6 +8635,20 @@ async function requestWithdrawal(db, input) {
     },
     include: { provider: true }
   });
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: input.userId,
+      action: "WITHDRAWAL_REQUESTED",
+      entity: "Withdrawal",
+      entityId: withdrawal.id,
+      payload: {
+        amount: money(amount),
+        currency: input.currency,
+        method: input.method
+      }
+    }
+  });
   return { withdrawal, journal };
 }
 async function adminApproveWithdrawal(db, withdrawalId, adminUserId, reviewNote) {
@@ -8731,7 +8757,7 @@ var AuthError = class extends Error {
 function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
-function hashToken(token) {
+function hashSessionToken(token) {
   return createHash("sha256").update(token).digest("hex");
 }
 async function hashPassword(password) {
@@ -8779,7 +8805,7 @@ async function createSession(db, userId, meta) {
   await db.session.create({
     data: {
       userId,
-      tokenHash: hashToken(sessionToken),
+      tokenHash: hashSessionToken(sessionToken),
       ip: meta?.ip,
       userAgent: meta?.userAgent,
       expiresAt: new Date(Date.now() + SESSION_TTL_MS)
@@ -8873,6 +8899,17 @@ async function registerPlayer(db, input) {
     });
   }
   const sessionToken = await createSession(db, user.id, input);
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: user.id,
+      action: "PLAYER_REGISTERED",
+      entity: "User",
+      entityId: user.id,
+      ip: input.ip,
+      payload: { email: user.email }
+    }
+  });
   return { user: publicUser(user), sessionToken };
 }
 async function loginPlayer(db, input) {
@@ -8883,6 +8920,17 @@ async function loginPlayer(db, input) {
     if (user) {
       await db.loginEvent.create({
         data: { userId: user.id, success: false, ip: input.ip, userAgent: input.userAgent, reason: "bad_password" }
+      });
+      await db.auditLog.create({
+        data: {
+          actorType: "PLAYER",
+          subjectId: user.id,
+          action: "PLAYER_LOGIN_FAILED",
+          entity: "User",
+          entityId: user.id,
+          ip: input.ip,
+          payload: { email, reason: "bad_password" }
+        }
       });
     }
     throw new AuthError("INVALID_CREDENTIALS", "Invalid email or password");
@@ -8900,6 +8948,17 @@ async function loginPlayer(db, input) {
   await db.loginEvent.create({
     data: { userId: user.id, success: true, ip: input.ip, userAgent: input.userAgent }
   });
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: user.id,
+      action: "PLAYER_LOGIN",
+      entity: "User",
+      entityId: user.id,
+      ip: input.ip,
+      payload: { email }
+    }
+  });
   const sessionToken = await createSession(db, user.id, input);
   return { user: publicUser(user), sessionToken };
 }
@@ -8908,7 +8967,7 @@ async function getSessionUser(db, sessionToken) {
     return null;
   }
   const session = await db.session.findUnique({
-    where: { tokenHash: hashToken(sessionToken) },
+    where: { tokenHash: hashSessionToken(sessionToken) },
     include: { user: true }
   });
   if (!session || session.revokedAt || session.expiresAt.getTime() <= Date.now()) {
@@ -8925,12 +8984,12 @@ async function revokeSession(db, sessionToken) {
     return;
   }
   await db.session.updateMany({
-    where: { tokenHash: hashToken(sessionToken), revokedAt: null },
+    where: { tokenHash: hashSessionToken(sessionToken), revokedAt: null },
     data: { revokedAt: /* @__PURE__ */ new Date() }
   });
 }
 async function getUserSessions(db, userId, currentSessionToken) {
-  const currentHash = currentSessionToken ? hashToken(currentSessionToken) : null;
+  const currentHash = currentSessionToken ? hashSessionToken(currentSessionToken) : null;
   const sessions = await db.session.findMany({
     where: { userId, revokedAt: null, expiresAt: { gt: /* @__PURE__ */ new Date() } },
     orderBy: { lastSeenAt: "desc" }
@@ -8945,7 +9004,7 @@ async function getUserSessions(db, userId, currentSessionToken) {
   }));
 }
 async function revokeOtherSessions(db, userId, currentSessionToken) {
-  const currentHash = hashToken(currentSessionToken);
+  const currentHash = hashSessionToken(currentSessionToken);
   return db.session.updateMany({
     where: {
       userId,
@@ -9003,7 +9062,7 @@ async function updateUserProfile(db, userId, data) {
 }
 
 // ../../packages/db/dist/play.js
-import { randomBytes as randomBytes2, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash2, createHmac, randomBytes as randomBytes2, randomUUID as randomUUID2 } from "node:crypto";
 import { Prisma as Prisma4 } from "@prisma/client";
 
 // ../../packages/db/dist/rg.js
@@ -9301,8 +9360,7 @@ function money2(value) {
   return value.toFixed(8);
 }
 function generateProvablyFair(serverSeed, clientSeed, nonce) {
-  const { createHmac, createHash: createHash3 } = __require("node:crypto");
-  const serverSeedHash = createHash3("sha256").update(serverSeed).digest("hex");
+  const serverSeedHash = createHash2("sha256").update(serverSeed).digest("hex");
   const hmac = createHmac("sha256", serverSeed).update(`${clientSeed}:${nonce}`).digest("hex");
   const intVal = parseInt(hmac.substring(0, 8), 16);
   const floatVal = intVal / 4294967296;
@@ -9370,6 +9428,18 @@ function simulateRoulette(betDetails, randFloat) {
     multiplier = 2;
   } else if (betType === "ODD" && !isEven && winningNumber !== 0) {
     multiplier = 2;
+  } else if (betType === "LOW" && winningNumber >= 1 && winningNumber <= 18) {
+    multiplier = 2;
+  } else if (betType === "HIGH" && winningNumber >= 19 && winningNumber <= 36) {
+    multiplier = 2;
+  } else if (betType === "DOZEN") {
+    const dozen = selectedNumber;
+    if (dozen === 1 && winningNumber >= 1 && winningNumber <= 12)
+      multiplier = 3;
+    else if (dozen === 2 && winningNumber >= 13 && winningNumber <= 24)
+      multiplier = 3;
+    else if (dozen === 3 && winningNumber >= 25 && winningNumber <= 36)
+      multiplier = 3;
   }
   return {
     winningNumber,
@@ -9398,7 +9468,6 @@ function simulateBlackjack(randFloat) {
   };
 }
 function simulateCrash(gameData, serverSeed, clientSeed, nonce) {
-  const { createHmac } = __require("node:crypto");
   const hash = createHmac("sha256", serverSeed).update(`${clientSeed}:${nonce}`).digest("hex");
   const intVal = parseInt(hash.substring(0, 8), 16);
   const randFloat = intVal / 4294967296;
@@ -9464,7 +9533,6 @@ var PLINKO_PAYOUT_TABLE = {
   }
 };
 function simulatePlinko(gameData, serverSeed, clientSeed, nonce) {
-  const { createHmac } = __require("node:crypto");
   const rows = typeof gameData?.rows === "number" ? Math.min(16, Math.max(8, gameData.rows)) : 16;
   const risk = ["LOW", "MEDIUM", "HIGH"].includes(gameData?.risk) ? gameData?.risk : "MEDIUM";
   const path = [];
@@ -9502,7 +9570,6 @@ function calculateMinesMult(mineCount, revealedCount) {
   return Math.floor(mult * 100) / 100;
 }
 function simulateMines(gameData, serverSeed, clientSeed, nonce) {
-  const { createHmac } = __require("node:crypto");
   const mineCount = typeof gameData?.mineCount === "number" ? Math.min(24, Math.max(1, gameData.mineCount)) : 3;
   const revealedTiles = Array.isArray(gameData?.revealedTiles) ? gameData?.revealedTiles : [];
   const totalTiles = 25;
@@ -9762,6 +9829,23 @@ async function playDemoGame(db, input) {
     where: { id: session.id },
     data: { status: "CLOSED", closedAt: /* @__PURE__ */ new Date() }
   });
+  await db.auditLog.create({
+    data: {
+      actorType: "PLAYER",
+      subjectId: user.id,
+      action: "GAME_PLAY",
+      entity: "GameRound",
+      entityId: round.id,
+      payload: {
+        slug: game.slug,
+        title: game.title,
+        betAmount: money2(bet),
+        winAmount: money2(win),
+        multiplier,
+        currency: user.currency
+      }
+    }
+  });
   await Promise.all([
     recordVipWager(db, user.id, bet).catch(() => {
     }),
@@ -9861,7 +9945,7 @@ async function getPlayerSportBets(db, userId) {
 }
 
 // ../../packages/db/dist/kyc.js
-import { createHash as createHash2 } from "node:crypto";
+import { createHash as createHash3 } from "node:crypto";
 var KycError = class extends Error {
   code;
   constructor(code, message) {
@@ -9905,7 +9989,7 @@ async function submitKycDocument(db, input) {
       data: { status: "UNDER_REVIEW" }
     });
   }
-  const checksum = input.fileBufferBase64 ? createHash2("sha256").update(input.fileBufferBase64).digest("hex") : createHash2("sha256").update(`${input.fileName}:${Date.now()}`).digest("hex");
+  const checksum = input.fileBufferBase64 ? createHash3("sha256").update(input.fileBufferBase64).digest("hex") : createHash3("sha256").update(`${input.fileName}:${Date.now()}`).digest("hex");
   const storageKey = `kyc/${input.userId}/${Date.now()}_${input.fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
   const doc = await db.kycDocument.create({
     data: {
@@ -10168,6 +10252,8 @@ async function getAdminTickets(db, statusFilter) {
 
 // ../../packages/db/dist/admin.js
 import { Prisma as Prisma7 } from "@prisma/client";
+import { randomBytes as randomBytes3 } from "node:crypto";
+var ADMIN_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1e3;
 var AdminError = class extends Error {
   code;
   constructor(code, message) {
@@ -10176,18 +10262,54 @@ var AdminError = class extends Error {
     this.name = "AdminError";
   }
 };
+var adminRoleInclude = {
+  roles: {
+    include: {
+      role: {
+        include: { permissions: { include: { permission: true } } }
+      }
+    }
+  }
+};
+function toAdminActor(admin) {
+  const permissions = /* @__PURE__ */ new Set();
+  const roleNames = [];
+  for (const ar of admin.roles) {
+    roleNames.push(ar.role.name);
+    for (const rp of ar.role.permissions) {
+      permissions.add(rp.permission.key);
+    }
+  }
+  return {
+    id: admin.id,
+    email: admin.email,
+    name: admin.name,
+    roles: roleNames,
+    permissions: Array.from(permissions)
+  };
+}
+async function createAdminSession(db, adminUserId, meta) {
+  const sessionToken = randomBytes3(32).toString("hex");
+  await db.adminSession.create({
+    data: {
+      adminUserId,
+      tokenHash: hashSessionToken(sessionToken),
+      ip: meta?.ip,
+      userAgent: meta?.userAgent,
+      expiresAt: new Date(Date.now() + ADMIN_SESSION_TTL_MS)
+    }
+  });
+  return sessionToken;
+}
+function assertAdminPermission(admin, key) {
+  if (!admin.permissions.includes(key)) {
+    throw new AdminError("FORBIDDEN", `Missing permission: ${key}`);
+  }
+}
 async function loginAdmin(db, input) {
   const admin = await db.adminUser.findUnique({
     where: { email: input.email.trim().toLowerCase() },
-    include: {
-      roles: {
-        include: {
-          role: {
-            include: { permissions: { include: { permission: true } } }
-          }
-        }
-      }
-    }
+    include: adminRoleInclude
   });
   if (!admin || !admin.active) {
     throw new AdminError("UNAUTHORIZED", "Invalid admin credentials or account inactive");
@@ -10200,14 +10322,8 @@ async function loginAdmin(db, input) {
     where: { id: admin.id },
     data: { lastLoginAt: /* @__PURE__ */ new Date() }
   });
-  const permissions = /* @__PURE__ */ new Set();
-  const roleNames = [];
-  for (const ar of admin.roles) {
-    roleNames.push(ar.role.name);
-    for (const rp of ar.role.permissions) {
-      permissions.add(rp.permission.key);
-    }
-  }
+  const actor = toAdminActor(admin);
+  const sessionToken = await createAdminSession(db, admin.id, input);
   await db.auditLog.create({
     data: {
       actorType: "ADMIN",
@@ -10215,18 +10331,37 @@ async function loginAdmin(db, input) {
       action: "ADMIN_LOGIN",
       entity: "AdminUser",
       entityId: admin.id,
-      ip: input.ip
+      ip: input.ip,
+      payload: { email: admin.email }
     }
   });
-  return {
-    admin: {
-      id: admin.id,
-      email: admin.email,
-      name: admin.name,
-      roles: roleNames,
-      permissions: Array.from(permissions)
-    }
-  };
+  return { admin: actor, sessionToken };
+}
+async function getAdminSession(db, sessionToken) {
+  if (!sessionToken) {
+    return null;
+  }
+  const session = await db.adminSession.findUnique({
+    where: { tokenHash: hashSessionToken(sessionToken) },
+    include: { admin: { include: adminRoleInclude } }
+  });
+  if (!session || session.revokedAt || session.expiresAt.getTime() <= Date.now() || !session.admin.active) {
+    return null;
+  }
+  await db.adminSession.update({
+    where: { id: session.id },
+    data: { lastSeenAt: /* @__PURE__ */ new Date() }
+  });
+  return toAdminActor(session.admin);
+}
+async function revokeAdminSession(db, sessionToken) {
+  if (!sessionToken) {
+    return;
+  }
+  await db.adminSession.updateMany({
+    where: { tokenHash: hashSessionToken(sessionToken), revokedAt: null },
+    data: { revokedAt: /* @__PURE__ */ new Date() }
+  });
 }
 async function getAdminStatsOverview(db) {
   const [totalPlayers, activePlayers, roundsAgg, depositsAgg, withdrawalsAgg, pendingWithdrawals, openKyc, activeAlerts] = await Promise.all([
@@ -10305,9 +10440,26 @@ if (process.env.DATABASE_URL_UNPOOLED) {
   process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
 }
 var globalForPrisma = globalThis;
-var prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]
-});
+var prismaInstance;
+try {
+  prismaInstance = globalForPrisma.prisma ?? new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]
+  });
+} catch {
+  console.warn("[AI Studio] Database not connected \u2014 using mock Prisma client");
+  const noOp = {
+    findMany: async () => [],
+    findFirst: async () => null,
+    findUnique: async () => null,
+    create: async (d) => d?.data ?? {},
+    update: async (d) => d?.data ?? {},
+    delete: async () => ({})
+  };
+  prismaInstance = new Proxy({}, {
+    get: () => noOp
+  });
+}
+var prisma = prismaInstance;
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
@@ -10407,6 +10559,27 @@ var ticketSchema = external_exports.object({
 var ticketMessageSchema = external_exports.object({
   body: external_exports.string().min(1)
 });
+var gameCategorySchema = external_exports.enum([
+  "SLOTS",
+  "NEW",
+  "POPULAR",
+  "JACKPOTS",
+  "TABLE_GAMES",
+  "ROULETTE",
+  "BLACKJACK",
+  "BACCARAT",
+  "POKER",
+  "CRASH",
+  "LIVE_CASINO"
+]);
+var gamesQuerySchema = external_exports.object({
+  category: external_exports.union([external_exports.literal("ALL"), gameCategorySchema]).default("ALL"),
+  search: external_exports.string().trim().max(100).default("")
+});
+var updatePlayerStatusSchema = external_exports.object({
+  status: external_exports.enum(["ACTIVE", "SUSPENDED", "LOCKED"]),
+  reason: external_exports.string().trim().min(3).max(500)
+});
 function clientMeta(c) {
   return {
     ip: getClientIp(c),
@@ -10422,9 +10595,44 @@ function setSessionCookie(c, token, name = COOKIE) {
     secure: process.env.NODE_ENV === "production"
   });
 }
+function requireAdminPermission(c, key) {
+  const admin = c.get("admin");
+  if (!admin) {
+    throw new AdminError("UNAUTHORIZED", "Admin sign in required");
+  }
+  assertAdminPermission(admin, key);
+  return admin;
+}
 function createApp() {
   const app2 = new Hono2();
   const limiters = createRateLimiters();
+  app2.use("*", async (c, next) => {
+    const incoming = c.req.header("x-request-id")?.trim();
+    const requestId = incoming && incoming.length <= 128 ? incoming : randomUUID3();
+    c.set("requestId", requestId);
+    c.header("x-request-id", requestId);
+    const started = Date.now();
+    await next();
+    const status = c.res.status;
+    const level = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
+    const line = JSON.stringify({
+      ts: (/* @__PURE__ */ new Date()).toISOString(),
+      level,
+      requestId,
+      method: c.req.method,
+      path: c.req.path,
+      status,
+      ms: Date.now() - started,
+      ip: getClientIp(c)
+    });
+    if (level === "error") {
+      console.error(line);
+    } else if (level === "warn") {
+      console.warn(line);
+    } else {
+      console.log(line);
+    }
+  });
   app2.use("*", limiters.burst);
   app2.use("*", platformSecureHeaders);
   app2.use("*", requestTimeout);
@@ -10444,21 +10652,42 @@ function createApp() {
   app2.use("/api/wallet/*", limiters.wallet);
   app2.use("/api/games/*/play", limiters.gameplay);
   app2.use("/api/sports/bet", limiters.gameplay);
+  app2.use("/api/admin/*", async (c, next) => {
+    if (c.req.path === "/api/admin/auth/login") {
+      return next();
+    }
+    const admin = await getAdminSession(prisma, getCookie(c, ADMIN_COOKIE));
+    if (!admin) {
+      return c.json(
+        { error: "UNAUTHENTICATED", message: "Admin sign in required", requestId: c.get("requestId") },
+        401
+      );
+    }
+    c.set("admin", admin);
+    await next();
+  });
   app2.onError((error, c) => {
+    const requestId = c.get("requestId");
     if (error instanceof HTTPException) {
       return error.getResponse();
     }
     if (error instanceof ZodError) {
-      return c.json({ error: "INVALID_INPUT", message: error.issues[0]?.message ?? "Invalid input" }, 400);
+      return c.json({ error: "INVALID_INPUT", message: error.issues[0]?.message ?? "Invalid input", requestId }, 400);
     }
     if (error instanceof AuthError && error.code === "UNDERAGE") {
-      return c.json({ error: error.code, message: error.message }, 403);
+      return c.json({ error: error.code, message: error.message, requestId }, 403);
+    }
+    if (error instanceof AdminError && error.code === "UNAUTHORIZED") {
+      return c.json({ error: error.code, message: error.message, requestId }, 401);
+    }
+    if (error instanceof AdminError && error.code === "FORBIDDEN") {
+      return c.json({ error: error.code, message: error.message, requestId }, 403);
     }
     if (error instanceof AuthError || error instanceof LedgerError || error instanceof PlayError || error instanceof RgError || error instanceof BonusError || error instanceof SportsError || error instanceof KycError || error instanceof RiskError || error instanceof SupportError || error instanceof AdminError) {
-      return c.json({ error: error.code, message: error.message }, 400);
+      return c.json({ error: error.code, message: error.message, requestId }, 400);
     }
     console.error("API error:", error);
-    return c.json({ error: "INTERNAL", message: error?.message ?? "Unexpected error" }, 500);
+    return c.json({ error: "INTERNAL", message: error?.message ?? "Unexpected error", requestId }, 500);
   });
   app2.get(
     "/",
@@ -10508,13 +10737,16 @@ function createApp() {
     if (!user) {
       return c.json({ error: "UNAUTHENTICATED", message: "Sign in required" }, 401);
     }
-    const fullUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: {
-        profile: true,
-        vipProgress: { include: { level: true } }
-      }
-    });
+    const [fullUser, snapshot] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          profile: true,
+          vipProgress: { include: { level: true } }
+        }
+      }),
+      getWalletSnapshot(prisma, user.id, user.currency)
+    ]);
     return c.json({
       user: {
         ...user,
@@ -10526,7 +10758,8 @@ function createApp() {
           rank: fullUser.vipProgress.level.rank,
           cashbackBps: fullUser.vipProgress.level.cashbackBps
         } : void 0
-      }
+      },
+      wallet: snapshot
     });
   });
   app2.post("/api/auth/change-password", async (c) => {
@@ -10619,8 +10852,7 @@ function createApp() {
   });
   app2.get("/api/games", async (c) => {
     c.header("Cache-Control", "public, max-age=15, stale-while-revalidate=60");
-    const category = c.req.query("category") ?? "ALL";
-    const search = (c.req.query("search") ?? "").trim();
+    const { category, search } = gamesQuerySchema.parse(c.req.query());
     const cacheKey2 = `games:${category}:${search}`;
     const cached = getCached(cacheKey2);
     if (cached) {
@@ -10628,14 +10860,10 @@ function createApp() {
     }
     const where = {
       active: true,
-      demoAvailable: true
+      demoAvailable: true,
+      category: category === "ALL" ? void 0 : category,
+      title: search ? { contains: search, mode: "insensitive" } : void 0
     };
-    if (category && category !== "ALL") {
-      where.category = category;
-    }
-    if (search) {
-      where.title = { contains: search, mode: "insensitive" };
-    }
     const games = await prisma.game.findMany({
       where,
       include: { provider: true },
@@ -10907,14 +11135,23 @@ function createApp() {
   app2.post("/api/admin/auth/login", async (c) => {
     const body = loginSchema.parse(await c.req.json());
     const result = await loginAdmin(prisma, { ...body, ...clientMeta(c) });
-    setSessionCookie(c, `admin_${result.admin.id}`, ADMIN_COOKIE);
-    return c.json(result);
+    setSessionCookie(c, result.sessionToken, ADMIN_COOKIE);
+    return c.json({ admin: result.admin });
+  });
+  app2.get("/api/admin/auth/me", async (c) => {
+    return c.json({ admin: c.get("admin") });
+  });
+  app2.post("/api/admin/auth/logout", async (c) => {
+    await revokeAdminSession(prisma, getCookie(c, ADMIN_COOKIE));
+    deleteCookie(c, ADMIN_COOKIE, { path: "/" });
+    return c.json({ ok: true });
   });
   app2.get("/api/admin/overview", async (c) => {
     const stats = await getAdminStatsOverview(prisma);
     return c.json({ stats });
   });
   app2.get("/api/admin/players", async (c) => {
+    requireAdminPermission(c, "players.read");
     const search = c.req.query("search");
     const players = await prisma.user.findMany({
       where: {
@@ -10943,11 +11180,13 @@ function createApp() {
     });
   });
   app2.post("/api/admin/players/:id/status", async (c) => {
-    const body = external_exports.object({ status: external_exports.any(), reason: external_exports.string() }).parse(await c.req.json());
-    const updated = await adminUpdatePlayerStatus(prisma, "admin-system", c.req.param("id"), body.status, body.reason);
+    const admin = requireAdminPermission(c, "players.write");
+    const body = updatePlayerStatusSchema.parse(await c.req.json());
+    const updated = await adminUpdatePlayerStatus(prisma, admin.id, c.req.param("id"), body.status, body.reason);
     return c.json({ player: updated });
   });
   app2.get("/api/admin/withdrawals", async (c) => {
+    requireAdminPermission(c, "withdrawals.review");
     const withdrawals = await prisma.withdrawal.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, kycStatus: true } }, provider: true },
@@ -10956,16 +11195,19 @@ function createApp() {
     return c.json({ items: withdrawals });
   });
   app2.post("/api/admin/withdrawals/:id/approve", async (c) => {
+    const admin = requireAdminPermission(c, "withdrawals.review");
     const body = external_exports.object({ reviewNote: external_exports.string().optional() }).parse(await c.req.json().catch(() => ({})) ?? {});
-    const updated = await adminApproveWithdrawal(prisma, c.req.param("id"), "admin-system", body.reviewNote);
+    const updated = await adminApproveWithdrawal(prisma, c.req.param("id"), admin.id, body.reviewNote);
     return c.json({ withdrawal: updated });
   });
   app2.post("/api/admin/withdrawals/:id/reject", async (c) => {
+    const admin = requireAdminPermission(c, "withdrawals.review");
     const body = external_exports.object({ reason: external_exports.string().min(3) }).parse(await c.req.json());
-    const updated = await adminRejectWithdrawal(prisma, c.req.param("id"), "admin-system", body.reason);
+    const updated = await adminRejectWithdrawal(prisma, c.req.param("id"), admin.id, body.reason);
     return c.json({ withdrawal: updated });
   });
   app2.get("/api/admin/kyc", async (c) => {
+    requireAdminPermission(c, "kyc.review");
     const cases = await prisma.kycCase.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, country: true } }, documents: true },
@@ -10978,10 +11220,12 @@ function createApp() {
       decision: external_exports.enum(["APPROVED", "REJECTED", "REQUIRES_INFORMATION"]),
       reviewNote: external_exports.string().optional()
     }).parse(await c.req.json());
-    const updated = await adminReviewKycCase(prisma, c.req.param("id"), "admin-system", body.decision, body.reviewNote);
+    const admin = requireAdminPermission(c, "kyc.review");
+    const updated = await adminReviewKycCase(prisma, c.req.param("id"), admin.id, body.decision, body.reviewNote);
     return c.json({ kycCase: updated });
   });
   app2.get("/api/admin/risk/alerts", async (c) => {
+    requireAdminPermission(c, "risk.review");
     const alerts = await prisma.amlAlert.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: { select: { email: true, country: true } } },
@@ -10991,7 +11235,8 @@ function createApp() {
   });
   app2.post("/api/admin/risk/alerts/:id/resolve", async (c) => {
     const body = external_exports.object({ notes: external_exports.string().optional() }).parse(await c.req.json().catch(() => ({})) ?? {});
-    const updated = await resolveAmlAlert(prisma, c.req.param("id"), "admin-system", body.notes);
+    const admin = requireAdminPermission(c, "risk.review");
+    const updated = await resolveAmlAlert(prisma, c.req.param("id"), admin.id, body.notes);
     return c.json({ alert: updated });
   });
   app2.get("/api/admin/support/tickets", async (c) => {
@@ -10999,13 +11244,16 @@ function createApp() {
     return c.json({ items: tickets });
   });
   app2.post("/api/admin/support/tickets/:id/message", async (c) => {
+    const admin = c.get("admin");
     const body = external_exports.object({ body: external_exports.string().min(1), internal: external_exports.boolean().default(false) }).parse(await c.req.json());
-    const message = await addTicketMessage(prisma, c.req.param("id"), "admin-system", "ADMIN", body.body, body.internal);
+    const message = await addTicketMessage(prisma, c.req.param("id"), admin?.id ?? "", "ADMIN", body.body, body.internal);
     return c.json({ message });
   });
   app2.get("/api/admin/audit-logs", async (c) => {
+    requireAdminPermission(c, "audit.read");
     const logs = await prisma.auditLog.findMany({
       orderBy: { createdAt: "desc" },
+      include: { admin: { select: { email: true, name: true } } },
       take: 100
     });
     return c.json({ items: logs });

@@ -1,10 +1,24 @@
 import { PrismaClient } from "@prisma/client";
 
-// Serverless runtimes should prefer Neon’s direct/unpooled connection for
-// short transactional writes such as registration. Keep DATABASE_URL as the
-// Prisma schema contract while selecting the safer runtime endpoint.
-if (process.env.DATABASE_URL_UNPOOLED) {
-  process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
+// Prefer a real hosted URL over leftover local docker values. Unpooled/direct
+// first (Prisma transactions), then marketplace pooled URLs from Supabase.
+const hostedDatabaseUrl = [
+  process.env.DATABASE_URL_UNPOOLED,
+  process.env.POSTGRES_URL_NON_POOLING,
+  process.env.POSTGRES_PRISMA_URL,
+  process.env.POSTGRES_URL,
+  process.env.DATABASE_URL,
+].find((value) => {
+  if (!value) return false;
+  try {
+    const { hostname } = new URL(value);
+    return hostname !== "127.0.0.1" && hostname !== "localhost";
+  } catch {
+    return false;
+  }
+});
+if (hostedDatabaseUrl) {
+  process.env.DATABASE_URL = hostedDatabaseUrl;
 }
 
 export { PrismaClient } from "@prisma/client";
