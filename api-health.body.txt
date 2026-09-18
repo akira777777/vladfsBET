@@ -1,0 +1,1 @@
+{"ok":true,"service":"vladfsbet-api","timestamp":"2026-09-18T00:10:33.646Z"}
