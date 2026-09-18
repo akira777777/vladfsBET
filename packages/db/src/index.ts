@@ -5,24 +5,33 @@ import { PrismaClient } from "@prisma/client";
 const hostedDatabaseUrl = (
   process.env.VERCEL
     ? [
+        process.env.DATABASE_URL,
+        process.env.NEON_POSTGRES_PRISMA_URL,
+        process.env.NEON_DATABASE_URL,
+        process.env.DATABASE_URL_UNPOOLED,
+        process.env.NEON_DATABASE_URL_UNPOOLED,
         process.env.POSTGRES_PRISMA_URL,
         process.env.POSTGRES_URL,
         process.env.POSTGRES_URL_NON_POOLING,
-        process.env.DATABASE_URL_UNPOOLED,
-        process.env.DATABASE_URL,
       ]
     : [
-        process.env.POSTGRES_URL_NON_POOLING,
+        process.env.DATABASE_URL,
+        process.env.NEON_DATABASE_URL,
+        process.env.DATABASE_URL_UNPOOLED,
+        process.env.NEON_DATABASE_URL_UNPOOLED,
         process.env.POSTGRES_PRISMA_URL,
         process.env.POSTGRES_URL,
-        process.env.DATABASE_URL_UNPOOLED,
-        process.env.DATABASE_URL,
+        process.env.POSTGRES_URL_NON_POOLING,
       ]
 ).find((value) => {
   if (!value) return false;
   try {
     const { hostname } = new URL(value);
-    return hostname !== "127.0.0.1" && hostname !== "localhost";
+    return (
+      hostname !== "127.0.0.1" &&
+      hostname !== "localhost" &&
+      !hostname.includes("siinmfgkjpysehzuovyy")
+    );
   } catch {
     return false;
   }
@@ -51,6 +60,7 @@ try {
   prismaInstance =
     globalForPrisma.prisma ??
     new PrismaClient({
+      datasourceUrl: hostedDatabaseUrl || process.env.DATABASE_URL,
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
 } catch {
