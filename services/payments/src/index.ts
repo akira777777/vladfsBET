@@ -1,4 +1,4 @@
-import { hmacSha256, generateIdempotencyKey } from "@vladfsbet/utils";
+import { hmacSha256, generateIdempotencyKey, toDecimal, formatMoney } from "@vladfsbet/utils";
 
 export interface DepositRequest {
   userId: string;
@@ -51,7 +51,14 @@ export class MockCardPaymentProvider implements PaymentProviderInterface {
   name = "Credit / Debit Card Sandbox";
 
   async createDeposit(req: DepositRequest): Promise<DepositResponse> {
-    const providerRef = `card_dep_${generateIdempotencyKey()}`;
+    const providerRef = `card_dep_${generateIdempotencyKey(req.userId + req.amount)}`;
+    
+    // Validation: Ensure amount is positive
+    const amount = toDecimal(req.amount);
+    if (!amount.greaterThan(0)) {
+      throw new Error("Deposit amount must be positive");
+    }
+
     return {
       providerRef,
       status: "COMPLETED", // Instant sandbox settlement
@@ -60,7 +67,13 @@ export class MockCardPaymentProvider implements PaymentProviderInterface {
   }
 
   async createWithdrawal(req: WithdrawalRequest): Promise<WithdrawalResponse> {
-    const providerRef = `card_wd_${generateIdempotencyKey()}`;
+    const providerRef = `card_wd_${generateIdempotencyKey(req.userId + req.amount)}`;
+    
+    const amount = toDecimal(req.amount);
+    if (!amount.greaterThan(0)) {
+      throw new Error("Withdrawal amount must be positive");
+    }
+
     return {
       providerRef,
       status: "PROCESSING",
@@ -78,7 +91,13 @@ export class MockBankTransferProvider implements PaymentProviderInterface {
   name = "Instant Bank Wire Sandbox";
 
   async createDeposit(req: DepositRequest): Promise<DepositResponse> {
-    const providerRef = `bank_dep_${generateIdempotencyKey()}`;
+    const providerRef = `bank_dep_${generateIdempotencyKey(req.userId + req.amount)}`;
+    
+    const amount = toDecimal(req.amount);
+    if (!amount.greaterThan(0)) {
+      throw new Error("Deposit amount must be positive");
+    }
+
     return {
       providerRef,
       status: "COMPLETED",
@@ -87,7 +106,13 @@ export class MockBankTransferProvider implements PaymentProviderInterface {
   }
 
   async createWithdrawal(req: WithdrawalRequest): Promise<WithdrawalResponse> {
-    const providerRef = `bank_wd_${generateIdempotencyKey()}`;
+    const providerRef = `bank_wd_${generateIdempotencyKey(req.userId + req.amount)}`;
+    
+    const amount = toDecimal(req.amount);
+    if (!amount.greaterThan(0)) {
+      throw new Error("Withdrawal amount must be positive");
+    }
+
     return {
       providerRef,
       status: "PROCESSING",
@@ -105,7 +130,13 @@ export class MockCryptoPaymentProvider implements PaymentProviderInterface {
   name = "Crypto Gateway Sandbox (USDT/BTC)";
 
   async createDeposit(req: DepositRequest): Promise<DepositResponse> {
-    const providerRef = `crypto_dep_${generateIdempotencyKey()}`;
+    const providerRef = `crypto_dep_${generateIdempotencyKey(req.userId + req.amount)}`;
+    
+    const amount = toDecimal(req.amount);
+    if (!amount.greaterThan(0)) {
+      throw new Error("Deposit amount must be positive");
+    }
+
     return {
       providerRef,
       status: "COMPLETED",
@@ -114,7 +145,13 @@ export class MockCryptoPaymentProvider implements PaymentProviderInterface {
   }
 
   async createWithdrawal(req: WithdrawalRequest): Promise<WithdrawalResponse> {
-    const providerRef = `crypto_wd_${generateIdempotencyKey()}`;
+    const providerRef = `crypto_wd_${generateIdempotencyKey(req.userId + req.amount)}`;
+    
+    const amount = toDecimal(req.amount);
+    if (!amount.greaterThan(0)) {
+      throw new Error("Withdrawal amount must be positive");
+    }
+
     return {
       providerRef,
       status: "PROCESSING",

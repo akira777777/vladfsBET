@@ -1,4 +1,4 @@
-import { provablyFairFloat, sha256 } from "@vladfsbet/utils";
+import { provablyFairFloat, sha256, toDecimal, formatMoney } from "@vladfsbet/utils";
 
 export interface GameSessionAuthRequest {
   userId: string;
@@ -61,17 +61,22 @@ export class VladfsOriginalsGameProvider implements GameProviderInterface {
     const floatVal = provablyFairFloat(req.serverSeed, req.clientSeed, req.nonce);
     const serverSeedHash = sha256(req.serverSeed);
 
-    const won = floatVal < 0.45;
-    const multiplier = won ? 2.0 : 0;
-    const betNum = parseFloat(req.betAmount) || 0;
-    const payoutAmount = (betNum * multiplier).toFixed(8);
+    // Optimization: Dynamic win probability and multiplier from gameData if provided, else use defaults
+    const winProbability = (req.gameData?.winProbability as number) ?? 0.45;
+    const baseMultiplier = (req.gameData?.baseMultiplier as number) ?? 2.0;
+
+    const won = floatVal < winProbability;
+    const multiplier = won ? baseMultiplier : 0;
+    
+    const betNum = toDecimal(req.betAmount);
+    const payoutAmount = formatMoney(betNum.times(multiplier), 8);
 
     return {
       roundId: req.roundId,
       won,
       multiplier,
       payoutAmount,
-      resultData: { floatVal, won },
+      resultData: { floatVal, won, winProbability },
       verification: {
         serverSeedHash,
         clientSeed: req.clientSeed,
