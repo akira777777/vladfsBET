@@ -6,7 +6,7 @@ const projectId = "prj_K55rxHfqOLpLr86PFnhUqlUZUlmR";
 function vercelApi(method, endpoint) {
   let cmd = `npx vercel api "${endpoint}"`;
   if (method === "DELETE") {
-    cmd += ` -X DELETE`;
+    cmd += ` -X DELETE --dangerously-skip-permissions`;
   }
   const out = execSync(cmd, {
     encoding: "utf-8",
