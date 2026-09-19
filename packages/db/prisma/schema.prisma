@@ -297,6 +297,7 @@ model User {
   @@index([country])
   @@index([kycStatus])
   @@index([createdAt])
+  @@index([status, realMoneyEligible])
   @@map("users")
 }
 
