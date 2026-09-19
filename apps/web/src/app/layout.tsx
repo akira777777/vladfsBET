@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cinzel, Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { CommunityChatLazy } from "@/components/community-chat-lazy";
+import { CookieConsent } from "@/components/cookie-consent";
 import { FavoritesProvider } from "@/components/favorites-provider";
 import { MobileNav } from "@/components/mobile-nav";
 import { SiteFooter } from "@/components/site-footer";
@@ -28,12 +29,53 @@ const cinzel = Cinzel({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "VladfsBET",
-  description: "Full-scale online casino and sportsbook platform featuring provably fair originals, slots, table games, and double-entry ledger architecture.",
+export const viewport: Viewport = {
+  themeColor: "#05070c",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export const metadata: Metadata = {
+  title: {
+    default: "VladfsBET — Premier Online Casino & Sportsbook",
+    template: "%s | VladfsBET",
+  },
+  description:
+    "Full-scale online casino and global sportsbook platform featuring provably fair originals, Megaways slots, live dealer tables, and double-entry financial ledger architecture.",
+  applicationName: "VladfsBET",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/logo-mark.jpg",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://vladfsbet.com",
+    siteName: "VladfsBET",
+    title: "VladfsBET — Premier Online Casino & Sportsbook",
+    description:
+      "Provably fair crypto originals, cinematic cascading slots, live roulette & blackjack, and global sports betting.",
+    images: [
+      {
+        url: "/hero.jpg",
+        width: 1200,
+        height: 630,
+        alt: "VladfsBET Luxury Casino",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VladfsBET — Premier Online Casino & Sportsbook",
+    description: "Provably fair gaming, cascading slots, and sportsbook powered by double-entry ledger architecture.",
+    images: ["/hero.jpg"],
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -47,6 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <SiteFooter />
             <MobileNav />
             <CommunityChatLazy />
+            <CookieConsent />
           </FavoritesProvider>
         </AuthProvider>
       </body>
