@@ -98,6 +98,7 @@ export function DiceGame({ game }: DiceGameProps) {
     } catch {}
 
     if (scrambleRef.current) cancelAnimationFrame(scrambleRef.current);
+    // eslint-disable-next-line react-hooks/purity -- time-based scramble animation; called from event handler, not render
     const started = Date.now();
     await new Promise<void>((resolve) => {
       const tick = () => {

@@ -104,6 +104,7 @@ export function LimboGame({ game }: LimboGameProps) {
     if (countRef.current) cancelAnimationFrame(countRef.current);
     const from = 1;
     const to = rolled;
+    // eslint-disable-next-line react-hooks/purity -- time-based count-up animation; called from event handler, not render
     const started = Date.now();
     const duration = Math.min(1400, 380 + Math.log10(Math.max(1.01, to)) * 420);
     await new Promise<void>((resolve) => {
