@@ -83,7 +83,7 @@ export default function AffiliatesPage() {
           { label: "Total Clicks", value: "1,420", change: "+14% this week", icon: Share2 },
           { label: "Registered Signups", value: "86", change: "6.05% conversion", icon: Users },
           { label: "First Time Depositors (FTD)", value: "42", change: "48.8% FTD rate", icon: DollarSign },
-          { label: "Net Gaming Revenue (NGR)", value: "$38,500.00", change: "Total Player Volume", icon: TrendingUp },
+          { label: "Net Gaming Revenue (NGR)", value: "€38,500.00", change: "Total Player Volume", icon: TrendingUp },
         ].map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
@@ -135,8 +135,8 @@ export default function AffiliatesPage() {
         <Card className="p-6 border-white/10 bg-[#0A0E17] lg:col-span-4 flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             <span className="text-xs uppercase font-bold text-emerald-400 tracking-wider">Available Commission</span>
-            <p className="font-mono text-3xl font-black text-white">$2,450.00</p>
-            <p className="text-xs text-muted-foreground">Lifetime Paid: $11,025.00</p>
+            <p className="font-mono text-3xl font-black text-white">€2,450.00</p>
+            <p className="text-xs text-muted-foreground">Lifetime Paid: €11,025.00</p>
           </div>
 
           <Button
@@ -145,7 +145,7 @@ export default function AffiliatesPage() {
             size="lg"
             className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-base shadow-lg shadow-emerald-500/20"
           >
-            {claimed ? "✓ COMMISSION CLAIMED" : "CLAIM COMMISSION ($2,450)"}
+            {claimed ? "✓ COMMISSION CLAIMED" : "CLAIM COMMISSION (€2,450)"}
           </Button>
         </Card>
       </div>
