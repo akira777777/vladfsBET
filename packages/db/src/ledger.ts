@@ -201,7 +201,7 @@ async function lockAccount(tx: Prisma.TransactionClient, id: string) {
   `;
 }
 
-export async function postJournal(db: PrismaClient, input: PostJournalInput) {
+export async function postJournal(db: Db, input: PostJournalInput) {
   const existing = await db.ledgerJournal.findUnique({
     where: { idempotencyKey: input.idempotencyKey },
     include: { lines: true, transaction: true },

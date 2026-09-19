@@ -40,7 +40,7 @@ if (hostedDatabaseUrl) {
   process.env.DATABASE_URL = hostedDatabaseUrl;
 }
 
-export { PrismaClient } from "@prisma/client";
+export { PrismaClient, Prisma } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./ledger";
 export * from "./auth";

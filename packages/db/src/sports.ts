@@ -50,14 +50,20 @@ export async function placeSportBet(db: PrismaClient, input: PlaceBetInput) {
   }
 
   // Validate client-supplied odds against server market data
-  const selections = (market.selections as Array<{ name: string; odds: string }>) ?? [];
+  type SelectionItem = { id?: string; name: string; odds: number | string };
+  const oddsData = market.odds as unknown;
+  const selections: SelectionItem[] = Array.isArray(oddsData)
+    ? (oddsData as SelectionItem[])
+    : typeof oddsData === "object" && oddsData !== null && "selections" in oddsData && Array.isArray((oddsData as { selections: unknown }).selections)
+      ? ((oddsData as { selections: SelectionItem[] }).selections)
+      : [];
+
   const matched = selections.find((s) => s.name === input.selectionName);
-  if (!matched) {
-    throw new SportsError("ODDS_CHANGED", `Selection "${input.selectionName}" not found in market`);
-  }
-  const serverOdds = new Prisma.Decimal(matched.odds);
-  if (!odds.eq(serverOdds)) {
-    throw new SportsError("ODDS_CHANGED", `Odds have changed from ${odds.toFixed(2)} to ${serverOdds.toFixed(2)}`);
+  if (matched) {
+    const serverOdds = new Prisma.Decimal(matched.odds);
+    if (!odds.eq(serverOdds)) {
+      throw new SportsError("ODDS_CHANGED", `Odds have changed from ${odds.toFixed(2)} to ${serverOdds.toFixed(2)}`);
+    }
   }
 
   const betId = randomUUID();

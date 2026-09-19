@@ -9,7 +9,7 @@ import { adaptiveBodyLimit, platformSecureHeaders, requestTimeout } from "./midd
 import {
   AdminError,
   type AdminActor,
-  type Prisma,
+  Prisma,
   assertAdminPermission,
   AuthError,
   BonusError,

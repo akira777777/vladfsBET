@@ -1,4 +1,4 @@
-import { randomBytes, randomInt, randomUUID } from "node:crypto";
+import { createHmac, randomBytes, randomInt, randomUUID } from "node:crypto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { LedgerError, postJournal } from "./ledger";
 import { checkPlayerEligibleToPlay, checkWagerLimit } from "./rg";
