@@ -862,6 +862,100 @@ export function createApp() {
   });
 
   // ----------------------------------------------------
+  // Player Notifications
+  // ----------------------------------------------------
+  app.get("/api/notifications", async (c) => {
+    const user = await getSessionUser(prisma, getCookie(c, COOKIE));
+    if (!user) {
+      return c.json({
+        items: [
+          {
+            id: "anon-welcome",
+            title: "Welcome to VladfsBET",
+            message: "Register your free demo account to claim 1,000 complimentary credits and test our provably fair games.",
+            timestamp: "Now",
+            type: "BONUS",
+            read: false,
+          },
+          {
+            id: "anon-provably-fair",
+            title: "Provably Fair RNG Verification",
+            message: "All Vladfs Originals utilize HMAC-SHA256 seed commitments for mathematical transparency.",
+            timestamp: "1h ago",
+            type: "SECURITY",
+            read: true,
+          },
+        ],
+      });
+    }
+
+    const [transactions, kycCase, vipProgress] = await Promise.all([
+      prisma.moneyTransaction.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      }),
+      prisma.kycCase.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.vipProgress.findUnique({
+        where: { userId: user.id },
+        include: { level: true },
+      }),
+    ]);
+
+    const items = [];
+
+    if (vipProgress?.level) {
+      items.push({
+        id: `vip-${vipProgress.level.slug}`,
+        title: `${vipProgress.level.name} Tier Active`,
+        message: `Your VIP tier awards ${(vipProgress.level.cashbackBps / 100).toFixed(1)}% weekly cashback on net gaming activity.`,
+        timestamp: "Active",
+        type: "BONUS",
+        read: false,
+      });
+    }
+
+    if (kycCase) {
+      items.push({
+        id: `kyc-${kycCase.id}`,
+        title: kycCase.status === "APPROVED" ? "Identity Verification Approved" : "KYC Case Under Review",
+        message:
+          kycCase.status === "APPROVED"
+            ? "Your regulatory compliance documents have been verified by staff."
+            : "Your uploaded documents are queued for compliance review.",
+        timestamp: kycCase.updatedAt.toLocaleDateString(),
+        type: "SECURITY",
+        read: kycCase.status === "APPROVED",
+      });
+    }
+
+    for (const tx of transactions) {
+      items.push({
+        id: `tx-${tx.id}`,
+        title: `${tx.type} ${tx.status === "COMPLETED" ? "Confirmed" : tx.status}`,
+        message: `${tx.amount.toFixed(2)} ${tx.currency} double-entry ledger transaction processed.`,
+        timestamp: tx.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        type: "WALLET",
+        read: true,
+      });
+    }
+
+    items.push({
+      id: "platform-tourney-live",
+      title: "Active Leaderboard Sprint",
+      message: "The Gates of Vladfs Grand Sprint is live with 10,000x multiplier prizes!",
+      timestamp: "Today",
+      type: "TOURNAMENT",
+      read: false,
+    });
+
+    return c.json({ items });
+  });
+
+  // ----------------------------------------------------
   // Customer Support
   // ----------------------------------------------------
   app.get("/api/support/tickets", async (c) => {

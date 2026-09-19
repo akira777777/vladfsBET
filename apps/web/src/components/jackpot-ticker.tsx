@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { Crown, Zap } from "lucide-react";
+import { formatMoney } from "@/lib/format";
 
-export function JackpotTicker() {
+interface JackpotTickerProps {
+  currency?: string;
+}
+
+export function JackpotTicker({ currency = "EUR" }: JackpotTickerProps) {
   const [grand, setGrand] = useState(1284592.45);
   const [major, setMajor] = useState(148231.1);
   const [minor, setMinor] = useState(12480.25);
@@ -19,15 +24,6 @@ export function JackpotTicker() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const formatNumber = (val: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(val);
-  };
 
   return (
     <div className="relative rounded-3xl overflow-hidden border border-amber-500/30 bg-gradient-to-r from-[#170a00] via-[#241000] to-[#0c0500] p-4 sm:p-6 shadow-2xl">
@@ -85,7 +81,7 @@ export function JackpotTicker() {
             <p
               className={`font-mono text-base sm:text-xl font-black tabular-nums text-transparent bg-clip-text bg-gradient-to-r ${jp.color} drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]`}
             >
-              {formatNumber(jp.amount)}
+              {formatMoney(jp.amount, currency)}
             </p>
           </div>
         ))}

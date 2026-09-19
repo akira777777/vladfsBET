@@ -56,9 +56,12 @@ function money(value: Prisma.Decimal): string {
 }
 
 async function withSerializable<T>(
-  db: PrismaClient,
+  db: Db,
   fn: (tx: Prisma.TransactionClient) => Promise<T>,
 ): Promise<T> {
+  if (!("$transaction" in db)) {
+    return fn(db as Prisma.TransactionClient);
+  }
   let last: unknown;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {

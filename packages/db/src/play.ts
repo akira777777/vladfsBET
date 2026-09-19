@@ -1,5 +1,5 @@
 import { createHmac, randomBytes, randomInt, randomUUID } from "node:crypto";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient, PrismaTransactionClient } from "@prisma/client";
 import { LedgerError, postJournal } from "./ledger";
 import { checkPlayerEligibleToPlay, checkWagerLimit } from "./rg";
 import { processBonusWagering, recordVipWager } from "./bonuses";
@@ -513,72 +513,79 @@ export async function playDemoGame(db: PrismaClient, input: PlayDemoInput) {
 
   const win = bet.mul(multiplier).toDecimalPlaces(8, Prisma.Decimal.ROUND_HALF_UP);
 
-  // 5. Post Ledger Credit for Win (if any)
-  if (win.gt(0)) {
-    await postJournal(db, {
-      userId: user.id,
-      type: "WIN",
-      currency: user.currency,
-      idempotencyKey: `play:${roundId}:win`,
-      amount: win,
-      referenceType: "game_round",
-      referenceId: roundId,
-      memo: `Demo win ${game.slug}`,
-      lines: [
-        { owner: "house", accountType: "AVAILABLE", direction: "DEBIT", amount: win },
-        { owner: "player", accountType: "AVAILABLE", direction: "CREDIT", amount: win },
-      ],
-    });
-  }
-
-  // 6. Record Game Round
-  const round = await db.gameRound.create({
-    data: {
-      id: roundId,
-      userId: user.id,
-      gameId: game.id,
-      providerId: game.providerId,
-      sessionId: session.id,
-      providerTxId,
-      status: "SETTLED",
-      currency: user.currency,
-      betAmount: bet,
-      winAmount: win,
-      result: {
-        demo: true,
-        ...gameResult,
-        note: "Sandbox provably fair RNG outcome.",
-      },
-      verification: {
-        serverSeedHash: pf.serverSeedHash,
-        clientSeed,
-        nonce,
-      },
-      settledAt: new Date(),
-    },
-  });
-
-  await db.gameSession.update({
-    where: { id: session.id },
-    data: { status: "CLOSED", closedAt: new Date() },
-  });
-
-  await db.auditLog.create({
-    data: {
-      actorType: "PLAYER",
-      subjectId: user.id,
-      action: "GAME_PLAY",
-      entity: "GameRound",
-      entityId: round.id,
-      payload: {
-        slug: game.slug,
-        title: game.title,
-        betAmount: money(bet),
-        winAmount: money(win),
-        multiplier,
+  // 5. Post Ledger Credit for Win + Record Game Round + Update Session + Audit Log (atomic)
+  await db.$transaction(async (tx: PrismaTransactionClient) => {
+    // Post Ledger Credit for Win (if any)
+    if (win.gt(0)) {
+      await postJournal(tx, {
+        userId: user.id,
+        type: "WIN",
         currency: user.currency,
+        idempotencyKey: `play:${roundId}:win`,
+        amount: win,
+        referenceType: "game_round",
+        referenceId: roundId,
+        memo: `Demo win ${game.slug}`,
+        lines: [
+          { owner: "house", accountType: "AVAILABLE", direction: "DEBIT", amount: win },
+          { owner: "player", accountType: "AVAILABLE", direction: "CREDIT", amount: win },
+        ],
+      });
+    }
+
+    // Record Game Round
+    const round = await tx.gameRound.create({
+      data: {
+        id: roundId,
+        userId: user.id,
+        gameId: game.id,
+        providerId: game.providerId,
+        sessionId: session.id,
+        providerTxId,
+        status: "SETTLED",
+        currency: user.currency,
+        betAmount: bet,
+        winAmount: win,
+        result: {
+          demo: true,
+          ...gameResult,
+          note: "Sandbox provably fair RNG outcome.",
+        },
+        verification: {
+          serverSeedHash: pf.serverSeedHash,
+          clientSeed,
+          nonce,
+        },
+        settledAt: new Date(),
       },
-    },
+    });
+
+    // Update Game Session
+    await tx.gameSession.update({
+      where: { id: session.id },
+      data: { status: "CLOSED", closedAt: new Date() },
+    });
+
+    // Audit Log
+    await tx.auditLog.create({
+      data: {
+        actorType: "PLAYER",
+        subjectId: user.id,
+        action: "GAME_PLAY",
+        entity: "GameRound",
+        entityId: round.id,
+        payload: {
+          slug: game.slug,
+          title: game.title,
+          betAmount: money(bet),
+          winAmount: money(win),
+          multiplier,
+          currency: user.currency,
+        },
+      },
+    });
+
+    return round;
   });
 
   // 7. Process VIP & Bonus Wagering

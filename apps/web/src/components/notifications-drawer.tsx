@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Trash2, Gift, ShieldCheck, Trophy, Wallet } from "lucide-react";
-
+import { api } from "@/lib/api";
 
 interface NotificationItem {
   id: string;
@@ -13,11 +13,11 @@ interface NotificationItem {
   read: boolean;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+const FALLBACK_NOTIFICATIONS: NotificationItem[] = [
   {
     id: "notif-1",
     title: "Weekly VIP Cashback Ready",
-    message: "Your Gold Tier weekly cashback of $125.00 has been credited to your bonus balance.",
+    message: "Your Gold Tier weekly cashback of €125.00 has been credited to your bonus balance.",
     timestamp: "10m ago",
     type: "BONUS",
     read: false,
@@ -25,7 +25,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: "notif-2",
     title: "Tournament Position Alert",
-    message: "You climbed to Rank #3 in the $25,000 Gates of Vladfs Grand Sprint!",
+    message: "You climbed to Rank #3 in the €25,000 Gates of Vladfs Grand Sprint!",
     timestamp: "45m ago",
     type: "TOURNAMENT",
     read: false,
@@ -33,7 +33,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: "notif-3",
     title: "Sandbox Deposit Confirmed",
-    message: "Demo credits faucet +$500.00 successfully posted to your ledger balance.",
+    message: "Demo credits faucet +€500.00 successfully posted to your ledger balance.",
     timestamp: "2h ago",
     type: "WALLET",
     read: true,
@@ -50,7 +50,23 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
 
 export function NotificationsDrawer() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(FALLBACK_NOTIFICATIONS);
+
+  useEffect(() => {
+    let active = true;
+    api<{ items: NotificationItem[] }>("/api/notifications")
+      .then((data) => {
+        if (active && data?.items && data.items.length > 0) {
+          setNotifications(data.items);
+        }
+      })
+      .catch(() => {
+        // Retain fallback notifications if API request fails
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
