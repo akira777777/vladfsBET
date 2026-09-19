@@ -1,3 +1,0 @@
-npm notice run @vladfsbet/root@1.0.0 npx
-npm notice run eslint src --format unix
-The unix formatter is no longer part of core ESLint. Install it manually with `npm install -D eslint-formatter-unix`
