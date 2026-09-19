@@ -195,12 +195,41 @@ export function pickRandomMultiplier(): number {
 
 let cellKeyCounter = 0;
 export function createCell(id: SymbolId, multiplierValue?: number): SymbolCell {
-  cellKeyCounter++;
+  cellKeyCounter = (cellKeyCounter + 1) % 1_000_000;
   return {
     id,
     multiplierValue: id === "MULTIPLIER_ORB" ? multiplierValue || pickRandomMultiplier() : undefined,
-    key: `cell_${Date.now()}_${cellKeyCounter}_${Math.random().toString(36).substring(2, 7)}`,
+    key: `c_${cellKeyCounter}_${((Math.random() * 1e6) | 0).toString(36)}`,
   };
+}
+
+const symbolPoolCache = new WeakMap<Record<SymbolId, number>, { all: SymbolId[]; noMultiplier: SymbolId[] }>();
+
+export function getSymbolPool(
+  weights: Record<SymbolId, number> = DEFAULT_SYMBOL_WEIGHTS,
+  excludeMultiplierOrb = false,
+): SymbolId[] {
+  let entry = symbolPoolCache.get(weights);
+  if (!entry) {
+    const all: SymbolId[] = [];
+    const noMultiplier: SymbolId[] = [];
+    (Object.keys(weights) as SymbolId[]).forEach((sym) => {
+      const w = weights[sym] || 1;
+      for (let i = 0; i < w; i++) {
+        all.push(sym);
+        if (sym !== "MULTIPLIER_ORB") {
+          noMultiplier.push(sym);
+        }
+      }
+    });
+    entry = { all, noMultiplier };
+    try {
+      symbolPoolCache.set(weights, entry);
+    } catch {
+      // Ignore if not an extensible object
+    }
+  }
+  return excludeMultiplierOrb ? entry.noMultiplier : entry.all;
 }
 
 // -------------------------------------------------------------
@@ -211,14 +240,7 @@ export function generate6x5Grid(
   weights: Record<SymbolId, number> = DEFAULT_SYMBOL_WEIGHTS,
   forceFeature?: "FREE_SPINS" | "BIG_WIN" | "MULTIPLIER_BOMB" | "MEGA_JACKPOT",
 ): Grid {
-  const symbolPool: SymbolId[] = [];
-  (Object.keys(weights) as SymbolId[]).forEach((sym) => {
-    const w = weights[sym] || 1;
-    for (let i = 0; i < w; i++) {
-      symbolPool.push(sym);
-    }
-  });
-
+  const symbolPool = getSymbolPool(weights, false);
   const pick = (): SymbolId => symbolPool[Math.floor(Math.random() * symbolPool.length)];
 
   const grid: Grid = [];
@@ -372,17 +394,11 @@ export function performTumbleDrop(
   shatteredPositions: { col: number; row: number }[],
   weights: Record<SymbolId, number> = DEFAULT_SYMBOL_WEIGHTS,
 ): Grid {
-  const symbolPool: SymbolId[] = [];
-  (Object.keys(weights) as SymbolId[]).forEach((sym) => {
-    const w = weights[sym] || 1;
-    for (let i = 0; i < w; i++) {
-      symbolPool.push(sym);
-    }
-  });
+  const symbolPool = getSymbolPool(weights, false);
   const pick = (): SymbolId => symbolPool[Math.floor(Math.random() * symbolPool.length)];
 
-  const isShattered = (col: number, row: number) =>
-    shatteredPositions.some((p) => p.col === col && p.row === row);
+  const shatteredSet = new Set(shatteredPositions.map((p) => `${p.col},${p.row}`));
+  const isShattered = (col: number, row: number) => shatteredSet.has(`${col},${row}`);
 
   const nextGrid: Grid = [];
 
@@ -504,14 +520,7 @@ export function generateMegawaysSpin(
   symbolsMap: Record<SymbolId, SymbolDefinition>,
   weights: Record<SymbolId, number> = DEFAULT_SYMBOL_WEIGHTS,
 ): MegawaysSpinResult {
-  const symbolPool: SymbolId[] = [];
-  (Object.keys(weights) as SymbolId[]).forEach((sym) => {
-    if (sym === "MULTIPLIER_ORB") return; // Multiplier orbs are exclusive to tumble mode
-    const w = weights[sym] || 1;
-    for (let i = 0; i < w; i++) {
-      symbolPool.push(sym);
-    }
-  });
+  const symbolPool = getSymbolPool(weights, true);
   const pick = (): SymbolId => symbolPool[Math.floor(Math.random() * symbolPool.length)];
 
   // 6 reels with dynamic height between 2 and 7 symbols
@@ -628,13 +637,7 @@ export function generateReelStrip(
   stripLength = 30,
   weights: Record<SymbolId, number> = DEFAULT_SYMBOL_WEIGHTS,
 ): SymbolId[] {
-  const symbolPool: SymbolId[] = [];
-  (Object.keys(weights) as SymbolId[]).forEach((sym) => {
-    const w = weights[sym] || 1;
-    for (let i = 0; i < w; i++) {
-      symbolPool.push(sym);
-    }
-  });
+  const symbolPool = getSymbolPool(weights, true);
   const pick = (): SymbolId => symbolPool[Math.floor(Math.random() * symbolPool.length)];
 
   const strip: SymbolId[] = [];

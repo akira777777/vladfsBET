@@ -391,14 +391,6 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           await waitOrSlam(isTurbo ? 160 : 500);
           let landedScatters = 0;
           for (let col = 0; col < 6; col++) {
-            if (slamStopRef.current) {
-              setSpinningColumns([false, false, false, false, false, false]);
-              setAnticipatingColumns([false, false, false, false, false, false]);
-              setFlashingColumns([true, true, true, true, true, true]);
-              slotAudio.stopAnticipation();
-              slotAudio.playReelStop(5);
-              break;
-            }
             if (col > 0) {
               if (landedScatters >= 2) {
                 setAnticipatingColumns((prev) => prev.map((_, i) => i >= col));
@@ -466,14 +458,6 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           await waitOrSlam(isTurbo ? 200 : 520);
           let megaScatters = 0;
           for (let col = 0; col < 6; col++) {
-            if (slamStopRef.current) {
-              setSpinningColumns([false, false, false, false, false, false]);
-              setAnticipatingColumns([false, false, false, false, false, false]);
-              setFlashingColumns([true, true, true, true, true, true]);
-              slotAudio.stopAnticipation();
-              slotAudio.playReelStop(5);
-              break;
-            }
             if (col > 0) {
               if (megaScatters >= 2) {
                 setAnticipatingColumns((prev) => prev.map((_, i) => i >= col));

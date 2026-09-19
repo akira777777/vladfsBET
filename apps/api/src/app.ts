@@ -73,6 +73,27 @@ type AppEnv = {
 // In-memory high performance TTL cache
 const responseCache = new Map<string, { data: unknown; expiresAt: number }>();
 
+// Periodic cleanup of expired cache entries (every 5 minutes)
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of responseCache.entries()) {
+      if (now > entry.expiresAt) {
+        responseCache.delete(key);
+      }
+    }
+    // Also enforce max size by removing oldest entries
+    if (responseCache.size > 1000) {
+      const keysToDelete = responseCache.size - 1000;
+      const iterator = responseCache.keys();
+      for (let i = 0; i < keysToDelete; i++) {
+        const key = iterator.next().value;
+        if (key) responseCache.delete(key);
+      }
+    }
+  }, 5 * 60 * 1000);
+}
+
 function getCached<T>(key: string): T | null {
   const entry = responseCache.get(key);
   if (!entry) return null;
@@ -1336,14 +1357,37 @@ export function createApp() {
   app.get("/api/admin/analytics", async (c) => {
     requireAdminPermission(c, "analytics.read");
 
-    const totalUsers = await prisma.user.count({ where: { email: { not: "house@internal.vladfsbet" } } });
-    const activeUsers = await prisma.user.count({
-      where: { status: "ACTIVE", email: { not: "house@internal.vladfsbet" } },
-    });
-    const kycApproved = await prisma.kycCase.count({ where: { status: "APPROVED" } });
-    const depositsCount = await prisma.moneyTransaction.count({ where: { type: "DEPOSIT", status: "COMPLETED" } });
-    const withdrawalsCount = await prisma.moneyTransaction.count({ where: { type: "WITHDRAWAL", status: "COMPLETED" } });
-    const betsCount = await prisma.gameSession.count();
+    // Check cache first
+    const cacheKey = "admin:analytics:overview";
+    const cached = getCached(cacheKey);
+    if (cached) {
+      return c.json(cached);
+    }
+
+    // Single aggregated query for overview counts
+    const [overviewResult] = await prisma.$queryRaw<
+      Array<{
+        total_users: bigint;
+        active_users: bigint;
+        kyc_approved: bigint;
+        deposits_count: bigint;
+        withdrawals_count: bigint;
+        bets_count: bigint;
+      }>
+    >`SELECT
+      (SELECT count(*) FROM "users" WHERE email <> 'house@internal.vladfsbet') as total_users,
+      (SELECT count(*) FROM "users" WHERE status = 'ACTIVE' AND email <> 'house@internal.vladfsbet') as active_users,
+      (SELECT count(*) FROM "kyc_cases" WHERE status = 'APPROVED') as kyc_approved,
+      (SELECT count(*) FROM "money_transactions" WHERE type = 'DEPOSIT' AND status = 'COMPLETED') as deposits_count,
+      (SELECT count(*) FROM "money_transactions" WHERE type = 'WITHDRAWAL' AND status = 'COMPLETED') as withdrawals_count,
+      (SELECT count(*) FROM "game_sessions") as bets_count`;
+
+    const totalUsers = Number(overviewResult.total_users);
+    const activeUsers = Number(overviewResult.active_users);
+    const kycApproved = Number(overviewResult.kyc_approved);
+    const depositsCount = Number(overviewResult.deposits_count);
+    const withdrawalsCount = Number(overviewResult.withdrawals_count);
+    const betsCount = Number(overviewResult.bets_count);
 
     const funnel = [
       { stage: "Platform Visitors", count: Math.max(totalUsers * 12, 1000) },
@@ -1353,34 +1397,27 @@ export function createApp() {
       { stage: "Active Bettors", count: Math.min(activeUsers, Math.max(betsCount, 1)) },
     ];
 
-    // Aggregate real category distribution from game rounds
-    const categoryTurnover = await prisma.gameRound.groupBy({
-      by: ["gameId"],
-      _sum: { betAmount: true },
-      _count: { id: true },
-    });
+    // Aggregate category distribution in single query with JOIN
+    const categoryTurnover = await prisma.$queryRaw<
+      Array<{ category: string; total: Prisma.Decimal }>
+    >`SELECT g.category, COALESCE(SUM(gr."betAmount"), 0) as total
+      FROM "game_rounds" gr
+      JOIN "games" g ON gr."gameId" = g.id
+      WHERE gr.status = 'SETTLED'
+      GROUP BY g.category
+      ORDER BY total DESC`;
 
-    const gameMap = new Map<string, { category: string; total: Prisma.Decimal }>(); 
-    for (const ct of categoryTurnover) {
-      const game = await prisma.game.findUnique({ where: { id: ct.gameId }, select: { category: true } });
-      if (!game) continue;
-      const cat = game.category;
-      const existing = gameMap.get(cat);
-      const amount = ct._sum.betAmount ?? new Prisma.Decimal(0);
-      gameMap.set(cat, {
-        category: cat,
-        total: existing ? existing.total.add(amount) : amount,
-      });
-    }
-
-    const totalTurnover = Array.from(gameMap.values()).reduce((s, v) => s.add(v.total), new Prisma.Decimal(0));
-    const categoryDistribution = Array.from(gameMap.values()).map((v) => ({
+    const totalTurnover = categoryTurnover.reduce(
+      (s, v) => s.add(v.total),
+      new Prisma.Decimal(0)
+    );
+    const categoryDistribution = categoryTurnover.map((v) => ({
       name: v.category,
       share: totalTurnover.gt(0) ? Number(v.total.div(totalTurnover).mul(100).toFixed(1)) : 0,
       turnover: v.total.toFixed(2),
-    })).sort((a, b) => b.share - a.share);
+    }));
 
-    return c.json({
+    const response = {
       overview: {
         totalUsers,
         activeUsers,
@@ -1390,7 +1427,11 @@ export function createApp() {
       },
       funnel,
       categoryDistribution,
-    });
+    };
+
+    // Cache for 5 minutes
+    setCached(cacheKey, response, 5 * 60 * 1000);
+    return c.json(response);
   });
 
   return app;
