@@ -36,7 +36,7 @@ export function SlotMascot({
   // Render Mascot based on Theme
   if (themeId === "gates-of-vladfs" || themeId === "sandbox-slots") {
     return (
-      <div className={`relative flex flex-col items-center justify-center select-none pointer-events-none ${compact ? "w-16" : "w-48 sm:w-56"}`}>
+      <div className={`relative flex flex-col items-center justify-center select-none pointer-events-none ${compact ? "w-9" : "w-48 sm:w-56"}`}>
         {/* Floating Animation Wrapper */}
         <div
           className={`relative flex flex-col items-center transition-all duration-500 ${
@@ -59,7 +59,7 @@ export function SlotMascot({
           {/* ZEUS SVG AVATAR (Pragmatic Style) */}
           <svg
             viewBox="0 0 200 240"
-            className={`${compact ? "h-16 w-14" : "h-56 w-44"} drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)] filter transition-transform duration-300`}
+            className={`${compact ? "h-9 w-8" : "h-56 w-44"} drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)] filter transition-transform duration-300`}
           >
             <defs>
               <linearGradient id="zeusGold" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -208,7 +208,7 @@ export function SlotMascot({
   return (
     <div
       className={`relative flex flex-col items-center justify-center select-none pointer-events-none ${
-        compact ? "w-16" : "w-40 sm:w-48"
+        compact ? "w-9" : "w-40 sm:w-48"
       }`}
     >
       <div
@@ -229,7 +229,7 @@ export function SlotMascot({
         />
         <svg
           viewBox="0 0 160 180"
-          className={`${compact ? "h-16 w-14" : "h-48 w-40"} drop-shadow-[0_10px_24px_rgba(0,0,0,0.8)]`}
+          className={`${compact ? "h-9 w-8" : "h-48 w-40"} drop-shadow-[0_10px_24px_rgba(0,0,0,0.8)]`}
         >
           {kind === "cyber" && (
             <>

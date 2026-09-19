@@ -215,6 +215,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         }
       }
 
+      setTumbleStepIndex(0);
       setIsSpinning(false);
     },
     [isTurbo, persistentBonusMultiplier, wallet],
@@ -599,6 +600,16 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             inFreeSpins={inFreeSpins}
             freeSpinsRemaining={freeSpinsRemaining}
             tumbleHit={shatteredPositions.length > 0}
+            accessory={
+              <SlotMascot
+                themeId={selectedSlug}
+                isSpinning={isSpinning}
+                isBonus={inFreeSpins}
+                lastWin={roundWinDisplay}
+                scatterCount={scatterCount}
+                compact
+              />
+            }
           >
             {engineMode === "CLUSTER_6X5" ? (
               <SlotTumbleGrid
@@ -629,16 +640,6 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 isTurbo={isTurbo}
               />
             )}
-            <div className="pointer-events-none absolute top-10 right-3 z-30 lg:hidden">
-              <SlotMascot
-                themeId={selectedSlug}
-                isSpinning={isSpinning}
-                isBonus={inFreeSpins}
-                lastWin={roundWinDisplay}
-                scatterCount={scatterCount}
-                compact
-              />
-            </div>
           </SlotCabinetStage>
 
           {/* Floating Mascot Avatar (Zeus, Pharaoh, Cyber Boss) on Desktop */}

@@ -31,8 +31,16 @@ export function SlotMegawaysGrid({
   isTurbo = false,
 }: SlotMegawaysGridProps) {
   const reelHeights = result?.reelHeights || [4, 5, 4, 6, 5, 4];
-  const totalWays = result?.totalWays || 9600;
-  const grid = result?.grid;
+  const totalWays = result?.totalWays || reelHeights.reduce((a, b) => a * b, 1);
+  const idleIds: SymbolId[] = ["LOW_A", "LOW_K", "LOW_Q", "LOW_J", "LOW_10", "MED_1", "MED_2", "HIGH_1"];
+  const grid =
+    result?.grid ||
+    reelHeights.map((height, col) =>
+      Array.from({ length: height }, (_, row) => ({
+        id: idleIds[(col * 3 + row) % idleIds.length],
+        key: `idle-mega-${col}-${row}`,
+      })),
+    );
   const [revealed, setRevealed] = useState(false);
   const [waysAnimated, setWaysAnimated] = useState(totalWays);
   const stripsRef = useRef<SymbolId[][]>([0, 1, 2, 3, 4, 5].map(() => megaStrip(theme)));

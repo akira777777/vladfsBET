@@ -47,6 +47,7 @@ interface SlotCabinetStageProps {
   inFreeSpins: boolean;
   freeSpinsRemaining: number;
   tumbleHit: boolean;
+  accessory?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -56,6 +57,7 @@ export function SlotCabinetStage({
   inFreeSpins,
   freeSpinsRemaining,
   tumbleHit,
+  accessory,
   children,
 }: SlotCabinetStageProps) {
   const atmosphere = atmosphereFor(theme.category);
@@ -102,18 +104,19 @@ export function SlotCabinetStage({
       )}
 
       <div
-        className={`relative z-10 mb-1.5 flex items-center justify-center rounded-xl border px-3 py-1 text-center ${
+        className={`relative z-10 mb-1.5 flex items-center justify-center gap-2 rounded-xl border px-3 py-1 text-center ${
           inFreeSpins ? "border-yellow-300/50 bg-amber-500/15" : "border-white/10 bg-black/55"
         }`}
       >
         <span
-          className="animate-marquee-shimmer bg-gradient-to-r from-white via-amber-200 to-white bg-clip-text text-[10px] font-black uppercase tracking-[0.28em] text-transparent sm:text-xs"
+          className="animate-marquee-shimmer min-w-0 flex-1 truncate bg-gradient-to-r from-white via-amber-200 to-white bg-clip-text text-[10px] font-black uppercase tracking-[0.28em] text-transparent sm:text-xs"
           style={{
             backgroundImage: `linear-gradient(90deg, ${theme.accentColor}, #fff, ${theme.accentColor})`,
           }}
         >
           {inFreeSpins ? `Free Spins · ${freeSpinsRemaining} left` : theme.name}
         </span>
+        {accessory ? <div className="lg:hidden shrink-0">{accessory}</div> : null}
       </div>
 
       <div className="relative z-10 h-[calc(100%-2.1rem)] overflow-hidden rounded-xl">
