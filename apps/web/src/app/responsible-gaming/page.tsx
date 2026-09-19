@@ -41,7 +41,7 @@ interface RgSummary {
 }
 
 export default function ResponsibleGamingPage() {
-  const { user, ready, logout } = useAuth();
+  const { user, ready: _ready, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<"LIMITS" | "COOLING" | "EXCLUSION" | "ACTIVITY">("LIMITS");
   const [summary, setSummary] = useState<RgSummary | null>(null);
 

@@ -439,6 +439,7 @@ export function CrashGame({ game }: CrashGameProps) {
   };
 
   // Initial boot
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount to boot the round loop
   useEffect(() => {
     const timer = setTimeout(() => {
       void handleStartNewRound();

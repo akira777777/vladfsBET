@@ -353,6 +353,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       betAmount,
       currentBalance,
       engineMode,
+      isTurbo,
       persistentBonusMultiplier,
       runTumbleAnimation,
       selectedSlug,

@@ -51,7 +51,7 @@ export function MinesGame({ game }: MinesGameProps) {
   const [selectedAutoTiles, setSelectedAutoTiles] = useState<number[]>([0, 6, 12, 18, 24]);
   const [lastWinAmount, setLastWinAmount] = useState<number | null>(null);
 
-  const [provablyFairData, setProvablyFairData] = useState({
+  const [provablyFairData] = useState({
     serverSeedHash: "3f8a2b1c0e9d8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3",
     clientSeed: "vladfs_mines_seed",
     nonce: 304,

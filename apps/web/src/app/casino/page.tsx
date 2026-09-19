@@ -31,7 +31,6 @@ function CasinoLobby() {
 
   // Advanced Filters
   const [selectedProvider, setSelectedProvider] = useState<string>("ALL");
-  const [selectedFeature, setSelectedFeature] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<"POPULAR" | "RTP" | "NAME">("POPULAR");
   const [showFiltersDrawer, setShowFiltersDrawer] = useState(false);
 

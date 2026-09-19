@@ -5,15 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Users,
-  TrendingUp,
   DollarSign,
   CreditCard,
   ShieldAlert,
-  FileCheck,
-  Award,
   ArrowUpRight,
-  ArrowDownRight,
-  Sparkles,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -33,7 +28,7 @@ interface AdminStats {
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     api<{ stats: AdminStats }>("/api/admin/overview")

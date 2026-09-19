@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth-provider";
 
 export default function AffiliatesPage() {
-  const { user } = useAuth();
-  const [customCode, setCustomCode] = useState("VLAD777");
+  const { user: _user } = useAuth();
+  const [customCode] = useState("VLAD777");
   const [copied, setCopied] = useState(false);
   const [claimed, setClaimed] = useState(false);
 

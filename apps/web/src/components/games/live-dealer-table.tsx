@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 
 interface LiveDealerProps {
   tableName: string;
-  gameType: "ROULETTE" | "BLACKJACK" | "BACCARAT";
   dealerName: string;
   minBet: string;
   maxBet: string;
@@ -24,14 +23,13 @@ interface ChatMessage {
 
 export function LiveDealerTable({
   tableName,
-  gameType,
   dealerName,
   minBet,
   maxBet,
 }: LiveDealerProps) {
   const [timerSeconds, setTimerSeconds] = useState(12);
   const [roundState, setRoundState] = useState<"PLACE_BETS" | "NO_MORE_BETS" | "DEALING" | "PAYOUT">("PLACE_BETS");
-  const [activeSeats, setActiveSeats] = useState<{ seat: number; player: string; bet: string | null }[]>([
+  const [activeSeats] = useState<{ seat: number; player: string; bet: string | null }[]>([
     { seat: 1, player: "CryptoWhale", bet: "$250" },
     { seat: 2, player: "You (Vlad)", bet: null },
     { seat: 3, player: "NordicAce", bet: "$50" },

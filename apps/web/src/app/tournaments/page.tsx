@@ -81,7 +81,7 @@ const TOURNAMENTS: Tournament[] = [
 ];
 
 export default function TournamentsPage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [selectedTourney, setSelectedTourney] = useState<Tournament>(TOURNAMENTS[0]);
   const [joined, setJoined] = useState<Record<string, boolean>>({});
 

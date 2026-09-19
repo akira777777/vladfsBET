@@ -112,7 +112,7 @@ export function CommunityChat() {
     setInputText("");
   };
 
-  const handleClaimRain = (id: string, amount: number) => {
+  const handleClaimRain = (id: string) => {
     setMessages((prev) =>
       prev.map((m) => (m.id === id ? { ...m, rainClaimed: true } : m)),
     );

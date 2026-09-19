@@ -11,15 +11,12 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import {
   User,
-  Shield,
   FileCheck,
   Smartphone,
   Key,
   Headphones,
   LogOut,
   CheckCircle2,
-  AlertCircle,
-  Clock,
 } from "lucide-react";
 
 interface UserSession {

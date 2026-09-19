@@ -40,6 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (pathname === "/admin/login") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- gating the staff gate on the login route
       setReady(true);
       return;
     }
