@@ -104,7 +104,7 @@ export function SlotControls({
                     : "bg-black/60 border-yellow-500/40 text-yellow-400 hover:border-yellow-400 hover:bg-black/80"
                 }`}
               >
-                <span className="text-base animate-bounce">⚡</span>
+                <span className="text-base">⚡</span>
                 <div className="text-left">
                   <div className="leading-none text-[9px] font-bold text-black/80 dark:text-yellow-200">DOUBLE CHANCE</div>
                   <div className="leading-tight text-[11px] font-black">ANTE BET {anteBetActive ? "ON" : "OFF"}</div>
@@ -316,7 +316,10 @@ export function SlotControls({
           >
             {/* Ambient Spinning Halo when Idle */}
             {!isSpinning && (
-              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-40 blur-md group-hover:opacity-80 animate-spin-ripple pointer-events-none" />
+              <>
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 opacity-40 blur-md group-hover:opacity-80 animate-spin-ripple pointer-events-none" />
+                <div className="pointer-events-none absolute inset-[-7px] rounded-full border-2 border-dashed border-yellow-100/40 animate-spin-ring" />
+              </>
             )}
 
             {/* Inner Metallic Bevel Ring */}

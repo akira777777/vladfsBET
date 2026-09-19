@@ -6,7 +6,7 @@ import {
   resolveFullTumbleRound,
   type SymbolId,
 } from "./slot-engine";
-import { GATES_OF_VLADFS_THEME } from "./slot-themes";
+import { GATES_OF_VLADFS_THEME, getSlotTheme } from "./slot-themes";
 
 function runTests() {
   console.log("Running 6x5 Cascading Tumble & Megaways Unit Tests...");
@@ -47,7 +47,11 @@ function runTests() {
   console.assert(megaSpin.reelHeights.length === 6, "Expected 6 reels");
   console.assert(megaSpin.totalWays >= 64 && megaSpin.totalWays <= 117649, `Expected ways within valid range, got ${megaSpin.totalWays}`);
 
-  console.log("All Modern Slot Engine Tests Passed Successfully! [4/4]");
+  console.assert(getSlotTheme("gates-of-vladfs").defaultEngine === "CLUSTER_6X5", "Gates should default to cluster tumble");
+  console.assert(getSlotTheme("neon-cyber-slots").defaultEngine === "MEGAWAYS", "Neon Cyber should default to megaways");
+  console.assert(getSlotTheme("sandbox-slots").defaultEngine === "CLUSTER_6X5", "Sandbox should default to cluster tumble");
+
+  console.log("All Modern Slot Engine Tests Passed Successfully! [5/5]");
 }
 
 runTests();

@@ -9,12 +9,13 @@ import {
   generate6x5Grid,
   generateMegawaysSpin,
   resolveFullTumbleRound,
+  ClusterHit,
   Grid,
   SymbolId,
   TumbleRoundResult,
   MegawaysSpinResult,
 } from "@/lib/slots/slot-engine";
-import { getSlotTheme, SlotTheme } from "@/lib/slots/slot-themes";
+import { getSlotTheme, SlotEngineMode, SlotTheme } from "@/lib/slots/slot-themes";
 import { slotAudio } from "@/lib/slots/slot-audio";
 import { SlotTumbleGrid } from "./slot-tumble-grid";
 import { SlotMegawaysGrid } from "./slot-megaways-grid";
@@ -23,6 +24,7 @@ import { SlotWinCelebration } from "./slot-win-celebration";
 import { SlotBonusModal } from "./slot-bonus-modal";
 import { SlotPaytableModal } from "./slot-paytable-modal";
 import { SlotMascot } from "./slot-mascot";
+import { SlotCabinetStage } from "./slot-cabinet-fx";
 import Image from "next/image";
 import { Zap } from "lucide-react";
 
@@ -43,8 +45,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   const [selectedSlug] = useState<string>(initialSlug);
   const theme: SlotTheme = useMemo(() => getSlotTheme(selectedSlug), [selectedSlug]);
 
-  // Engine Mode Toggle: 6x5 Cascading Tumble vs Dynamic Megaways
-  const [engineMode, setEngineMode] = useState<"CLUSTER_6X5" | "MEGAWAYS">("CLUSTER_6X5");
+  const [engineMode, setEngineMode] = useState<SlotEngineMode>(theme.defaultEngine);
 
   // Local fallback balance
   const [demoBalance, setDemoBalance] = useState<number>(5000.0);
@@ -77,9 +78,12 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   const [flashingColumns, setFlashingColumns] = useState<boolean[]>([false, false, false, false, false, false]);
   const [scatterCount, setScatterCount] = useState(0);
   const [collectingOrbs, setCollectingOrbs] = useState<{ col: number; row: number }[]>([]);
+  const [activeClusterHits, setActiveClusterHits] = useState<ClusterHit[]>([]);
   const multiplierHudRef = useRef<HTMLDivElement>(null);
   const [accumulatedMultiplier, setAccumulatedMultiplier] = useState<number>(1);
+  const [roundWinTarget, setRoundWinTarget] = useState<number>(0);
   const [roundWinDisplay, setRoundWinDisplay] = useState<number>(0);
+  const roundWinDisplayRef = useRef(0);
 
   // Autoplay state
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
@@ -110,6 +114,28 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
     isAutoPlayingRef.current = isAutoPlaying;
   }, [inFreeSpins, freeSpinsRemaining, isSpinning, isAutoPlaying]);
 
+  useEffect(() => {
+    const dest = roundWinTarget;
+    if (prefersReducedMotion()) {
+      roundWinDisplayRef.current = dest;
+      setRoundWinDisplay(dest);
+      return;
+    }
+    const start = roundWinDisplayRef.current;
+    const duration = isTurbo ? 160 : 380;
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / duration);
+      const val = start + (dest - start) * (1 - (1 - p) ** 3);
+      roundWinDisplayRef.current = val;
+      setRoundWinDisplay(val);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [roundWinTarget, isTurbo]);
+
   // Execute Cascading Tumble Sequence
   const runTumbleAnimation = useCallback(
     async (roundResult: TumbleRoundResult, effectiveStake: number) => {
@@ -133,6 +159,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         }
 
         if (step.clusterHits.length > 0) {
+          setActiveClusterHits(step.clusterHits);
           setWinHoldPositions(step.shatteredPositions);
           await wait(isTurbo ? 120 : 280);
           setWinHoldPositions([]);
@@ -140,10 +167,11 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           slotAudio.playTumbleShatter();
           slotAudio.playTumbleCascade(i);
 
-          setRoundWinDisplay(step.accumulatedStepWin * currentMult);
+          setRoundWinTarget(step.accumulatedStepWin * currentMult);
 
           await wait(isTurbo ? 320 : 620);
           setShatteredPositions([]);
+          setActiveClusterHits([]);
           await wait(isTurbo ? 220 : 400);
         }
       }
@@ -155,7 +183,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       }
 
       const finalWin = roundResult.finalWinAmount;
-      setRoundWinDisplay(finalWin);
+      setRoundWinTarget(finalWin);
 
       // Award balance
       if (finalWin > 0) {
@@ -212,8 +240,12 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       setFlashingColumns([false, false, false, false, false, false]);
       setScatterCount(0);
       setCollectingOrbs([]);
+      setActiveClusterHits([]);
       setTumbleStepIndex(0);
       setAccumulatedMultiplier(isBonus ? persistentBonusMultiplier : 1);
+      roundWinDisplayRef.current = 0;
+      setRoundWinDisplay(0);
+      setRoundWinTarget(0);
       slotAudio.playSpinStart();
 
       // Deduct stake
@@ -303,12 +335,26 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         setMegawaysResult(megaRes);
         if (!prefersReducedMotion()) {
           setSpinningColumns([true, true, true, true, true, true]);
+          setAnticipatingColumns([false, false, false, false, false, false]);
           const stagger = isTurbo ? 80 : 200;
           await wait(isTurbo ? 200 : 520);
           let megaScatters = 0;
           for (let col = 0; col < 6; col++) {
-            if (col > 0) await wait(stagger);
+            if (col > 0) {
+              if (megaScatters >= 2) {
+                setAnticipatingColumns((prev) => prev.map((_, i) => i >= col));
+                slotAudio.startAnticipation();
+                await wait(stagger + (isTurbo ? 180 : 650));
+              } else {
+                await wait(stagger);
+              }
+            }
             setSpinningColumns((prev) => {
+              const next = [...prev];
+              next[col] = false;
+              return next;
+            });
+            setAnticipatingColumns((prev) => {
               const next = [...prev];
               next[col] = false;
               return next;
@@ -324,9 +370,11 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             setScatterCount(megaScatters);
             if (colScatters > 0) slotAudio.playScatterLand(col + 1);
           }
+          slotAudio.stopAnticipation();
+          setAnticipatingColumns([false, false, false, false, false, false]);
           await wait(isTurbo ? 80 : 200);
         }
-        setRoundWinDisplay(megaRes.totalWin);
+        setRoundWinTarget(megaRes.totalWin);
 
         if (megaRes.totalWin > 0) {
           slotAudio.playLineWin();
@@ -443,50 +491,21 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
               {theme.name}
             </h1>
+            <p className="text-[11px] text-white/50">{theme.tagline}</p>
           </div>
         </div>
-
-        {/* Engine Mode Toggle (6x5 Cluster Tumble vs Megaways Dynamic) */}
-        <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-2xl border border-white/10">
-          <button
-            type="button"
-            onClick={() => {
-              slotAudio.playButtonClick();
-              setEngineMode("CLUSTER_6X5");
-            }}
-            disabled={isSpinning || inFreeSpins}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all ${
-              engineMode === "CLUSTER_6X5"
-                ? "bg-gradient-to-r from-amber-400 to-yellow-300 text-black shadow-[0_0_15px_rgba(251,191,36,0.6)]"
-                : "text-muted-foreground hover:text-white"
-            }`}
-          >
-            6×5 Tumble
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              slotAudio.playButtonClick();
-              setEngineMode("MEGAWAYS");
-            }}
-            disabled={isSpinning || inFreeSpins}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all ${
-              engineMode === "MEGAWAYS"
-                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_0_15px_rgba(217,70,239,0.6)]"
-                : "text-muted-foreground hover:text-white"
-            }`}
-          >
-            Megaways
-          </button>
-        </div>
-
+        <span className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
+          {engineMode === "MEGAWAYS" ? "Megaways" : "6×5 Cluster"} · {theme.volatility}
+        </span>
       </div>
 
       {/* Main Luxury Slot Cabinet */}
       <div
         className={`relative rounded-3xl p-3 sm:p-6 border-2 transition-all duration-700 ${theme.frameStyle} ${
           spinningColumns.some(Boolean) ? "animate-cabinet-pulse" : ""
-        } ${shatteredPositions.length > 0 ? "animate-cabinet-hit" : ""}`}
+        } ${shatteredPositions.length > 0 || celebrationWin ? "animate-cabinet-hit" : ""} ${
+          inFreeSpins ? "ring-2 ring-yellow-300/50" : ""
+        }`}
         style={{ background: theme.backgroundGradient }}
       >
         {/* Pragmatic 4-Tier Jackpot Tickers Banner */}
@@ -521,7 +540,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         </div>
 
         {/* Cabinet Header Display (Balance HUD & Round Win) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 p-3 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-md">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 p-3 rounded-2xl bg-black/80 border border-white/10 shadow-inner">
           {/* Balance HUD */}
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
@@ -574,7 +593,13 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
 
         {/* INTERACTIVE GAME CABINET DISPLAY WITH MASCOT SIDECAR */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 items-center">
-          <div className="relative aspect-[6/5] min-h-[380px] max-h-[560px] w-full rounded-2xl bg-neutral-950/90 border-2 border-white/10 p-2 shadow-2xl overflow-hidden">
+          <SlotCabinetStage
+            theme={theme}
+            spinning={spinningColumns.some(Boolean)}
+            inFreeSpins={inFreeSpins}
+            freeSpinsRemaining={freeSpinsRemaining}
+            tumbleHit={shatteredPositions.length > 0}
+          >
             {engineMode === "CLUSTER_6X5" ? (
               <SlotTumbleGrid
                 grid={grid}
@@ -590,6 +615,8 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 currentMultiplier={accumulatedMultiplier}
                 tumbleStepIndex={tumbleStepIndex}
                 isTurbo={isTurbo}
+                clusterHits={activeClusterHits}
+                currency={currency}
               />
             ) : (
               <SlotMegawaysGrid
@@ -598,10 +625,21 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 isSpinning={isSpinning}
                 spinningColumns={spinningColumns}
                 flashingColumns={flashingColumns}
+                anticipatingColumns={anticipatingColumns}
                 isTurbo={isTurbo}
               />
             )}
-          </div>
+            <div className="pointer-events-none absolute top-10 right-3 z-30 lg:hidden">
+              <SlotMascot
+                themeId={selectedSlug}
+                isSpinning={isSpinning}
+                isBonus={inFreeSpins}
+                lastWin={roundWinDisplay}
+                scatterCount={scatterCount}
+                compact
+              />
+            </div>
+          </SlotCabinetStage>
 
           {/* Floating Mascot Avatar (Zeus, Pharaoh, Cyber Boss) on Desktop */}
           <div className="hidden lg:flex flex-col items-center justify-center p-2">
@@ -655,6 +693,36 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           <span>🛠️ Instant Feature Sandbox:</span>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              slotAudio.playButtonClick();
+              setEngineMode("CLUSTER_6X5");
+            }}
+            disabled={isSpinning || inFreeSpins}
+            className={`px-2.5 py-1 rounded-lg border font-bold ${
+              engineMode === "CLUSTER_6X5"
+                ? "bg-amber-400 text-black border-amber-200"
+                : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"
+            }`}
+          >
+            6×5 Tumble
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              slotAudio.playButtonClick();
+              setEngineMode("MEGAWAYS");
+            }}
+            disabled={isSpinning || inFreeSpins}
+            className={`px-2.5 py-1 rounded-lg border font-bold ${
+              engineMode === "MEGAWAYS"
+                ? "bg-fuchsia-500 text-white border-fuchsia-300"
+                : "bg-white/5 text-white/70 border-white/10 hover:bg-white/10"
+            }`}
+          >
+            Megaways
+          </button>
           <button
             type="button"
             onClick={() => void spin("FREE_SPINS")}

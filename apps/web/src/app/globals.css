@@ -214,6 +214,13 @@ body {
   .animate-cell-flash,
   .animate-cabinet-pulse,
   .animate-cabinet-hit,
+  .animate-led-chase,
+  .animate-led-breathe,
+  .animate-marquee-shimmer,
+  .animate-atmosphere-drift,
+  .animate-lightning-flash,
+  .animate-scatter-tease,
+  .animate-spin-ring,
   .live-dot {
     animation: none !important;
   }
@@ -326,14 +333,19 @@ body {
   to { transform: translateY(-50%); }
 }
 .animate-reel-strip {
-  animation: reelStripLoop 0.2s linear infinite;
+  animation: reelStripLoop 0.18s linear infinite;
   will-change: transform;
-  filter: blur(1.6px);
+  filter: blur(2.8px) saturate(1.15);
 }
 .animate-reel-strip-fast {
-  animation: reelStripLoop 0.11s linear infinite;
+  animation: reelStripLoop 0.09s linear infinite;
   will-change: transform;
-  filter: blur(2px);
+  filter: blur(3.6px) saturate(1.2);
+}
+
+.reel-window-mask {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 90%, transparent 100%);
 }
 
 @keyframes symbolFall {
@@ -580,6 +592,83 @@ body {
 .animate-gem-beam {
   transform-origin: top center;
   animation: gemRevealBeam 0.7s ease-out forwards;
+}
+
+@keyframes ledChase {
+  0%, 100% { opacity: 0.2; filter: brightness(0.7); }
+  40% { opacity: 1; filter: brightness(1.6); }
+}
+.animate-led-chase {
+  animation: ledChase 0.7s ease-in-out infinite;
+}
+
+@keyframes ledBreathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+.animate-led-breathe {
+  animation: ledBreathe 2.4s ease-in-out infinite;
+}
+
+@keyframes marqueeShimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.animate-marquee-shimmer {
+  background-size: 200% 100%;
+  animation: marqueeShimmer 3.2s linear infinite;
+}
+
+@keyframes atmosphereDrift {
+  0% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(6px, -10px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.animate-atmosphere-drift {
+  animation: atmosphereDrift 7s ease-in-out infinite;
+}
+
+@keyframes lightningFlash {
+  0% { opacity: 0; }
+  12% { opacity: 0.85; }
+  24% { opacity: 0.1; }
+  36% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+.animate-lightning-flash {
+  animation: lightningFlash 0.45s ease-out forwards;
+}
+
+@keyframes scatterTease {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.12); filter: brightness(1.35); }
+}
+.animate-scatter-tease {
+  animation: scatterTease 0.7s ease-in-out infinite;
+}
+
+@keyframes spinRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-ring {
+  animation: spinRing 4.5s linear infinite;
+}
+
+@keyframes winChipFloat {
+  0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+  18% { transform: translate(-50%, -6px) scale(1.08); opacity: 1; }
+  100% { transform: translate(-50%, -42px) scale(1); opacity: 0; }
+}
+.animate-win-chip {
+  animation: winChipFloat 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.cabinet-glass-vignette {
+  background:
+    radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, 0.45) 100%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35));
+  pointer-events: none;
 }
 
 /* ── Mines Mine Detonation Shockwave ── */

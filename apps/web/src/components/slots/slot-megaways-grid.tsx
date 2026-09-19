@@ -11,13 +11,14 @@ interface SlotMegawaysGridProps {
   isSpinning: boolean;
   spinningColumns?: boolean[];
   flashingColumns?: boolean[];
+  anticipatingColumns?: boolean[];
   isTurbo?: boolean;
 }
 
-function megaStrip(theme: SlotTheme, count: number): SymbolId[] {
+function megaStrip(theme: SlotTheme): SymbolId[] {
   const pool = Object.keys(theme.symbols) as SymbolId[];
-  const half = Array.from({ length: count }, () => pool[Math.floor(Math.random() * pool.length)]);
-  return [...half, ...half];
+  const unique = Array.from({ length: 10 }, () => pool[Math.floor(Math.random() * pool.length)]);
+  return [...unique, ...unique];
 }
 
 export function SlotMegawaysGrid({
@@ -26,6 +27,7 @@ export function SlotMegawaysGrid({
   isSpinning,
   spinningColumns = [false, false, false, false, false, false],
   flashingColumns = [false, false, false, false, false, false],
+  anticipatingColumns = [false, false, false, false, false, false],
   isTurbo = false,
 }: SlotMegawaysGridProps) {
   const reelHeights = result?.reelHeights || [4, 5, 4, 6, 5, 4];
@@ -33,15 +35,15 @@ export function SlotMegawaysGrid({
   const grid = result?.grid;
   const [revealed, setRevealed] = useState(false);
   const [waysAnimated, setWaysAnimated] = useState(totalWays);
-  const stripsRef = useRef<SymbolId[][]>([0, 1, 2, 3, 4, 5].map((i) => megaStrip(theme, reelHeights[i] || 4)));
+  const stripsRef = useRef<SymbolId[][]>([0, 1, 2, 3, 4, 5].map(() => megaStrip(theme)));
   const anySpinning = spinningColumns.some(Boolean);
+  const scatterTeasing = anticipatingColumns.some(Boolean);
 
   useEffect(() => {
     if (anySpinning) {
-      const heights = result?.reelHeights || [4, 5, 4, 6, 5, 4];
-      stripsRef.current = [0, 1, 2, 3, 4, 5].map((i) => megaStrip(theme, heights[i] || 4));
+      stripsRef.current = [0, 1, 2, 3, 4, 5].map(() => megaStrip(theme));
     }
-  }, [anySpinning, theme, result]);
+  }, [anySpinning, theme]);
 
   const winningPositions = result?.wayHits.flatMap((w) => w.positions) || [];
 
@@ -116,15 +118,20 @@ export function SlotMegawaysGrid({
           return (
             <div
               key={`megaways-col-${colIdx}`}
-              className={`flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 ${
-                flashingColumns[colIdx] ? "animate-column-flash" : ""
-              } ${spinningColumns[colIdx] ? "" : isSpinning ? "animate-reel-spring" : ""}`}
+              className={`flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 reel-window-mask ${
+                anticipatingColumns[colIdx] ? "animate-scatter-anticipation ring-1 ring-amber-400/70" : ""
+              } ${flashingColumns[colIdx] ? "animate-column-flash" : ""} ${
+                spinningColumns[colIdx] ? "" : isSpinning ? "animate-reel-spring" : ""
+              }`}
             >
               {spinningColumns[colIdx] ? (
-                <div className={`flex h-[200%] flex-col ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
+                <div
+                  className={`flex flex-col ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}
+                  style={{ height: `${(20 / Math.max(2, height)) * 100}%` }}
+                >
                   {(stripsRef.current[colIdx] || []).map((id, idx) => (
                     <div key={`mspin-${colIdx}-${idx}`} className="flex flex-1 items-center justify-center">
-                      <SlotSymbolIcon id={id} theme={theme} size="sm" />
+                      <SlotSymbolIcon id={id} theme={theme} size="md" />
                     </div>
                   ))}
                 </div>
@@ -167,7 +174,8 @@ export function SlotMegawaysGrid({
                       id={cell.id}
                       theme={theme}
                       isWinning={win}
-                      size="sm"
+                      isScatterTease={scatterTeasing && cell.id === "SCATTER"}
+                      size="md"
                     />
                   </div>
                 );

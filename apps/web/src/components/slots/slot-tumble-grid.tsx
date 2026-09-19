@@ -2,8 +2,9 @@
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Grid, SymbolCell, SymbolId } from "@/lib/slots/slot-engine";
+import { ClusterHit, Grid, SymbolCell, SymbolId } from "@/lib/slots/slot-engine";
 import { SlotTheme } from "@/lib/slots/slot-themes";
+import { formatMoney } from "@/lib/format";
 import { SlotSymbolIcon } from "./slot-symbols";
 
 interface SlotTumbleGridProps {
@@ -20,6 +21,8 @@ interface SlotTumbleGridProps {
   currentMultiplier: number;
   tumbleStepIndex: number;
   isTurbo?: boolean;
+  clusterHits?: ClusterHit[];
+  currency?: string;
 }
 
 function generateDebris(count: number, color: string) {
@@ -108,8 +111,8 @@ function CollectingOrbShell({
 
 function makeLoopStrip(theme: SlotTheme): SymbolId[] {
   const pool = Object.keys(theme.symbols) as SymbolId[];
-  const half = Array.from({ length: 5 }, () => pool[Math.floor(Math.random() * pool.length)]);
-  return [...half, ...half];
+  const unique = Array.from({ length: 10 }, () => pool[Math.floor(Math.random() * pool.length)]);
+  return [...unique, ...unique];
 }
 
 export function SlotTumbleGrid({
@@ -126,6 +129,8 @@ export function SlotTumbleGrid({
   currentMultiplier,
   tumbleStepIndex,
   isTurbo = false,
+  clusterHits = [],
+  currency = "USD",
 }: SlotTumbleGridProps) {
   // Track shatter particles with unique keys
   const [activeShatterKey, setActiveShatterKey] = useState(0);
@@ -232,6 +237,14 @@ export function SlotTumbleGrid({
     );
   };
 
+  const winChips = clusterHits.map((hit, idx) => {
+    const col = hit.positions.reduce((sum, p) => sum + p.col, 0) / Math.max(1, hit.positions.length);
+    const row = hit.positions.reduce((sum, p) => sum + p.row, 0) / Math.max(1, hit.positions.length);
+    return { id: `${hit.symbolId}-${idx}-${tumbleStepIndex}`, amount: hit.winAmount * Math.max(1, currentMultiplier), col, row };
+  });
+
+  const scatterTeasing = anticipatingColumns.some(Boolean);
+
   return (
     <div className="relative w-full h-full flex flex-col justify-between select-none">
       {/* Top Tumble & Multiplier Status Bar */}
@@ -272,17 +285,17 @@ export function SlotTumbleGrid({
         {[0, 1, 2, 3, 4, 5].map((colIdx) => (
           <div
             key={`col-${colIdx}`}
-            className={`relative flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl ${
+            className={`relative flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl reel-window-mask ${
               anticipatingColumns[colIdx] ? "animate-scatter-anticipation ring-1 ring-amber-400/70" : ""
             } ${flashingColumns[colIdx] ? "animate-column-flash" : ""} ${
               !spinningColumns[colIdx] && isTumbling ? "animate-reel-spring" : ""
             }`}
           >
             {spinningColumns[colIdx] ? (
-              <div className={`flex flex-col h-[200%] ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
+              <div className={`flex h-[400%] flex-col ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
                 {stripsRef.current[colIdx].map((id, idx) => (
-                  <div key={`spin-${colIdx}-${idx}`} className="flex h-[10%] items-center justify-center">
-                    <SlotSymbolIcon id={id} theme={theme} size="sm" />
+                  <div key={`spin-${colIdx}-${idx}`} className="flex h-[5%] items-center justify-center">
+                    <SlotSymbolIcon id={id} theme={theme} size="md" />
                   </div>
                 ))}
               </div>
@@ -375,7 +388,8 @@ export function SlotTumbleGrid({
                         theme={theme}
                         isWinning={isWin}
                         isExploding={isShattering}
-                        size="sm"
+                        isScatterTease={scatterTeasing && cell.id === "SCATTER"}
+                        size="md"
                       />
                     </div>
                   </CollectingOrbShell>
@@ -388,6 +402,19 @@ export function SlotTumbleGrid({
         ))}
 
         {/* Floating sparkle particles from winning positions */}
+        {winChips.map((chip) => (
+          <div
+            key={chip.id}
+            className="pointer-events-none absolute z-40 animate-win-chip rounded-full border border-yellow-200/70 bg-black/80 px-2 py-0.5 text-[10px] font-black text-amber-300 shadow-[0_0_16px_rgba(251,191,36,0.7)]"
+            style={{
+              left: `${((chip.col + 0.5) / 6) * 100}%`,
+              top: `${((chip.row + 0.55) / 5) * 100}%`,
+            }}
+          >
+            +{formatMoney(chip.amount, currency)}
+          </div>
+        ))}
+
         {sparkles.map((s) => (
           <div
             key={s.id}

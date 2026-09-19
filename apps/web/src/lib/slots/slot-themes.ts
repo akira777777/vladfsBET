@@ -1,5 +1,7 @@
 import { SymbolDefinition, SymbolId } from "./slot-engine";
 
+export type SlotEngineMode = "CLUSTER_6X5" | "MEGAWAYS";
+
 export interface SlotTheme {
   id: string;
   name: string;
@@ -12,6 +14,7 @@ export interface SlotTheme {
   rtp: string;
   volatility: "MEDIUM" | "HIGH" | "VERY HIGH";
   maxWin: string;
+  defaultEngine: SlotEngineMode;
   symbols: Record<SymbolId, SymbolDefinition>;
 }
 
@@ -28,6 +31,7 @@ export const GATES_OF_VLADFS_THEME: SlotTheme = {
   rtp: "96.82%",
   volatility: "VERY HIGH",
   maxWin: "5,000x",
+  defaultEngine: "CLUSTER_6X5",
   symbols: {
     MULTIPLIER_ORB: {
       id: "MULTIPLIER_ORB",
@@ -149,6 +153,7 @@ export const CYBER_NEON_777_THEME: SlotTheme = {
   rtp: "96.75%",
   volatility: "HIGH",
   maxWin: "10,000x",
+  defaultEngine: "MEGAWAYS",
   symbols: {
     MULTIPLIER_ORB: {
       id: "MULTIPLIER_ORB",
@@ -267,6 +272,7 @@ export const PHARAOH_GOLD_DELUXE_THEME: SlotTheme = {
   rtp: "96.50%",
   volatility: "HIGH",
   maxWin: "8,888x",
+  defaultEngine: "CLUSTER_6X5",
   symbols: {
     MULTIPLIER_ORB: {
       id: "MULTIPLIER_ORB",
@@ -385,6 +391,7 @@ export const SUGAR_RUSH_FRENZY_THEME: SlotTheme = {
   rtp: "96.85%",
   volatility: "VERY HIGH",
   maxWin: "21,100x",
+  defaultEngine: "CLUSTER_6X5",
   symbols: {
     MULTIPLIER_ORB: {
       id: "MULTIPLIER_ORB",
@@ -503,6 +510,7 @@ export const DRAGON_FORTUNE_888_THEME: SlotTheme = {
   rtp: "96.88%",
   volatility: "VERY HIGH",
   maxWin: "8,888x",
+  defaultEngine: "MEGAWAYS",
   symbols: {
     MULTIPLIER_ORB: {
       id: "MULTIPLIER_ORB",
@@ -632,6 +640,7 @@ export const ALL_SLOT_THEMES: Record<string, SlotTheme> = {
   "sugar-rush-frenzy": SUGAR_RUSH_FRENZY_THEME,
   "dragon-fortune-888": DRAGON_FORTUNE_888_THEME,
   "dead-mans-vault": DEAD_MANS_VAULT_THEME,
+  "sandbox-slots": GATES_OF_VLADFS_THEME,
 };
 
 export function getSlotTheme(slug: string): SlotTheme {
