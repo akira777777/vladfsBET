@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Trophy, Flame, Timer, Sparkles, Medal, ArrowRight, ShieldCheck } from "lucide-react";
+import { Trophy, Timer, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/components/auth-provider";

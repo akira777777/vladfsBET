@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { Lock, Shield, Key } from "lucide-react";
+import { Lock } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();

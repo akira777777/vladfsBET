@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { ShieldAlert, CheckCircle2, AlertTriangle } from "lucide-react";
+
 
 interface AdminAmlAlert {
   id: string;

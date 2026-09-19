@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { Headphones, MessageSquare, Send, CheckCircle2 } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface AdminTicket {
   id: string;

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Check, Trash2, X, Gift, ShieldCheck, Trophy, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bell, Trash2, Gift, ShieldCheck, Trophy, Wallet } from "lucide-react";
+
 
 interface NotificationItem {
   id: string;

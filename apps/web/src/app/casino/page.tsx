@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { GameCard } from "@/components/game-card";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { api, type Game } from "@/lib/api";
 import { CATALOG_FALLBACK, isOriginal, mergeCatalog } from "@/lib/games-catalog";
-import { gameArt } from "@/lib/format";
+
 import { SlidersHorizontal, Sparkles, Search } from "lucide-react";
 
 const CATEGORIES = ["ALL", "ORIGINALS", "SLOTS", "CRASH", "TABLE", "LIVE"] as const;

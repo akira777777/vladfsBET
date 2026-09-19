@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Crown, Zap, Flame } from "lucide-react";
+import { Crown, Zap } from "lucide-react";
 
 export function JackpotTicker() {
   const [grand, setGrand] = useState(1284592.45);

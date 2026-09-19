@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Radio, Users, MessageSquare, Timer, Sparkles, Volume2, ShieldCheck, Video } from "lucide-react";
+import { Radio, Users, MessageSquare, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

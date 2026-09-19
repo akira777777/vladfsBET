@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, DollarSign, TrendingUp, Copy, Check, ShieldCheck, ArrowRight, Share2, Sparkles } from "lucide-react";
+import { Users, DollarSign, TrendingUp, Copy, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

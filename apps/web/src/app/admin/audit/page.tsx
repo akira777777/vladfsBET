@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { api } from "@/lib/api";
-import { ScrollText } from "lucide-react";
+
 
 interface AuditLogItem {
   id: string;

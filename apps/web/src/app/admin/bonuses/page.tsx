@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { api } from "@/lib/api";
-import { Gift, Sparkles } from "lucide-react";
+
 
 interface AdminBonusTemplate {
   id: string;

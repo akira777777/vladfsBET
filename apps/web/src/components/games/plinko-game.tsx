@@ -8,7 +8,7 @@ import { ProvablyFairDialog } from "./provably-fair-dialog";
 import { RealityCheckBar } from "./reality-check-bar";
 import { api } from "@/lib/api";
 import { useAuth } from "@/components/auth-provider";
-import { Volume2, VolumeX, Sparkles, Play, Zap } from "lucide-react";
+import { Volume2, VolumeX, Sparkles, Play } from "lucide-react";
 import { gameAudio } from "./game-audio";
 import { formatMoney } from "@/lib/format";
 import {

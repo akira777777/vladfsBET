@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
-import { FileCheck, CheckCircle2, XCircle, AlertCircle, Eye } from "lucide-react";
+
 
 interface AdminKycCase {
   id: string;

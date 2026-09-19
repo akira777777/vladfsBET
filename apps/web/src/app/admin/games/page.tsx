@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { api, type Game } from "@/lib/api";
-import { Gamepad2, Check, X } from "lucide-react";
+
 
 export default function AdminGamesPage() {
   const [games, setGames] = useState<Game[]>([]);

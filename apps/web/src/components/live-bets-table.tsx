@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Trophy, Flame, ShieldCheck, ExternalLink } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { Trophy, Flame, ExternalLink } from "lucide-react";
+
 
 interface LiveBet {
   id: string;

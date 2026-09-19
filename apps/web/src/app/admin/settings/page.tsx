@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Globe, Shield, Lock, CheckCircle2 } from "lucide-react";
+import { Lock, CheckCircle2 } from "lucide-react";
 
 interface JurisdictionSetting {
   country: string;

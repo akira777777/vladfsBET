@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquare, X, Send, Gift, Flame, Trophy, Sparkles, Users } from "lucide-react";
+import { MessageSquare, X, Send, Gift, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth-provider";
