@@ -22,14 +22,14 @@ const CRATES: LootCrate[] = [
     name: "Bronze Starter Crate",
     tier: "BRONZE",
     costPoints: 100,
-    topPrize: "$100.00",
+    topPrize: "€100.00",
     color: "from-amber-900 to-amber-700 border-amber-700/50",
     glow: "rgba(180,83,9,0.3)",
     possiblePrizes: [
-      { label: "$5 Credits", amount: 5, chance: "50%" },
-      { label: "$15 Credits", amount: 15, chance: "30%" },
-      { label: "$50 Credits", amount: 50, chance: "15%" },
-      { label: "$100 Top Prize", amount: 100, chance: "5%" },
+      { label: "€5 Credits", amount: 5, chance: "50%" },
+      { label: "€15 Credits", amount: 15, chance: "30%" },
+      { label: "€50 Credits", amount: 50, chance: "15%" },
+      { label: "€100 Top Prize", amount: 100, chance: "5%" },
     ],
   },
   {
@@ -37,14 +37,14 @@ const CRATES: LootCrate[] = [
     name: "Silver Prestige Crate",
     tier: "SILVER",
     costPoints: 250,
-    topPrize: "$500.00",
+    topPrize: "€500.00",
     color: "from-slate-800 to-slate-600 border-slate-400/50",
     glow: "rgba(148,163,184,0.3)",
     possiblePrizes: [
-      { label: "$25 Credits", amount: 25, chance: "45%" },
-      { label: "$75 Credits", amount: 75, chance: "35%" },
-      { label: "$200 Credits", amount: 200, chance: "15%" },
-      { label: "$500 Top Prize", amount: 500, chance: "5%" },
+      { label: "€25 Credits", amount: 25, chance: "45%" },
+      { label: "€75 Credits", amount: 75, chance: "35%" },
+      { label: "€200 Credits", amount: 200, chance: "15%" },
+      { label: "€500 Top Prize", amount: 500, chance: "5%" },
     ],
   },
   {
@@ -52,14 +52,14 @@ const CRATES: LootCrate[] = [
     name: "Gold High Roller Crate",
     tier: "GOLD",
     costPoints: 750,
-    topPrize: "$2,500.00",
+    topPrize: "€2,500.00",
     color: "from-amber-700 to-yellow-600 border-amber-400/50",
     glow: "rgba(250,204,21,0.4)",
     possiblePrizes: [
-      { label: "$100 Credits", amount: 100, chance: "40%" },
-      { label: "$350 Credits", amount: 350, chance: "35%" },
-      { label: "$1,000 Credits", amount: 1000, chance: "20%" },
-      { label: "$2,500 Top Prize", amount: 2500, chance: "5%" },
+      { label: "€100 Credits", amount: 100, chance: "40%" },
+      { label: "€350 Credits", amount: 350, chance: "35%" },
+      { label: "€1,000 Credits", amount: 1000, chance: "20%" },
+      { label: "€2,500 Top Prize", amount: 2500, chance: "5%" },
     ],
   },
   {
@@ -67,14 +67,14 @@ const CRATES: LootCrate[] = [
     name: "Diamond Legend Vault",
     tier: "DIAMOND",
     costPoints: 2000,
-    topPrize: "$10,000.00",
+    topPrize: "€10,000.00",
     color: "from-purple-900 via-pink-900 to-purple-950 border-purple-500/60",
     glow: "rgba(217,70,239,0.5)",
     possiblePrizes: [
-      { label: "$500 Credits", amount: 500, chance: "40%" },
-      { label: "$1,500 Credits", amount: 1500, chance: "35%" },
-      { label: "$4,000 Credits", amount: 4000, chance: "20%" },
-      { label: "$10,000 GRAND PRIZE", amount: 10000, chance: "5%" },
+      { label: "€500 Credits", amount: 500, chance: "40%" },
+      { label: "€1,500 Credits", amount: 1500, chance: "35%" },
+      { label: "€4,000 Credits", amount: 4000, chance: "20%" },
+      { label: "€10,000 GRAND PRIZE", amount: 10000, chance: "5%" },
     ],
   },
 ];
@@ -104,7 +104,6 @@ export default function LootBoxesPage() {
         label: won.label,
         amount: won.amount,
       });
-
     }, 3000);
   };
 
@@ -117,7 +116,7 @@ export default function LootBoxesPage() {
             <Package className="h-4 w-4" /> VIP LOOT BOX UNBOXING
           </div>
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
-            Unlock Mystery Crates &amp; Win up to <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-300 to-purple-400">$10,000</span>
+            Unlock Mystery Crates &amp; Win up to <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-300 to-purple-400">€10,000</span>
           </h1>
           <p className="text-sm text-neutral-300 leading-relaxed">
             Redeem your accumulated VIP loyalty points for high-tier mystery crates with guaranteed credit drop rates.

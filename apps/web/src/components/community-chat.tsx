@@ -22,33 +22,6 @@ interface ChatMessage {
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: "m-1",
-    user: "CryptoWhale_99",
-    tier: "DIAMOND",
-    text: "Just hit 185x on Gates of Vladfs! Those multiplier orbs are insane ⚡",
-    timestamp: "12:40",
-  },
-  {
-    id: "m-2",
-    user: "Elena_CasinoMod",
-    tier: "MOD",
-    text: "Welcome everyone to VladfsBET! Happy spinning today and good luck in the $25k Tournament!",
-    timestamp: "12:41",
-  },
-  {
-    id: "m-3",
-    user: "RainBot",
-    tier: "MOD",
-    text: "🌧️ A rain storm has appeared! $100 Demo Credits available for active players!",
-    timestamp: "12:42",
-    isRain: true,
-    rainAmount: 100,
-    rainClaimed: false,
-  },
-  {
-    id: "m-4",
-    user: "ZeusMaster",
-    tier: "VIP",
-    text: "Claimed! Thanks RainBot 🙏",
     timestamp: "12:43",
   },
 ];

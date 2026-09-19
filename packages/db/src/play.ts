@@ -514,7 +514,7 @@ export async function playDemoGame(db: PrismaClient, input: PlayDemoInput) {
   const win = bet.mul(multiplier).toDecimalPlaces(8, Prisma.Decimal.ROUND_HALF_UP);
 
   // 5. Post Ledger Credit for Win + Record Game Round + Update Session + Audit Log (atomic)
-  await db.$transaction(async (tx: PrismaTransactionClient) => {
+  const round = await db.$transaction(async (tx: PrismaTransactionClient) => {
     // Post Ledger Credit for Win (if any)
     if (win.gt(0)) {
       await postJournal(tx, {
