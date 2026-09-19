@@ -118,8 +118,8 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
     const dest = roundWinTarget;
     if (prefersReducedMotion()) {
       roundWinDisplayRef.current = dest;
-      setRoundWinDisplay(dest);
-      return;
+      const raf = requestAnimationFrame(() => setRoundWinDisplay(dest));
+      return () => cancelAnimationFrame(raf);
     }
     const start = roundWinDisplayRef.current;
     const duration = isTurbo ? 160 : 380;

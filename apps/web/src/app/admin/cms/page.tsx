@@ -40,7 +40,6 @@ export default function AdminCmsPage() {
     api<{ items: CmsEntry[] }>("/api/admin/cms")
       .then((data) => setEntries(data.items || []))
       .catch(() => {
-        // Fallback to public entries if staff endpoint returned empty
         api<{ items: CmsEntry[] }>("/api/cms/entries")
           .then((pub) => setEntries(pub.items || []))
           .catch(() => setEntries([]));
@@ -49,7 +48,26 @@ export default function AdminCmsPage() {
   };
 
   useEffect(() => {
-    loadEntries();
+    let active = true;
+    api<{ items: CmsEntry[] }>("/api/admin/cms")
+      .then((data) => {
+        if (active) setEntries(data.items || []);
+      })
+      .catch(() => {
+        api<{ items: CmsEntry[] }>("/api/cms/entries")
+          .then((pub) => {
+            if (active) setEntries(pub.items || []);
+          })
+          .catch(() => {
+            if (active) setEntries([]);
+          });
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
