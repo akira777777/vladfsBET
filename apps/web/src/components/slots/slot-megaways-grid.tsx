@@ -108,8 +108,8 @@ export function SlotMegawaysGrid({
 
       {/* Dynamic 6-Reel Grid Area */}
       <div className="relative flex-1 grid grid-cols-6 gap-1 sm:gap-2 h-full w-full p-2 bg-neutral-950/90 rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+        {/* eslint-disable-next-line react-hooks/refs -- read-only access to a pre-seeded reel strip ref */}
         {[0, 1, 2, 3, 4, 5].map((colIdx) => {
-          // eslint-disable-next-line react-hooks/refs -- read-only access to a pre-seeded reel strip ref
           const height = reelHeights[colIdx];
           const colCells = grid?.[colIdx] || [];
 

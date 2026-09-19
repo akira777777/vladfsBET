@@ -480,7 +480,6 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
     };
   }, [rows, risk, multipliers, highlightedBin, mode, autoConfig.active]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- canvas animation loop is driven by props listed above
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">

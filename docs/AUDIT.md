@@ -44,13 +44,13 @@
 - `.gitignore`: добавлены `/*.png`, `/*.jpg`, `.playwright-mcp/` (корневые debug-артефакты,
   не задевая легитимные `apps/web/public/*.jpg`).
 
-## Осталось (осознанный техдолг, 28 предупреждений, 0 ошибок)
-- ~15 «assigned but never used» переменных/сеттеров состояния (признак мёртвого кода,
-  напр. `setSelectedFeature` в casino, `setProvablyFairData` в hilo/mines, `setActiveSeats`
-  в live-dealer-table) — требуют точечного рефакторинга логики.
-- ~10 React-хук предупреждений в анимационных игровых компонентах (`set-state-in-effect`,
-  `react-hooks/refs`, `exhaustive-deps`, вызов `Math.random()` в рендере) — намеренные
-  анимационные паттерны; правка рискованна без визуальной проверки.
+## Осталось (осознанный техдолг, 7 предупреждений, 0 ошибок)
+- 3 × `no-unused-vars` с префиксом `_` (намеренно неиспользуемые `user`/`ready`) — ESLint не
+  игнорирует `_`-префикс (для полного нуля можно добавить `argsIgnorePattern`/`varsIgnorePattern`).
+- 2 × `react-hooks/exhaustive-deps` в `crash-game.tsx` и `plinko-game.tsx` — канвас-циклы,
+  намеренно завязанные на часть зависимостей; добавление всех deps рискует вызвать лишние ре-рендеры.
+- 2 × `react-hooks/purity` (`Date.now()` в render) в `dice-game.tsx` и `limbo-game.tsx` —
+  намеренная анимация по времени; безопасной правки без визуальной проверки нет.
 - In-memory кэш ответов в `apps/api/src/app.ts` привязан к процессу без инвалидации.
 - Build-артефакты `index.js`/`index.d.ts` в `packages/config/src/` (следует перенести только в `dist/`).
 

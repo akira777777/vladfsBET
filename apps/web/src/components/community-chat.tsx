@@ -170,7 +170,7 @@ export function CommunityChat() {
                     <p className="text-xs text-neutral-200">{m.text}</p>
                     <Button
                       size="sm"
-                      onClick={() => handleClaimRain(m.id, m.rainAmount || 100)}
+                      onClick={() => handleClaimRain(m.id)}
                       disabled={m.rainClaimed}
                       className={`h-8 text-xs font-bold ${
                         m.rainClaimed
