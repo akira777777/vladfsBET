@@ -528,6 +528,7 @@ model MoneyTransaction {
 
   @@index([userId, createdAt])
   @@index([type, status])
+  @@index([type, status, createdAt])
   @@map("transactions")
 }
 
@@ -733,6 +734,7 @@ model GameRound {
   session  GameSession  @relation(fields: [sessionId], references: [id])
 
   @@index([userId, createdAt])
+  @@index([gameId, status])
   @@index([sessionId])
   @@index([status])
   @@map("game_rounds")
