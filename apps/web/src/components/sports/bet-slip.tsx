@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Trash2, TrendingUp, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
+import { formatMoney } from "@/lib/format";
 import { useAuth } from "@/components/auth-provider";
 
 export interface BetSelection {
@@ -60,7 +61,7 @@ export function BetSlip({ selections, onRemoveSelection, onClearAll }: BetSlipPr
         }),
       });
 
-      setSuccessMsg(`Bet placed successfully! Potential win: $${potentialReturn}`);
+      setSuccessMsg(`Bet placed successfully! Potential win: ${formatMoney(potentialReturn, user?.currency || "EUR")}`);
       await refreshWallet();
       setTimeout(() => {
         onClearAll();
@@ -145,8 +146,8 @@ export function BetSlip({ selections, onRemoveSelection, onClearAll }: BetSlipPr
 
           <div className="space-y-1">
             <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Stake ($):</span>
-              <span className="text-white font-mono font-bold">${stakeNum.toFixed(2)}</span>
+              <span className="text-muted-foreground">Stake:</span>
+              <span className="text-white font-mono font-bold">{formatMoney(stakeNum, user?.currency || "EUR")}</span>
             </div>
             <div className="flex gap-1.5">
               <Input
@@ -171,7 +172,7 @@ export function BetSlip({ selections, onRemoveSelection, onClearAll }: BetSlipPr
 
           <div className="flex items-center justify-between text-xs rounded bg-white/5 p-2">
             <span className="text-muted-foreground font-medium">Potential Payout:</span>
-            <span className="font-mono font-extrabold text-emerald-400 text-sm">${potentialReturn}</span>
+            <span className="font-mono font-extrabold text-emerald-400 text-sm">{formatMoney(potentialReturn, user?.currency || "EUR")}</span>
           </div>
 
           <Button

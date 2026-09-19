@@ -5,13 +5,13 @@ import { Sparkles, Gift, Timer, Trophy, Crown, CheckCircle2 } from "lucide-react
 import { Card } from "@/components/ui/card";
 
 const SEGMENTS = [
-  { label: "$500 JACKPOT", color: "#facc15", text: "#000000", value: 500, type: "CASH" },
+  { label: "€500 JACKPOT", color: "#facc15", text: "#000000", value: 500, type: "CASH" },
   { label: "+25 Free Spins", color: "#ec4899", text: "#ffffff", value: 25, type: "SPINS" },
-  { label: "$100 Credits", color: "#38bdf8", text: "#ffffff", value: 100, type: "CASH" },
+  { label: "€100 Credits", color: "#38bdf8", text: "#ffffff", value: 100, type: "CASH" },
   { label: "2x VIP Boost", color: "#a855f7", text: "#ffffff", value: 2, type: "BOOST" },
-  { label: "$50 Credits", color: "#10b981", text: "#ffffff", value: 50, type: "CASH" },
+  { label: "€50 Credits", color: "#10b981", text: "#ffffff", value: 50, type: "CASH" },
   { label: "+10 Free Spins", color: "#f97316", text: "#ffffff", value: 10, type: "SPINS" },
-  { label: "$250 Credits", color: "#eab308", text: "#000000", value: 250, type: "CASH" },
+  { label: "€250 Credits", color: "#eab308", text: "#000000", value: 250, type: "CASH" },
   { label: "20% Cashback", color: "#ef4444", text: "#ffffff", value: 20, type: "CASHBACK" },
 ];
 
@@ -42,7 +42,6 @@ export default function RewardsPage() {
       setSpinning(false);
       setWonPrize(SEGMENTS[winningIndex]);
       setCanSpin(false);
-
     }, 5000);
   };
 
@@ -157,9 +156,9 @@ export default function RewardsPage() {
       {/* Additional Daily Quests & Streaks */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { title: "Daily Login Streak", desc: "Day 5 of 7 Completed", reward: "+$50 Bonus", icon: Trophy },
-          { title: "Wager $100 on Slots", desc: "Progress: $100 / $100", reward: "+15 Free Spins", icon: Sparkles },
-          { title: "Play 3 Live Dealer Hands", desc: "Progress: 3 / 3", reward: "+$25 Demo Chips", icon: Crown },
+          { title: "Daily Login Streak", desc: "Day 5 of 7 Completed", reward: "+€50 Bonus", icon: Trophy },
+          { title: "Wager €100 on Slots", desc: "Progress: €100 / €100", reward: "+15 Free Spins", icon: Sparkles },
+          { title: "Play 3 Live Dealer Hands", desc: "Progress: 3 / 3", reward: "+€25 Demo Chips", icon: Crown },
         ].map((q, idx) => (
           <Card key={idx} className="p-5 border-white/10 bg-[#0A0E17] text-white space-y-2">
             <div className="flex items-center justify-between">
