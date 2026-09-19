@@ -115,7 +115,7 @@ export function SlotWinCelebration({
   return (
     <div
       onClick={handleFastForward}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md cursor-pointer select-none animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm cursor-pointer select-none animate-fadeIn animate-tumble-shake"
     >
       <SlotParticles active={true} tier={tier} />
       {(tier === "MEGA_WIN" || tier === "ULTRA_WIN" || tier === "EPIC_WIN") && (
@@ -152,16 +152,8 @@ export function SlotWinCelebration({
       <div
         className={`relative flex flex-col items-center justify-center p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-neutral-900/95 via-neutral-950/95 to-black/95 border-2 ${badgeBorder} max-w-lg w-full mx-4 text-center animate-celebration-zoom`}
       >
-        {/* Glowing crown/stars */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl sm:text-3xl animate-sparkle-float" style={{ animationIterationCount: "infinite", animationDuration: "2s" }}>⭐</span>
-          <span className="text-3xl sm:text-4xl animate-multiplier-pop" style={{ animationDelay: "0.2s" }}>👑</span>
-          <span className="text-2xl sm:text-3xl animate-sparkle-float" style={{ animationIterationCount: "infinite", animationDuration: "2.5s", animationDelay: "0.3s" }}>⭐</span>
-        </div>
-
-        {/* Title */}
         <h2
-          className={`text-4xl sm:text-6xl font-black tracking-wider uppercase bg-gradient-to-r ${titleColor} bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(250,204,21,0.8)] animate-multiplier-pop`}
+          className={`text-5xl sm:text-7xl font-black tracking-wider uppercase bg-gradient-to-r ${titleColor} bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(250,204,21,0.9)] animate-multiplier-pop`}
           style={{ animationDelay: "0.15s" }}
         >
           {title}
@@ -178,7 +170,7 @@ export function SlotWinCelebration({
             <div className="absolute inset-0 animate-win-shimmer pointer-events-none rounded-2xl" />
           )}
           <span
-            className={`relative z-10 text-3xl sm:text-5xl font-black text-amber-400 tracking-tight tabular-nums drop-shadow-[0_0_15px_rgba(251,191,36,0.9)] transition-all duration-100 ${
+            className={`relative z-10 text-4xl sm:text-6xl font-black text-amber-400 tracking-tight tabular-nums drop-shadow-[0_0_18px_rgba(251,191,36,0.95)] transition-all duration-100 ${
               flashTick ? "animate-counter-flash scale-105" : ""
             }`}
           >

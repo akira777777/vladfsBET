@@ -19,12 +19,13 @@ import { getSlotTheme, SlotEngineMode, SlotTheme } from "@/lib/slots/slot-themes
 import { slotAudio } from "@/lib/slots/slot-audio";
 import { SlotTumbleGrid } from "./slot-tumble-grid";
 import { SlotMegawaysGrid } from "./slot-megaways-grid";
-import { SlotControls } from "./slot-controls";
+import { SlotControls, type AutoplayConfig, BET_PRESETS } from "./slot-controls";
 import { SlotWinCelebration } from "./slot-win-celebration";
 import { SlotBonusModal } from "./slot-bonus-modal";
 import { SlotPaytableModal } from "./slot-paytable-modal";
 import { SlotMascot } from "./slot-mascot";
 import { SlotCabinetStage } from "./slot-cabinet-fx";
+import { ProvablyFairDialog } from "@/components/games/provably-fair-dialog";
 import Image from "next/image";
 import { Zap } from "lucide-react";
 
@@ -38,11 +39,29 @@ function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+const COMMUNITY_WINS = [
+  { user: "cryptoking***", game: "Gates of Vladfs", amount: "$14,820.00", mult: "1,482x", time: "2m ago" },
+  { user: "neon_shadow***", game: "Cyber Neon 777", amount: "$8,540.00", mult: "854x", time: "4m ago" },
+  { user: "pharaoh_luck***", game: "Pharaoh's Gold", amount: "$22,100.00", mult: "2,210x", time: "6m ago" },
+  { user: "sugar_bliss***", game: "Sugar Rush Frenzy", amount: "$5,320.00", mult: "532x", time: "9m ago" },
+  { user: "dragon_slayer***", game: "Dragon Fortune 888", amount: "$38,400.00", mult: "3,840x", time: "11m ago" },
+  { user: "vault_cracker***", game: "Dead Man's Vault", amount: "$11,250.00", mult: "1,125x", time: "14m ago" },
+];
+
+const THEME_RIBBON_ITEMS = [
+  { slug: "gates-of-vladfs", label: "Gates of Vladfs", icon: "⚡", badge: "Cluster 6×5" },
+  { slug: "cyber-neon-777", label: "Cyber Neon 777", icon: "🤖", badge: "Megaways" },
+  { slug: "pharaoh-gold-deluxe", label: "Pharaoh's Gold", icon: "🏺", badge: "Cluster 6×5" },
+  { slug: "sugar-rush-frenzy", label: "Sugar Rush Frenzy", icon: "🍬", badge: "Cluster 6×5" },
+  { slug: "dragon-fortune-888", label: "Dragon Fortune 888", icon: "🐉", badge: "Megaways" },
+  { slug: "dead-mans-vault", label: "Dead Man's Vault", icon: "💀", badge: "Cluster 6×5" },
+];
+
 export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProps) {
   const { user, wallet, refreshWallet, applyWallet } = useAuth();
 
   // Active theme
-  const [selectedSlug] = useState<string>(initialSlug);
+  const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
   const theme: SlotTheme = useMemo(() => getSlotTheme(selectedSlug), [selectedSlug]);
 
   const [engineMode, setEngineMode] = useState<SlotEngineMode>(theme.defaultEngine);
@@ -79,15 +98,27 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   const [scatterCount, setScatterCount] = useState(0);
   const [collectingOrbs, setCollectingOrbs] = useState<{ col: number; row: number }[]>([]);
   const [activeClusterHits, setActiveClusterHits] = useState<ClusterHit[]>([]);
+  const [megaStrike, setMegaStrike] = useState(false);
   const multiplierHudRef = useRef<HTMLDivElement>(null);
   const [accumulatedMultiplier, setAccumulatedMultiplier] = useState<number>(1);
   const [roundWinTarget, setRoundWinTarget] = useState<number>(0);
   const [roundWinDisplay, setRoundWinDisplay] = useState<number>(0);
   const roundWinDisplayRef = useRef(0);
 
-  // Autoplay state
+  // Autoplay state & Responsible Gaming Configuration
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
   const [autoPlayCount, setAutoPlayCount] = useState<number>(0);
+  const autoplayConfigRef = useRef<AutoplayConfig | null>(null);
+  const autoplayStartBalanceRef = useRef<number>(5000.0);
+
+  // Slam-Stop Quick-Halt State
+  const slamStopRef = useRef<boolean>(false);
+
+  // Provably Fair Cryptographic Verification State
+  const [isFairnessOpen, setIsFairnessOpen] = useState<boolean>(false);
+  const [currentNonce, setCurrentNonce] = useState<number>(1);
+  const [serverSeedHash] = useState<string>("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+  const [clientSeed] = useState<string>("vladfs_player_seed_9824");
 
   // Free Spins Bonus state
   const [inFreeSpins, setInFreeSpins] = useState<boolean>(false);
@@ -113,6 +144,80 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
     isSpinningRef.current = isSpinning;
     isAutoPlayingRef.current = isAutoPlaying;
   }, [inFreeSpins, freeSpinsRemaining, isSpinning, isAutoPlaying]);
+
+  // Quick-stop and wait helper
+  const waitOrSlam = useCallback(
+    async (ms: number) => {
+      if (slamStopRef.current || prefersReducedMotion()) return;
+      await wait(ms);
+    },
+    [],
+  );
+
+  const handleSlamStop = useCallback(() => {
+    if (!isSpinningRef.current) return;
+    slamStopRef.current = true;
+    slotAudio.playReelStop(5);
+  }, []);
+
+  const handleSelectTheme = useCallback(
+    (slug: string) => {
+      if (isSpinningRef.current || inBonusRef.current) return;
+      setSelectedSlug(slug);
+      const newTheme = getSlotTheme(slug);
+      setEngineMode(newTheme.defaultEngine);
+      setAccumulatedMultiplier(1);
+      setRoundWinDisplay(0);
+      setRoundWinTarget(0);
+      const ids: SymbolId[] = ["LOW_A", "LOW_K", "LOW_Q", "LOW_J", "LOW_10", "MED_1", "MED_2", "HIGH_4"];
+      setGrid(
+        Array.from({ length: 6 }, (_, col) =>
+          Array.from({ length: 5 }, (_, row) => ({
+            id: ids[(col * 5 + row) % ids.length],
+            key: `idle-${slug}-${col}-${row}`,
+          })),
+        ),
+      );
+      slotAudio.playButtonClick();
+    },
+    [],
+  );
+
+  const handleStartAutoplay = useCallback(
+    (config: number | AutoplayConfig) => {
+      if (typeof config === "number") {
+        autoplayConfigRef.current = { count: config, stopOnBonus: true };
+        setAutoPlayCount(config);
+      } else {
+        autoplayConfigRef.current = config;
+        setAutoPlayCount(config.count);
+      }
+      autoplayStartBalanceRef.current = currentBalance;
+      setIsAutoPlaying(true);
+    },
+    [currentBalance],
+  );
+
+  const checkAutoplayStopConditions = useCallback(
+    (roundWin: number, isBonusTriggered: boolean) => {
+      const cfg = autoplayConfigRef.current;
+      if (!cfg) return;
+      if (cfg.stopOnBonus && isBonusTriggered) {
+        setIsAutoPlaying(false);
+        return;
+      }
+      if (cfg.stopOnSingleWin && roundWin >= cfg.stopOnSingleWin) {
+        setIsAutoPlaying(false);
+        return;
+      }
+      if (cfg.stopOnLoss && autoplayStartBalanceRef.current - currentBalance >= cfg.stopOnLoss) {
+        setIsAutoPlaying(false);
+        return;
+      }
+    },
+    [currentBalance],
+  );
+
 
   useEffect(() => {
     const dest = roundWinTarget;
@@ -153,7 +258,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             currentMult += orb.value;
             slotAudio.playMultiplierOrbCharge(orb.value);
           });
-          await wait(prefersReducedMotion() ? 0 : isTurbo ? 180 : 420);
+          await waitOrSlam(prefersReducedMotion() ? 0 : isTurbo ? 180 : 420);
           setAccumulatedMultiplier(currentMult);
           setCollectingOrbs([]);
         }
@@ -161,7 +266,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         if (step.clusterHits.length > 0) {
           setActiveClusterHits(step.clusterHits);
           setWinHoldPositions(step.shatteredPositions);
-          await wait(isTurbo ? 120 : 280);
+          await waitOrSlam(isTurbo ? 120 : 280);
           setWinHoldPositions([]);
           setShatteredPositions(step.shatteredPositions);
           slotAudio.playTumbleShatter();
@@ -169,10 +274,10 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
 
           setRoundWinTarget(step.accumulatedStepWin * currentMult);
 
-          await wait(isTurbo ? 320 : 620);
+          await waitOrSlam(isTurbo ? 320 : 620);
           setShatteredPositions([]);
           setActiveClusterHits([]);
-          await wait(isTurbo ? 220 : 400);
+          await waitOrSlam(isTurbo ? 220 : 400);
         }
       }
 
@@ -215,10 +320,11 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         }
       }
 
+      checkAutoplayStopConditions(finalWin, roundResult.isFreeSpinsTriggered);
       setTumbleStepIndex(0);
       setIsSpinning(false);
     },
-    [isTurbo, persistentBonusMultiplier, wallet],
+    [isTurbo, persistentBonusMultiplier, wallet, waitOrSlam, checkAutoplayStopConditions],
   );
 
   // Main Spin Trigger
@@ -233,6 +339,8 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
         return;
       }
 
+      slamStopRef.current = false;
+      setCurrentNonce((prev) => prev + 1);
       setIsSpinning(true);
       setShatteredPositions([]);
       setWinHoldPositions([]);
@@ -242,6 +350,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       setScatterCount(0);
       setCollectingOrbs([]);
       setActiveClusterHits([]);
+      setMegaStrike(false);
       setTumbleStepIndex(0);
       setAccumulatedMultiplier(isBonus ? persistentBonusMultiplier : 1);
       roundWinDisplayRef.current = 0;
@@ -279,17 +388,33 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           setSpinningColumns([true, true, true, true, true, true]);
           setAnticipatingColumns([false, false, false, false, false, false]);
           const stagger = isTurbo ? 85 : 230;
-          await wait(isTurbo ? 160 : 500);
+          await waitOrSlam(isTurbo ? 160 : 500);
           let landedScatters = 0;
           for (let col = 0; col < 6; col++) {
+            if (slamStopRef.current) {
+              setSpinningColumns([false, false, false, false, false, false]);
+              setAnticipatingColumns([false, false, false, false, false, false]);
+              setFlashingColumns([true, true, true, true, true, true]);
+              slotAudio.stopAnticipation();
+              slotAudio.playReelStop(5);
+              break;
+            }
             if (col > 0) {
               if (landedScatters >= 2) {
                 setAnticipatingColumns((prev) => prev.map((_, i) => i >= col));
                 slotAudio.startAnticipation();
-                await wait(stagger + (isTurbo ? 180 : 650));
+                await waitOrSlam(stagger + (isTurbo ? 180 : 650));
               } else {
-                await wait(stagger);
+                await waitOrSlam(stagger);
               }
+            }
+            if (slamStopRef.current) {
+              setSpinningColumns([false, false, false, false, false, false]);
+              setAnticipatingColumns([false, false, false, false, false, false]);
+              setFlashingColumns([true, true, true, true, true, true]);
+              slotAudio.stopAnticipation();
+              slotAudio.playReelStop(5);
+              break;
             }
             setSpinningColumns((prev) => {
               const next = [...prev];
@@ -316,7 +441,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           }
           slotAudio.stopAnticipation();
           setAnticipatingColumns([false, false, false, false, false, false]);
-          await wait(isTurbo ? 120 : 280);
+          await waitOrSlam(isTurbo ? 120 : 280);
         }
 
         const roundResult = resolveFullTumbleRound(
@@ -338,17 +463,33 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           setSpinningColumns([true, true, true, true, true, true]);
           setAnticipatingColumns([false, false, false, false, false, false]);
           const stagger = isTurbo ? 80 : 200;
-          await wait(isTurbo ? 200 : 520);
+          await waitOrSlam(isTurbo ? 200 : 520);
           let megaScatters = 0;
           for (let col = 0; col < 6; col++) {
+            if (slamStopRef.current) {
+              setSpinningColumns([false, false, false, false, false, false]);
+              setAnticipatingColumns([false, false, false, false, false, false]);
+              setFlashingColumns([true, true, true, true, true, true]);
+              slotAudio.stopAnticipation();
+              slotAudio.playReelStop(5);
+              break;
+            }
             if (col > 0) {
               if (megaScatters >= 2) {
                 setAnticipatingColumns((prev) => prev.map((_, i) => i >= col));
                 slotAudio.startAnticipation();
-                await wait(stagger + (isTurbo ? 180 : 650));
+                await waitOrSlam(stagger + (isTurbo ? 180 : 650));
               } else {
-                await wait(stagger);
+                await waitOrSlam(stagger);
               }
+            }
+            if (slamStopRef.current) {
+              setSpinningColumns([false, false, false, false, false, false]);
+              setAnticipatingColumns([false, false, false, false, false, false]);
+              setFlashingColumns([true, true, true, true, true, true]);
+              slotAudio.stopAnticipation();
+              slotAudio.playReelStop(5);
+              break;
             }
             setSpinningColumns((prev) => {
               const next = [...prev];
@@ -373,9 +514,12 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           }
           slotAudio.stopAnticipation();
           setAnticipatingColumns([false, false, false, false, false, false]);
-          await wait(isTurbo ? 80 : 200);
+          await waitOrSlam(isTurbo ? 80 : 200);
         }
         setRoundWinTarget(megaRes.totalWin);
+        if (megaRes.wayHits.length > 0 || (megaRes.scatterHit && megaRes.scatterHit.count > 0)) {
+          setMegaStrike(true);
+        }
 
         if (megaRes.totalWin > 0) {
           slotAudio.playLineWin();
@@ -394,6 +538,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           setActiveBonusModal("TRIGGER");
         }
 
+        checkAutoplayStopConditions(megaRes.totalWin, megaRes.isFreeSpinsTriggered);
         setIsSpinning(false);
       }
     },
@@ -410,6 +555,8 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
       wallet,
       refreshWallet,
       applyWallet,
+      waitOrSlam,
+      checkAutoplayStopConditions,
     ],
   );
 
@@ -445,24 +592,80 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
     }
   }, [inFreeSpins, isSpinning, freeSpinsRemaining, celebrationWin, activeBonusModal, isTurbo, spin]);
 
-  // Spacebar Shortcut
+  // Desktop Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
       if (
-        e.code === "Space" &&
-        !isSpinningRef.current &&
-        !isAutoPlayingRef.current &&
-        !isPaytableOpen &&
-        celebrationWin === null &&
-        activeBonusModal === null
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
       ) {
+        return;
+      }
+
+      if (e.code === "Space" || e.code === "Enter") {
         e.preventDefault();
-        void spin();
+        if (isSpinningRef.current) {
+          handleSlamStop();
+        } else if (
+          !isAutoPlayingRef.current &&
+          !isPaytableOpen &&
+          celebrationWin === null &&
+          activeBonusModal === null
+        ) {
+          void spin();
+        }
+        return;
+      }
+
+      if (e.code === "KeyT" && !isSpinningRef.current) {
+        e.preventDefault();
+        setIsTurbo((prev) => !prev);
+        slotAudio.playButtonClick();
+        return;
+      }
+
+      if (e.code === "KeyM") {
+        e.preventDefault();
+        setIsMuted((prev) => {
+          const next = !prev;
+          slotAudio.setMuted(next);
+          return next;
+        });
+        return;
+      }
+
+      if ((e.code === "KeyP" || e.code === "KeyI") && !isSpinningRef.current) {
+        e.preventDefault();
+        setIsPaytableOpen((prev) => !prev);
+        slotAudio.playButtonClick();
+        return;
+      }
+
+      if (e.code === "ArrowUp" && !isSpinningRef.current && !inFreeSpins) {
+        e.preventDefault();
+        const currIdx = BET_PRESETS.findIndex((b) => b >= betAmount);
+        const nextIdx = Math.min(BET_PRESETS.length - 1, (currIdx === -1 ? 0 : currIdx) + 1);
+        setBetAmount(BET_PRESETS[nextIdx]);
+        slotAudio.playBetChange();
+        return;
+      }
+
+      if (e.code === "ArrowDown" && !isSpinningRef.current && !inFreeSpins) {
+        e.preventDefault();
+        const currIdx = BET_PRESETS.findIndex((b) => b >= betAmount);
+        const nextIdx = Math.max(0, (currIdx === -1 ? 0 : currIdx) - 1);
+        setBetAmount(BET_PRESETS[nextIdx]);
+        slotAudio.playBetChange();
+        return;
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPaytableOpen, celebrationWin, activeBonusModal, spin]);
+  }, [isPaytableOpen, celebrationWin, activeBonusModal, inFreeSpins, betAmount, spin, handleSlamStop]);
 
   const handleBuyBonus = () => {
     const cost = betAmount * 100;
@@ -477,7 +680,66 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
   };
 
   return (
-    <div className="relative mx-auto max-w-6xl w-full px-2 sm:px-4 py-6 space-y-6">
+    <div className="relative mx-auto max-w-6xl w-full px-2 sm:px-4 py-6 space-y-4">
+      {/* Live Community Slot Wins Marquee Ticker */}
+      <div className="relative overflow-hidden rounded-2xl bg-neutral-950/90 border border-amber-500/20 p-2 shadow-inner">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[10px] font-black uppercase tracking-wider">Live Slot Hits</span>
+          </div>
+          <div className="relative overflow-hidden w-full">
+            <div className="animate-marquee-scroll whitespace-nowrap text-xs flex items-center gap-6">
+              {COMMUNITY_WINS.concat(COMMUNITY_WINS).map((w, idx) => (
+                <div key={`win-${idx}`} className="inline-flex items-center gap-2 text-white/80 font-medium">
+                  <span className="font-mono text-emerald-400 font-bold">{w.user}</span>
+                  <span className="text-white/40">won</span>
+                  <span className="font-black text-amber-300">{w.amount}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">
+                    {w.mult}
+                  </span>
+                  <span className="text-white/50 text-[11px]">on {w.game}</span>
+                  <span className="text-white/30 text-[10px]">({w.time})</span>
+                  <span className="text-white/20 mx-1">•</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* In-Cabinet Theme Switcher Ribbon */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground whitespace-nowrap pl-1">
+          Slots Gallery:
+        </span>
+        {THEME_RIBBON_ITEMS.map((t) => {
+          const isActive = selectedSlug === t.slug;
+          return (
+            <button
+              key={t.slug}
+              type="button"
+              disabled={isSpinning || inFreeSpins}
+              onClick={() => handleSelectTheme(t.slug)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all whitespace-nowrap ${
+                isActive
+                  ? "bg-amber-400/20 border-amber-400/60 text-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.3)] scale-[1.02]"
+                  : "bg-black/40 border-white/10 text-white/70 hover:bg-white/10 hover:text-white"
+              } ${isSpinning || inFreeSpins ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            >
+              <span className="text-sm">{t.icon}</span>
+              <span>{t.label}</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/10 text-white/60 font-mono">
+                {t.badge}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Top Header & Engine Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-card/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -495,9 +757,18 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             <p className="text-[11px] text-white/50">{theme.tagline}</p>
           </div>
         </div>
-        <span className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
-          {engineMode === "MEGAWAYS" ? "Megaways" : "6×5 Cluster"} · {theme.volatility}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsFairnessOpen(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition-colors"
+          >
+            🛡️ <span className="hidden sm:inline">Provably Fair</span>
+          </button>
+          <span className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-300">
+            {engineMode === "MEGAWAYS" ? "Megaways" : "6×5 Cluster"} · {theme.volatility}
+          </span>
+        </div>
       </div>
 
       {/* Main Luxury Slot Cabinet */}
@@ -562,10 +833,12 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             {accumulatedMultiplier > 1 ? (
               <div
                 key={`mult-hud-${accumulatedMultiplier}`}
-                className="flex items-center gap-1.5 px-4 py-1 rounded-full bg-yellow-400/20 border border-yellow-400/60 shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-multiplier-pop"
+                className={`flex items-center gap-1.5 rounded-full bg-yellow-400/20 border border-yellow-400/60 shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-multiplier-pop ${
+                  inFreeSpins ? "px-6 py-2" : "px-4 py-1"
+                }`}
               >
-                <Zap className="h-4 w-4 text-yellow-300 fill-yellow-300" />
-                <span className="font-mono text-sm sm:text-base font-black text-yellow-300">
+                <Zap className={`text-yellow-300 fill-yellow-300 ${inFreeSpins ? "h-6 w-6" : "h-4 w-4"}`} />
+                <span className={`font-mono font-black text-yellow-300 ${inFreeSpins ? "text-lg sm:text-2xl" : "text-sm sm:text-base"}`}>
                   {accumulatedMultiplier}X ACCUMULATED MULTIPLIER
                 </span>
               </div>
@@ -600,6 +873,9 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             inFreeSpins={inFreeSpins}
             freeSpinsRemaining={freeSpinsRemaining}
             tumbleHit={shatteredPositions.length > 0}
+            strike={megaStrike}
+            anticipating={anticipatingColumns.some(Boolean)}
+            punch={shatteredPositions.length > 0 || megaStrike}
             accessory={
               <SlotMascot
                 themeId={selectedSlug}
@@ -607,6 +883,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
                 isBonus={inFreeSpins}
                 lastWin={roundWinDisplay}
                 scatterCount={scatterCount}
+                forceStrike={shatteredPositions.length > 0 || megaStrike}
                 compact
               />
             }
@@ -650,6 +927,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
               isBonus={inFreeSpins}
               lastWin={roundWinDisplay}
               scatterCount={scatterCount}
+              forceStrike={shatteredPositions.length > 0 || megaStrike}
             />
           </div>
         </div>
@@ -669,12 +947,10 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
             freeSpinsRemaining={freeSpinsRemaining}
             currentMultiplier={accumulatedMultiplier}
             onSpin={() => void spin()}
+            onSlamStop={handleSlamStop}
             onBetChange={(newBet) => setBetAmount(newBet)}
             onToggleTurbo={() => setIsTurbo(!isTurbo)}
-            onStartAutoplay={(count) => {
-              setAutoPlayCount(count);
-              setIsAutoPlaying(true);
-            }}
+            onStartAutoplay={handleStartAutoplay}
             onStopAutoplay={() => setIsAutoPlaying(false)}
             onToggleAnteBet={() => setAnteBetActive(!anteBetActive)}
             onBuyBonus={handleBuyBonus}
@@ -684,6 +960,7 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
               slotAudio.setMuted(nextMute);
             }}
             onOpenPaytable={() => setIsPaytableOpen(true)}
+            onOpenFairness={() => setIsFairnessOpen(true)}
           />
         </div>
       </div>
@@ -798,6 +1075,15 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           }}
         />
       )}
+
+      {/* Provably Fair RNG Verification Modal */}
+      <ProvablyFairDialog
+        open={isFairnessOpen}
+        onOpenChange={setIsFairnessOpen}
+        serverSeedHash={serverSeedHash}
+        clientSeed={clientSeed}
+        nonce={currentNonce}
+      />
     </div>
   );
 }

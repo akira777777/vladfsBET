@@ -117,20 +117,40 @@ export function SlotMegawaysGrid({
       </div>
 
       {/* Dynamic 6-Reel Grid Area */}
-      <div className="relative flex-1 grid grid-cols-6 gap-1 sm:gap-2 h-full w-full p-2 bg-neutral-950/90 rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+      <div
+        className={`relative flex-1 grid grid-cols-6 gap-1 sm:gap-2 h-full w-full p-2 bg-neutral-950/90 rounded-2xl border border-white/10 overflow-hidden shadow-2xl ${
+          revealed && winningPositions.length > 0 ? "animate-grid-punch" : ""
+        }`}
+      >
         {/* eslint-disable-next-line react-hooks/refs -- read-only access to a pre-seeded reel strip ref */}
         {[0, 1, 2, 3, 4, 5].map((colIdx) => {
           const height = reelHeights[colIdx];
           const colCells = grid?.[colIdx] || [];
+          const colHasWin = !spinningColumns[colIdx] && colCells.some((_, rowIdx) => isWinning(colIdx, rowIdx));
 
           return (
             <div
               key={`megaways-col-${colIdx}`}
-              className={`flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 reel-window-mask ${
-                anticipatingColumns[colIdx] ? "animate-scatter-anticipation ring-1 ring-amber-400/70" : ""
+              className={`flex flex-col justify-end gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl bg-black/30 p-1 border border-white/5 transition-all duration-300 reel-window-mask ${
+                anticipatingColumns[colIdx]
+                  ? "animate-scatter-anticipation animate-anticipation-heartbeat ring-1 ring-amber-400/70"
+                  : ""
               } ${flashingColumns[colIdx] ? "animate-column-flash" : ""} ${
                 spinningColumns[colIdx] ? "" : isSpinning ? "animate-reel-spring" : ""
+              } ${
+                revealed && !isTurbo && !spinningColumns[colIdx] ? "animate-reel-expand" : ""
+              } ${
+                scatterTeasing &&
+                !anticipatingColumns[colIdx] &&
+                !spinningColumns[colIdx] &&
+                !colCells.some((c) => c.id === "SCATTER")
+                  ? "opacity-40"
+                  : ""
               }`}
+              style={{
+                transform: `rotateY(${(colIdx - 2.5) * -4}deg)${spinningColumns[colIdx] ? " translateZ(18px)" : ""}`,
+                boxShadow: colHasWin ? `inset 0 0 18px ${theme.glowColor}` : undefined,
+              }}
             >
               {spinningColumns[colIdx] ? (
                 <div
@@ -144,31 +164,22 @@ export function SlotMegawaysGrid({
                   ))}
                 </div>
               ) : (
-              Array.from({ length: height }).map((_, rowIdx) => {
-                const cell = colCells[rowIdx];
+              colCells.map((cell, rowIdx) => {
                 const win = !spinningColumns[colIdx] && isWinning(colIdx, rowIdx);
                 const showScatterBeam =
                   cell?.id === "SCATTER" && flashingColumns[colIdx] && !spinningColumns[colIdx];
 
-                if (!cell) {
-                  return (
-                    <div
-                      key={`empty-${colIdx}-${rowIdx}`}
-                      className="flex-1 rounded-lg bg-white/5 border border-white/5"
-                    />
-                  );
-                }
-
                 return (
                   <div
                     key={cell.key || `cell-${colIdx}-${rowIdx}`}
-                    className={`relative flex-1 flex items-center justify-center rounded-lg p-0.5 transition-all ${
+                    className={`relative flex items-center justify-center rounded-lg p-0.5 transition-all ${
                       win
                         ? "bg-yellow-400/20 border border-yellow-400 scale-[1.03] z-10 animate-win-glow"
                         : "bg-white/[0.02] border border-white/5 hover:bg-white/[0.05]"
                     } ${
                       revealed ? `animate-slot-drop cascade-delay-${colIdx}` : ""
                     }`}
+                    style={{ flex: "0 0 auto", height: `${100 / Math.max(height, 2)}%` }}
                   >
                     {win && (
                       <div className="absolute inset-0 rounded-lg animate-win-shimmer pointer-events-none z-[1]" />

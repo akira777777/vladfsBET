@@ -5,6 +5,13 @@ import { formatMoney } from "@/lib/format";
 import { slotAudio } from "@/lib/slots/slot-audio";
 import { Button } from "@/components/ui/button";
 
+export type AutoplayConfig = {
+  count: number;
+  stopOnBonus: boolean;
+  stopOnSingleWin?: number;
+  stopOnLoss?: number;
+};
+
 interface SlotControlsProps {
   betAmount: number;
   minBet?: number;
@@ -20,17 +27,19 @@ interface SlotControlsProps {
   freeSpinsRemaining: number;
   currentMultiplier: number;
   onSpin: () => void;
+  onSlamStop?: () => void;
   onBetChange: (newBet: number) => void;
   onToggleTurbo: () => void;
-  onStartAutoplay: (count: number) => void;
+  onStartAutoplay: (config: number | AutoplayConfig) => void;
   onStopAutoplay: () => void;
   onToggleAnteBet: () => void;
   onBuyBonus: () => void;
   onToggleMute: () => void;
   onOpenPaytable: () => void;
+  onOpenFairness?: () => void;
 }
 
-const BET_PRESETS = [0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 250.0, 500.0];
+export const BET_PRESETS = [0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0, 250.0, 500.0];
 
 export function SlotControls({
   betAmount,
@@ -45,8 +54,9 @@ export function SlotControls({
   isMuted,
   inFreeSpins,
   freeSpinsRemaining,
-  currentMultiplier,
+  currentMultiplier: _currentMultiplier,
   onSpin,
+  onSlamStop,
   onBetChange,
   onToggleTurbo,
   onStartAutoplay,
@@ -55,9 +65,12 @@ export function SlotControls({
   onBuyBonus,
   onToggleMute,
   onOpenPaytable,
+  onOpenFairness,
 }: SlotControlsProps) {
   const [showAutoModal, setShowAutoModal] = useState(false);
   const [showBetModal, setShowBetModal] = useState(false);
+  const [autoStopOnBonus, setAutoStopOnBonus] = useState(true);
+  const [autoWinLimit, setAutoWinLimit] = useState<number | undefined>(50);
 
   const effectiveBet = anteBetActive ? betAmount * 1.25 : betAmount;
 
@@ -98,65 +111,119 @@ export function SlotControls({
                   slotAudio.playButtonClick();
                   onToggleAnteBet();
                 }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border-2 text-xs font-black uppercase tracking-wider transition-all shadow-lg ${
+                disabled={isSpinning || isAutoPlaying}
+                className={`group relative overflow-hidden flex items-center gap-2.5 px-3 py-2 rounded-2xl border-2 transition-all duration-300 ${
                   anteBetActive
-                    ? "bg-gradient-to-r from-amber-500 to-yellow-400 border-yellow-200 text-black shadow-[0_0_20px_rgba(251,191,36,0.6)] scale-105"
-                    : "bg-black/60 border-yellow-500/40 text-yellow-400 hover:border-yellow-400 hover:bg-black/80"
-                }`}
+                    ? "bg-gradient-to-r from-emerald-950 via-green-900 to-emerald-950 border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.5)] scale-102"
+                    : "bg-black/60 border-white/15 hover:border-emerald-500/50 hover:bg-emerald-950/20"
+                } ${isSpinning || isAutoPlaying ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
               >
-                <span className="text-base">⚡</span>
-                <div className="text-left">
-                  <div className="leading-none text-[9px] font-bold text-black/80 dark:text-yellow-200">DOUBLE CHANCE</div>
-                  <div className="leading-tight text-[11px] font-black">ANTE BET {anteBetActive ? "ON" : "OFF"}</div>
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs transition-colors ${
+                    anteBetActive
+                      ? "bg-emerald-400 text-black shadow-md"
+                      : "bg-neutral-800 text-neutral-400 group-hover:bg-neutral-700"
+                  }`}
+                >
+                  ⚡
+                </div>
+                <div className="flex flex-col text-left">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                      ANTE BET
+                    </span>
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                      25x
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-muted-foreground font-semibold">
+                    DOUBLE CHANCE TO WIN FEATURE
+                  </span>
                 </div>
               </button>
 
-              {/* Pragmatic Bonus Buy Button */}
+              {/* Buy Free Spins Feature */}
               <button
                 type="button"
                 onClick={() => {
                   slotAudio.playButtonClick();
                   onBuyBonus();
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black text-xs font-black uppercase tracking-wider shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:brightness-110 hover:scale-105 active:scale-95 transition-all"
+                disabled={isSpinning || isAutoPlaying}
+                className={`group relative overflow-hidden flex items-center gap-2.5 px-3 py-2 rounded-2xl border-2 border-amber-400/80 bg-gradient-to-r from-amber-950 via-yellow-900/60 to-amber-950 shadow-[0_0_20px_rgba(251,191,36,0.35)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] hover:scale-102 transition-all duration-300 ${
+                  isSpinning || isAutoPlaying ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+                }`}
               >
-                <span className="text-base">👑</span>
-                <span>BUY FREE SPINS ({formatMoney(betAmount * 100, currency)})</span>
+                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-200 text-black flex items-center justify-center font-black text-xs shadow-md">
+                  ★
+                </div>
+                <div className="flex flex-col text-left">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-yellow-300">
+                      BUY FREE SPINS
+                    </span>
+                    <span className="text-[9px] px-1 py-0.2 rounded bg-yellow-400/20 text-yellow-300 font-bold">
+                      100x
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-amber-200/90 font-black tabular-nums">
+                    {formatMoney(betAmount * 100, currency)}
+                  </span>
+                </div>
               </button>
             </>
           )}
 
           {inFreeSpins && (
-            <div className="flex items-center gap-3 bg-gradient-to-r from-purple-900/90 to-amber-900/90 border-2 border-yellow-400 px-5 py-2.5 rounded-2xl shadow-[0_0_25px_rgba(251,191,36,0.6)] animate-pulse">
-              <span className="text-xs font-black tracking-widest text-yellow-300 uppercase">
-                FREE SPINS LEFT: {freeSpinsRemaining}
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-yellow-300 to-amber-400 text-black text-xs font-black">
-                {currentMultiplier}X MULTIPLIER
-              </span>
+            <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-950 border-2 border-purple-400/80 shadow-[0_0_25px_rgba(168,85,247,0.5)] animate-pulse">
+              <span className="text-xl">🌀</span>
+              <div>
+                <p className="text-[10px] uppercase font-black tracking-widest text-purple-300">
+                  FREE SPINS FEATURE
+                </p>
+                <p className="text-sm font-black text-white">
+                  {freeSpinsRemaining} SPINS REMAINING
+                </p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Right Side: Turbo, Sound, Paytable */}
-        <div className="flex items-center gap-1.5">
+        {/* Right Side: Turbo, Provably Fair, Sound & Paytable Quick Icons */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Turbo Toggle */}
           <button
             type="button"
             onClick={() => {
-              slotAudio.playButtonClick();
               onToggleTurbo();
+              slotAudio.playButtonClick();
             }}
             className={`p-2 sm:px-3 sm:py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
               isTurbo
                 ? "bg-amber-500/30 border-amber-400 text-yellow-300 shadow-[0_0_15px_rgba(251,191,36,0.5)]"
                 : "bg-black/50 border-white/10 text-muted-foreground hover:text-white"
             }`}
-            title="Turbo Spin Mode"
+            title="Turbo Spin Mode (Hot-key: T)"
           >
             <span>⚡</span>
             <span className="hidden sm:inline font-black text-[11px]">TURBO</span>
           </button>
+
+          {/* Provably Fair */}
+          {onOpenFairness && (
+            <button
+              type="button"
+              onClick={() => {
+                slotAudio.playButtonClick();
+                onOpenFairness();
+              }}
+              className="p-2 sm:px-2.5 sm:py-2 rounded-xl border bg-black/50 border-gold/40 text-gold hover:bg-gold/10 hover:border-gold transition-colors flex items-center gap-1"
+              title="Cryptographic Provably Fair RNG details"
+            >
+              <span className="text-xs">🛡️</span>
+              <span className="hidden md:inline font-bold text-[10px]">FAIRNESS</span>
+            </button>
+          )}
 
           {/* Sound Toggle */}
           <button
@@ -166,7 +233,7 @@ export function SlotControls({
               slotAudio.playButtonClick();
             }}
             className="p-2 sm:p-2.5 rounded-xl border bg-black/50 border-white/10 text-white/70 hover:text-white hover:border-white/25 transition-colors"
-            title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            title={isMuted ? "Unmute Sound (Hot-key: M)" : "Mute Sound (Hot-key: M)"}
           >
             {isMuted ? "🔇" : "🔊"}
           </button>
@@ -179,7 +246,7 @@ export function SlotControls({
               onOpenPaytable();
             }}
             className="p-2 sm:p-2.5 rounded-xl border bg-black/50 border-white/10 text-white/70 hover:text-white hover:border-white/25 transition-colors"
-            title="Paytable & Rules"
+            title="Paytable & Rules (Hot-key: P)"
           >
             ℹ️
           </button>
@@ -250,7 +317,7 @@ export function SlotControls({
           </div>
         )}
 
-        {/* Right Side: Autoplay & PRAGMATIC ICONIC CIRCULAR SPIN BUTTON */}
+        {/* Right Side: Autoplay & PRAGMATIC ICONIC CIRCULAR SPIN / SLAM-STOP BUTTON */}
         <div className="flex items-center gap-3">
           {/* Autoplay Toggle */}
           {!inFreeSpins && (
@@ -275,42 +342,95 @@ export function SlotControls({
                 </Button>
               )}
 
-              {/* Autoplay Count Options */}
+              {/* Responsible Gaming Autoplay Modal */}
               {showAutoModal && (
-                <div className="absolute bottom-16 right-0 z-40 p-3 rounded-2xl bg-neutral-950 border-2 border-yellow-500/50 shadow-2xl flex flex-col gap-1.5 w-36 animate-fadeIn">
-                  <span className="text-[10px] font-black text-amber-400 uppercase px-1">
-                    Auto Rounds
-                  </span>
-                  {[10, 25, 50, 100].map((count) => (
+                <div className="absolute bottom-16 right-0 z-40 p-4 rounded-2xl bg-neutral-950 border-2 border-yellow-500/60 shadow-2xl flex flex-col gap-2.5 w-56 animate-fadeIn text-xs">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+                    <span className="text-[11px] font-black text-amber-400 uppercase tracking-wider">
+                      Autoplay Settings
+                    </span>
                     <button
-                      key={`auto-${count}`}
-                      onClick={() => {
-                        slotAudio.playButtonClick();
-                        onStartAutoplay(count);
-                        setShowAutoModal(false);
-                      }}
-                      className="px-3 py-2 rounded-xl text-xs font-black text-left bg-black/60 text-white hover:bg-yellow-400 hover:text-black transition-colors"
+                      onClick={() => setShowAutoModal(false)}
+                      className="text-muted-foreground hover:text-white"
                     >
-                      {count} Spins
+                      ✕
                     </button>
-                  ))}
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-muted-foreground font-semibold">SPIN COUNT</span>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[10, 25, 50, 100].map((count) => (
+                        <button
+                          key={`auto-${count}`}
+                          onClick={() => {
+                            slotAudio.playButtonClick();
+                            onStartAutoplay({
+                              count,
+                              stopOnBonus: autoStopOnBonus,
+                              stopOnSingleWin: autoWinLimit ? betAmount * autoWinLimit : undefined,
+                            });
+                            setShowAutoModal(false);
+                          }}
+                          className="px-2 py-1.5 rounded-lg text-xs font-black text-center bg-black/60 text-white hover:bg-yellow-400 hover:text-black transition-colors border border-white/5"
+                        >
+                          {count}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Responsible Gaming Limits */}
+                  <div className="space-y-2 border-t border-white/10 pt-2 text-[11px]">
+                    <label className="flex items-center gap-2 cursor-pointer text-white/90">
+                      <input
+                        type="checkbox"
+                        checked={autoStopOnBonus}
+                        onChange={(e) => setAutoStopOnBonus(e.target.checked)}
+                        className="rounded accent-gold h-3.5 w-3.5"
+                      />
+                      <span>Stop on Bonus Feature</span>
+                    </label>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-muted-foreground">STOP IF WIN EXCEEDS:</span>
+                      <div className="grid grid-cols-3 gap-1 text-[10px]">
+                        {[20, 50, 100].map((mult) => (
+                          <button
+                            key={`win-lim-${mult}`}
+                            type="button"
+                            onClick={() => setAutoWinLimit(autoWinLimit === mult ? undefined : mult)}
+                            className={`py-1 rounded border text-center font-bold ${
+                              autoWinLimit === mult
+                                ? "bg-amber-400/20 border-gold text-gold"
+                                : "bg-black/40 border-white/10 text-muted-foreground"
+                            }`}
+                          >
+                            {mult}x
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* PRAGMATIC PLAY ICONIC ROUND GOLD SPIN BUTTON */}
+          {/* PRAGMATIC PLAY ICONIC ROUND GOLD SPIN / SLAM-STOP BUTTON */}
           <button
             type="button"
             onClick={() => {
-              if (!isSpinning && !isAutoPlaying) {
+              if (isSpinning) {
+                if (onSlamStop) onSlamStop();
+              } else if (!isAutoPlaying) {
                 onSpin();
               }
             }}
-            disabled={isSpinning || isAutoPlaying}
+            disabled={isAutoPlaying}
             className={`relative group w-18 h-18 sm:w-20 sm:h-20 rounded-full font-black tracking-wider uppercase transition-all duration-200 flex flex-col items-center justify-center select-none ${
               isSpinning
-                ? "bg-neutral-800 text-neutral-500 border-4 border-neutral-700 cursor-not-allowed"
+                ? "bg-gradient-to-tr from-amber-600 via-orange-500 to-amber-700 text-white border-4 border-amber-200 shadow-[0_0_35px_rgba(245,158,11,0.9)] hover:scale-105 active:scale-95 cursor-pointer animate-pulse"
                 : "bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-600 text-black border-4 border-yellow-100 shadow-[0_0_35px_rgba(251,191,36,0.8)] hover:shadow-[0_0_55px_rgba(251,191,36,1)] hover:scale-108 active:scale-95 cursor-pointer"
             }`}
           >
@@ -325,11 +445,19 @@ export function SlotControls({
             {/* Inner Metallic Bevel Ring */}
             <div className="relative z-10 flex flex-col items-center justify-center">
               {isSpinning ? (
-                <div className="w-8 h-8 rounded-full border-4 border-yellow-400/30 border-t-yellow-300 animate-spin" />
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-xl">⚡</span>
+                  <span className="text-[10px] font-black text-white leading-none mt-0.5 tracking-widest">
+                    STOP
+                  </span>
+                </div>
               ) : (
                 <>
                   {/* Pragmatic Curved Arrows Icon */}
-                  <svg viewBox="0 0 24 24" className="w-8 h-8 text-black fill-current drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)] transition-transform group-hover:rotate-180 duration-500">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="w-8 h-8 text-black fill-current drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)] transition-transform group-hover:rotate-180 duration-500"
+                  >
                     <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" />
                   </svg>
                   <span className="text-[10px] font-black text-black leading-none mt-0.5">SPIN</span>
@@ -337,6 +465,29 @@ export function SlotControls({
               )}
             </div>
           </button>
+        </div>
+      </div>
+
+      {/* Keyboard Shortcuts Helper Ribbon */}
+      <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground px-2 pt-0.5 font-mono">
+        <div className="flex items-center gap-3">
+          <span>
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/90 text-[10px]">SPACE</kbd>{" "}
+            {isSpinning ? "Quick Stop" : "Spin"}
+          </span>
+          <span className="hidden sm:inline">
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/90 text-[10px]">T</kbd> Turbo
+          </span>
+          <span className="hidden sm:inline">
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/90 text-[10px]">M</kbd> Mute
+          </span>
+          <span className="hidden sm:inline">
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-white/90 text-[10px]">P</kbd> Paytable
+          </span>
+        </div>
+        <div className="hidden sm:flex items-center gap-1.5 text-emerald-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+          <span>Provably Fair RNG Active</span>
         </div>
       </div>
     </div>

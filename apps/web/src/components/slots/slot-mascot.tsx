@@ -9,29 +9,30 @@ interface SlotMascotProps {
   lastWin: number;
   scatterCount: number;
   compact?: boolean;
+  forceStrike?: boolean;
 }
 
 export function SlotMascot({
   themeId,
   isSpinning,
   isBonus,
-  lastWin,
+  lastWin: _lastWin,
   scatterCount,
   compact = false,
+  forceStrike = false,
 }: SlotMascotProps) {
   const charging = scatterCount >= 2;
   const [striking, setStriking] = useState(false);
 
   useEffect(() => {
-    if (lastWin > 0) {
-      const timer1 = setTimeout(() => setStriking(true), 10);
-      const timer2 = setTimeout(() => setStriking(false), 2000);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
-    }
-  }, [lastWin]);
+    if (!forceStrike) return;
+    const raf = requestAnimationFrame(() => setStriking(true));
+    const timer = setTimeout(() => setStriking(false), 700);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [forceStrike]);
 
   // Render Mascot based on Theme
   if (themeId === "gates-of-vladfs" || themeId === "sandbox-slots") {

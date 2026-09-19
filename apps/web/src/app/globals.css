@@ -217,10 +217,13 @@ body {
   .animate-led-chase,
   .animate-led-breathe,
   .animate-marquee-shimmer,
+  .animate-marquee-scroll,
   .animate-atmosphere-drift,
   .animate-lightning-flash,
   .animate-scatter-tease,
   .animate-spin-ring,
+  .animate-anticipation-heartbeat,
+  .animate-bonus-storm,
   .live-dot {
     animation: none !important;
   }
@@ -377,15 +380,15 @@ body {
 
 /* ── Grid Tumble Shake ── */
 @keyframes tumbleShake {
-  0%, 100% { transform: translateX(0) translateY(0); }
-  10% { transform: translateX(-3px) translateY(1px); }
-  20% { transform: translateX(3px) translateY(-1px); }
-  30% { transform: translateX(-2px) translateY(2px); }
-  40% { transform: translateX(2px) translateY(-1px); }
-  50% { transform: translateX(-1px) translateY(1px); }
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+  12% { transform: translateX(-8px) translateY(3px) rotate(-1.4deg); }
+  24% { transform: translateX(8px) translateY(-4px) rotate(1.6deg); }
+  36% { transform: translateX(-6px) translateY(2px) rotate(-1deg); }
+  50% { transform: translateX(5px) translateY(-2px) rotate(0.8deg); }
+  68% { transform: translateX(-3px) translateY(1px) rotate(-0.4deg); }
 }
 .animate-tumble-shake {
-  animation: tumbleShake 0.4s ease-in-out;
+  animation: tumbleShake 0.45s ease-in-out;
 }
 
 /* ── Scatter Anticipation Glow ── */
@@ -619,6 +622,19 @@ body {
   animation: marqueeShimmer 3.2s linear infinite;
 }
 
+@keyframes marqueeScroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+.animate-marquee-scroll {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 40s linear infinite;
+}
+.animate-marquee-scroll:hover {
+  animation-play-state: paused;
+}
+
 @keyframes atmosphereDrift {
   0% { transform: translate3d(0, 0, 0); }
   50% { transform: translate3d(6px, -10px, 0); }
@@ -667,8 +683,75 @@ body {
 .cabinet-glass-vignette {
   background:
     radial-gradient(ellipse at center, transparent 42%, rgba(0, 0, 0, 0.45) 100%),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.08), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35));
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.14), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.35));
   pointer-events: none;
+}
+
+.reel-stage-3d {
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+@media (max-width: 640px) {
+  .reel-stage-3d {
+    perspective: none;
+  }
+}
+
+@keyframes gridPunch {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.045); }
+  100% { transform: scale(1); }
+}
+.animate-grid-punch {
+  animation: gridPunch 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes lightningStrike {
+  0% { opacity: 0; clip-path: inset(0 0 100% 0); filter: brightness(2); }
+  18% { opacity: 1; clip-path: inset(0 0 0 0); filter: brightness(2.4); }
+  40% { opacity: 0.35; }
+  55% { opacity: 1; filter: brightness(3); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+.animate-lightning-strike {
+  animation: lightningStrike 0.42s ease-out forwards;
+}
+
+@keyframes scanSlash {
+  0% { transform: translate(-40%, -40%) rotate(-28deg) scaleY(0.2); opacity: 0; }
+  25% { opacity: 1; transform: translate(0, 0) rotate(-28deg) scaleY(1); }
+  100% { transform: translate(45%, 45%) rotate(-28deg) scaleY(0.4); opacity: 0; }
+}
+.animate-scan-slash {
+  animation: scanSlash 0.4s ease-out forwards;
+}
+
+@keyframes reelExpand {
+  0% { transform: scaleY(0.82); }
+  55% { transform: scaleY(1.05); }
+  100% { transform: scaleY(1); }
+}
+.animate-reel-expand {
+  transform-origin: bottom center;
+  animation: reelExpand 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes anticipationHeartbeat {
+  0%, 100% { box-shadow: 0 0 10px rgba(56,189,248,0.35); filter: brightness(1); }
+  45% { box-shadow: 0 0 28px rgba(251,191,36,0.7); filter: brightness(1.25); }
+}
+.animate-anticipation-heartbeat {
+  animation: anticipationHeartbeat 0.55s ease-in-out infinite;
+}
+
+@keyframes bonusStorm {
+  0%, 100% { opacity: 0.15; }
+  40% { opacity: 0.55; }
+  55% { opacity: 0.1; }
+  70% { opacity: 0.4; }
+}
+.animate-bonus-storm {
+  animation: bonusStorm 2.4s ease-in-out infinite;
 }
 
 /* ── Mines Mine Detonation Shockwave ── */

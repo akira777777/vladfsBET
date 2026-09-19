@@ -47,8 +47,60 @@ interface SlotCabinetStageProps {
   inFreeSpins: boolean;
   freeSpinsRemaining: number;
   tumbleHit: boolean;
+  strike?: boolean;
+  anticipating?: boolean;
+  punch?: boolean;
   accessory?: React.ReactNode;
   children: React.ReactNode;
+}
+
+function StrikeOverlay({
+  active,
+  category,
+  accent,
+}: {
+  active: boolean;
+  category: SlotTheme["category"];
+  accent: string;
+}) {
+  if (!active) return null;
+  if (category === "CYBERPUNK") {
+    return (
+      <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+        <div
+          className="absolute left-[8%] top-[-10%] h-[140%] w-10 origin-center rounded-full blur-[1px] animate-scan-slash"
+          style={{
+            background: `linear-gradient(180deg, transparent, ${accent}, #22d3ee, transparent)`,
+            boxShadow: `0 0 24px ${accent}`,
+          }}
+        />
+        <div className="absolute inset-0 bg-fuchsia-400/20 animate-lightning-flash" />
+      </div>
+    );
+  }
+  return (
+    <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+      <svg viewBox="0 0 200 240" className="absolute inset-0 h-full w-full animate-lightning-strike">
+        <path
+          d="M108 8 L72 96 L102 96 L78 232 L148 88 L112 88 Z"
+          fill={accent}
+          stroke="#fff"
+          strokeWidth="3"
+          filter="url(#boltGlow)"
+        />
+        <defs>
+          <filter id="boltGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 bg-sky-100/25 animate-lightning-flash" />
+    </div>
+  );
 }
 
 export function SlotCabinetStage({
@@ -57,23 +109,29 @@ export function SlotCabinetStage({
   inFreeSpins,
   freeSpinsRemaining,
   tumbleHit,
+  strike = false,
+  anticipating = false,
+  punch = false,
   accessory,
   children,
 }: SlotCabinetStageProps) {
   const atmosphere = atmosphereFor(theme.category);
   const intensity = inFreeSpins ? 1 : spinning ? 0.72 : 0.4;
+  const hit = tumbleHit || strike;
+  const bonusFrame =
+    theme.category === "CYBERPUNK"
+      ? "border-fuchsia-400/80 shadow-[0_0_48px_rgba(244,63,94,0.5)]"
+      : "border-yellow-300/80 shadow-[0_0_48px_rgba(168,85,247,0.45)]";
 
   return (
     <div
       className={`relative aspect-[6/5] min-h-[380px] max-h-[560px] w-full overflow-hidden rounded-2xl border-2 bg-neutral-950/95 p-2 shadow-2xl ${
-        inFreeSpins
-          ? "border-yellow-300/70 shadow-[0_0_40px_rgba(251,191,36,0.45)]"
-          : "border-white/15"
-      }`}
+        inFreeSpins ? bonusFrame : "border-white/15"
+      } ${anticipating ? "brightness-90" : ""} ${punch || hit ? "animate-grid-punch" : ""}`}
       style={{ boxShadow: spinning ? `0 0 36px ${theme.glowColor}` : undefined }}
     >
       <div
-        className="pointer-events-none absolute inset-0 animate-atmosphere-drift opacity-80"
+        className="pointer-events-none absolute inset-0 animate-atmosphere-drift"
         style={{
           background: atmosphere.overlay,
           opacity: intensity,
@@ -93,15 +151,19 @@ export function SlotCabinetStage({
         />
       ))}
 
-      {tumbleHit && theme.category === "MYTHOLOGY" && (
-        <div className="pointer-events-none absolute inset-0 z-20 bg-sky-200/40 animate-lightning-flash" />
-      )}
-      {tumbleHit && theme.category !== "MYTHOLOGY" && (
+      {inFreeSpins && (
         <div
-          className="pointer-events-none absolute inset-0 z-20 animate-lightning-flash"
-          style={{ background: `${theme.accentColor}33` }}
+          className="pointer-events-none absolute inset-0 z-[5] animate-bonus-storm"
+          style={{
+            background:
+              theme.category === "CYBERPUNK"
+                ? "linear-gradient(180deg, rgba(244,63,94,0.2), transparent 40%, rgba(34,211,238,0.15))"
+                : "linear-gradient(180deg, rgba(251,191,36,0.18), transparent 45%, rgba(168,85,247,0.2))",
+          }}
         />
       )}
+
+      <StrikeOverlay active={hit} category={theme.category} accent={theme.accentColor} />
 
       <div
         className={`relative z-10 mb-1.5 flex items-center justify-center gap-2 rounded-xl border px-3 py-1 text-center ${
@@ -124,7 +186,7 @@ export function SlotCabinetStage({
           {Array.from({ length: LED_COUNT }).map((_, i) => (
             <span
               key={`led-t-${i}`}
-              className={`h-1.5 w-1.5 rounded-full ${spinning ? "animate-led-chase" : "animate-led-breathe"}`}
+              className={`h-1.5 w-1.5 rounded-full ${spinning || anticipating ? "animate-led-chase" : "animate-led-breathe"}`}
               style={{
                 background: theme.accentColor,
                 boxShadow: `0 0 6px ${theme.accentColor}`,
@@ -160,7 +222,7 @@ export function SlotCabinetStage({
           ))}
         </div>
 
-        <div className="relative h-full px-2 py-2">{children}</div>
+        <div className="reel-stage-3d relative h-full px-2 py-2">{children}</div>
         <div className="cabinet-glass-vignette absolute inset-0 z-10 rounded-xl" />
       </div>
     </div>

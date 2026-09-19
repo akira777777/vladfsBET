@@ -28,13 +28,13 @@ interface SlotTumbleGridProps {
 function generateDebris(count: number, color: string) {
   return Array.from({ length: count }, (_, i) => {
     const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.8;
-    const distance = 20 + Math.random() * 35;
+    const distance = 28 + Math.random() * 48;
     return {
       id: i,
       px: Math.cos(angle) * distance,
-      py: Math.sin(angle) * distance - 15,
+      py: Math.sin(angle) * distance - 18,
       rotation: Math.random() * 360,
-      size: 3 + Math.random() * 5,
+      size: 4 + Math.random() * 7,
       delay: Math.random() * 80,
       color,
     };
@@ -224,7 +224,7 @@ export function SlotTumbleGrid({
     shatteredPositions.forEach((pos) => {
       const cell = grid[pos.col]?.[pos.row];
       const color = (cell && theme.symbols[cell.id]?.glowColor) || "#fbbf24";
-      map.set(`${pos.col}-${pos.row}`, generateDebris(8, color));
+      map.set(`${pos.col}-${pos.row}`, generateDebris(14, color));
     });
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -278,7 +278,7 @@ export function SlotTumbleGrid({
       {/* 6x5 Grid Area with tumble shake */}
       <div
         className={`relative flex-1 grid grid-cols-6 gap-1 sm:gap-2 h-full w-full p-1.5 bg-neutral-950/80 rounded-2xl border border-white/10 overflow-hidden shadow-inner ${
-          shaking ? "animate-tumble-shake" : ""
+          shaking ? "animate-tumble-shake animate-grid-punch" : ""
         }`}
       >
         {/* eslint-disable-next-line react-hooks/refs -- read-only access to a pre-seeded reel strip ref */}
@@ -286,10 +286,22 @@ export function SlotTumbleGrid({
           <div
             key={`col-${colIdx}`}
             className={`relative flex flex-col justify-between gap-1 sm:gap-1.5 h-full overflow-hidden rounded-xl reel-window-mask ${
-              anticipatingColumns[colIdx] ? "animate-scatter-anticipation ring-1 ring-amber-400/70" : ""
+              anticipatingColumns[colIdx]
+                ? "animate-scatter-anticipation animate-anticipation-heartbeat ring-1 ring-amber-400/70"
+                : ""
             } ${flashingColumns[colIdx] ? "animate-column-flash" : ""} ${
               !spinningColumns[colIdx] && isTumbling ? "animate-reel-spring" : ""
+            } ${
+              scatterTeasing &&
+              !anticipatingColumns[colIdx] &&
+              !spinningColumns[colIdx] &&
+              !grid[colIdx]?.some((c) => c.id === "SCATTER")
+                ? "opacity-40"
+                : ""
             }`}
+            style={{
+              transform: `rotateY(${(colIdx - 2.5) * -4}deg)${spinningColumns[colIdx] ? " translateZ(18px)" : ""}`,
+            }}
           >
             {spinningColumns[colIdx] ? (
               <div className={`flex h-[400%] flex-col ${isTurbo ? "animate-reel-strip-fast" : "animate-reel-strip"}`}>
@@ -330,7 +342,9 @@ export function SlotTumbleGrid({
                       : isWin
                       ? "bg-yellow-400/20 border-2 border-yellow-400 scale-105 z-10 animate-win-glow"
                       : "bg-white/[0.03] border border-white/5 hover:bg-white/[0.06]"
-                  } ${shouldFall ? "animate-symbol-fall" : ""}`}
+                  } ${shouldFall ? "animate-symbol-fall" : ""} ${
+                    (winHoldPositions.length > 0 || shatteredPositions.length > 0) && !isWin ? "opacity-40" : ""
+                  }`}
                   style={shouldFall ? ({ "--fall-from": `${rowsMoved * 110}%` } as React.CSSProperties) : undefined}
                 >
                   {isWin && !isShattering && (

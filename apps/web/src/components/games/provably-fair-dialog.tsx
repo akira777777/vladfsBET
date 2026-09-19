@@ -15,22 +15,35 @@ interface ProvablyFairDialogProps {
   serverSeedHash?: string;
   clientSeed?: string;
   nonce?: number;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
 }
 
 export function ProvablyFairDialog({
   serverSeedHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   clientSeed = "vladfs_player_seed_9824",
   nonce = 1,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  trigger,
 }: ProvablyFairDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? setControlledOpen! : setInternalOpen;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-gold/30 text-xs text-gold hover:bg-gold/10">
-          🛡️ Provably Fair
-        </Button>
-      </DialogTrigger>
+      {trigger ? (
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      ) : !isControlled ? (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8 border-gold/30 text-xs text-gold hover:bg-gold/10">
+            🛡️ Provably Fair
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="max-w-md border-white/10 bg-[#0d111a] text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-gold">

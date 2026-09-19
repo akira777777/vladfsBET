@@ -47,11 +47,28 @@ function runTests() {
   console.assert(megaSpin.reelHeights.length === 6, "Expected 6 reels");
   console.assert(megaSpin.totalWays >= 64 && megaSpin.totalWays <= 117649, `Expected ways within valid range, got ${megaSpin.totalWays}`);
 
-  console.assert(getSlotTheme("gates-of-vladfs").defaultEngine === "CLUSTER_6X5", "Gates should default to cluster tumble");
-  console.assert(getSlotTheme("neon-cyber-slots").defaultEngine === "MEGAWAYS", "Neon Cyber should default to megaways");
+  // Test 5: All 6 Gallery Themes Validation
+  const galleryThemes = [
+    { slug: "gates-of-vladfs", engine: "CLUSTER_6X5" },
+    { slug: "cyber-neon-777", engine: "MEGAWAYS" },
+    { slug: "pharaoh-gold-deluxe", engine: "CLUSTER_6X5" },
+    { slug: "sugar-rush-frenzy", engine: "CLUSTER_6X5" },
+    { slug: "dragon-fortune-888", engine: "MEGAWAYS" },
+    { slug: "dead-mans-vault", engine: "CLUSTER_6X5" },
+  ];
+
+  for (const { slug, engine } of galleryThemes) {
+    const t = getSlotTheme(slug);
+    console.assert(t.id === slug, `Theme ${slug} id mismatch, got ${t.id}`);
+    console.assert(t.defaultEngine === engine, `Theme ${slug} engine mismatch, got ${t.defaultEngine}`);
+    console.assert(Boolean(t.symbols.SCATTER), `Theme ${slug} missing SCATTER symbol`);
+    console.assert(Boolean(t.symbols.WILD), `Theme ${slug} missing WILD symbol`);
+  }
+
+  console.assert(getSlotTheme("neon-cyber-slots").defaultEngine === "MEGAWAYS", "Neon Cyber alias should default to megaways");
   console.assert(getSlotTheme("sandbox-slots").defaultEngine === "CLUSTER_6X5", "Sandbox should default to cluster tumble");
 
-  console.log("All Modern Slot Engine Tests Passed Successfully! [5/5]");
+  console.log("All Modern Slot Engine Tests Passed Successfully! [6/6 Themes Verified]");
 }
 
 runTests();
