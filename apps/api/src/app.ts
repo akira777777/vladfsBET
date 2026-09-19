@@ -55,6 +55,8 @@ import {
   submitKycDocument,
   updateUserProfile,
   updateTicketStatus,
+  checkPlayerEligibleToPlay,
+  checkWagerLimit,
 } from "@vladfsbet/db";
 import { evaluateTransactionRisk } from "@vladfsbet/db";
 
@@ -272,12 +274,26 @@ export function createApp() {
   app.use("*", adaptiveBodyLimit);
 
   // 5. CORS
+  const ALLOWED_ORIGINS = new Set([
+    process.env.PUBLIC_APP_URL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+  ].filter(Boolean) as string[]);
+
   app.use(
     "*",
     cors({
-      origin: (origin) => origin || "*",
+      origin: (origin) => {
+        if (!origin) return "";
+        if (ALLOWED_ORIGINS.has(origin)) return origin;
+        // Allow Vercel preview deployments
+        if (origin.endsWith(".vercel.app")) return origin;
+        return "";
+      },
       credentials: true,
-      allowHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
+      allowHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With", "Idempotency-Key"],
       allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     }),
   );
@@ -469,10 +485,13 @@ export function createApp() {
   app.get("/api/wallet/transactions", async (c) => {
     const user = await getSessionUser(prisma, getCookie(c, COOKIE));
     if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
+    const cursor = c.req.query("cursor");
+    const limit = Math.min(Number(c.req.query("limit") ?? 50), 100);
     const items = await prisma.moneyTransaction.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: limit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       select: {
         id: true,
         type: true,
@@ -482,11 +501,14 @@ export function createApp() {
         createdAt: true,
       },
     });
+    const hasMore = items.length > limit;
+    const page = hasMore ? items.slice(0, limit) : items;
     return c.json({
-      items: items.map((item) => ({
+      items: page.map((item) => ({
         ...item,
         amount: item.amount.toFixed(8),
       })),
+      nextCursor: hasMore ? page[page.length - 1]?.id : null,
     });
   });
 
@@ -510,10 +532,20 @@ export function createApp() {
     if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
     const body = withdrawalSchema.parse(await c.req.json());
 
-    // Risk evaluation
-    await evaluateTransactionRisk(prisma, user.id, "WITHDRAWAL", body.amount);
+    // Risk evaluation — block high-risk withdrawals
+    const riskResult = await evaluateTransactionRisk(prisma, user.id, "WITHDRAWAL", body.amount);
+    if (!riskResult.passed) {
+      return c.json(
+        {
+          error: "WITHDRAWAL_RISK_BLOCKED",
+          message: "Withdrawal flagged for manual review. Please contact support.",
+          requestId: c.get("requestId"),
+        },
+        403,
+      );
+    }
 
-    const key = c.req.header("idempotency-key") ?? `wd:${user.id}:${Date.now()}`;
+    const key = c.req.header("idempotency-key") ?? `wd:${user.id}:${body.providerId}:${body.amount}:${Math.floor(Date.now() / 60000)}`;
     const result = await requestWithdrawal(prisma, {
       userId: user.id,
       providerId: body.providerId,
@@ -696,6 +728,11 @@ export function createApp() {
     const user = await getSessionUser(prisma, getCookie(c, COOKIE));
     if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
     const body = sportBetSchema.parse(await c.req.json());
+
+    // Responsible Gaming checks (self-exclusion + wager limits)
+    await checkPlayerEligibleToPlay(prisma, user.id);
+    await checkWagerLimit(prisma, user.id, body.stake);
+
     const bet = await placeSportBet(prisma, {
       userId: user.id,
       eventId: body.eventId,
@@ -851,8 +888,13 @@ export function createApp() {
   app.post("/api/support/tickets/:id/message", async (c) => {
     const user = await getSessionUser(prisma, getCookie(c, COOKIE));
     if (!user) return c.json({ error: "UNAUTHENTICATED" }, 401);
+    // Verify ticket ownership to prevent IDOR
+    const ticket = await prisma.supportTicket.findUnique({ where: { id: c.req.param("id") } });
+    if (!ticket || ticket.userId !== user.id) {
+      return c.json({ error: "TICKET_NOT_FOUND", message: "Support ticket not found", requestId: c.get("requestId") }, 404);
+    }
     const body = ticketMessageSchema.parse(await c.req.json());
-    const message = await addTicketMessage(prisma, c.req.param("id"), user.id, "PLAYER", body.body);
+    const message = await addTicketMessage(prisma, ticket.id, user.id, "PLAYER", body.body);
     return c.json({ message }, 201);
   });
 
@@ -877,6 +919,7 @@ export function createApp() {
   });
 
   app.get("/api/admin/overview", async (c) => {
+    requireAdminPermission(c, "analytics.read");
     const stats = await getAdminStatsOverview(prisma);
     return c.json({ stats });
   });
@@ -984,14 +1027,15 @@ export function createApp() {
   });
 
   app.get("/api/admin/support/tickets", async (c) => {
+    requireAdminPermission(c, "support.read");
     const tickets = await getAdminTickets(prisma);
     return c.json({ items: tickets });
   });
 
   app.post("/api/admin/support/tickets/:id/message", async (c) => {
-    const admin = c.get("admin");
+    const admin = requireAdminPermission(c, "support.write");
     const body = z.object({ body: z.string().min(1), internal: z.boolean().default(false) }).parse(await c.req.json());
-    const message = await addTicketMessage(prisma, c.req.param("id"), admin?.id ?? "", "ADMIN", body.body, body.internal);
+    const message = await addTicketMessage(prisma, c.req.param("id"), admin.id, "ADMIN", body.body, body.internal);
     return c.json({ message });
   });
 
@@ -1077,8 +1121,7 @@ export function createApp() {
   });
 
   app.get("/api/admin/cms", async (c) => {
-    const admin = c.get("admin");
-    if (!admin) throw new HTTPException(401, { message: "Unauthorized staff" });
+    requireAdminPermission(c, "cms.read");
     const type = c.req.query("type");
     const items = await prisma.cmsEntry.findMany({
       where: type ? { type } : undefined,
@@ -1088,8 +1131,7 @@ export function createApp() {
   });
 
   app.post("/api/admin/cms", async (c) => {
-    const admin = c.get("admin");
-    if (!admin) throw new HTTPException(401, { message: "Unauthorized staff" });
+    const admin = requireAdminPermission(c, "cms.write");
     const schema = z.object({
       id: z.string().uuid().optional(),
       type: z.string().min(1),
@@ -1152,8 +1194,7 @@ export function createApp() {
   });
 
   app.delete("/api/admin/cms/:id", async (c) => {
-    const admin = c.get("admin");
-    if (!admin) throw new HTTPException(401, { message: "Unauthorized staff" });
+    const admin = requireAdminPermission(c, "cms.write");
     const id = c.req.param("id");
     await prisma.cmsEntry.delete({ where: { id } }).catch(() => undefined);
 
@@ -1181,12 +1222,25 @@ export function createApp() {
       path: z.string().optional(),
     });
     const body = schema.parse(await c.req.json().catch(() => ({})));
+
+    // Persist analytics events — fire-and-forget to avoid blocking response
+    const user = await getSessionUser(prisma, getCookie(c, COOKIE)).catch(() => null);
+    prisma.auditLog.create({
+      data: {
+        actorType: user ? "PLAYER" : "SYSTEM",
+        subjectId: user?.id,
+        action: `ANALYTICS_${body.event.toUpperCase()}`,
+        entity: "Analytics",
+        ip: getClientIp(c),
+        payload: { event: body.event, properties: body.properties, path: body.path },
+      },
+    }).catch(() => { /* Silently fail — analytics must not crash the API */ });
+
     return c.json({ ok: true, received: true, event: body.event });
   });
 
   app.get("/api/admin/analytics", async (c) => {
-    const admin = c.get("admin");
-    if (!admin) throw new HTTPException(401, { message: "Unauthorized staff" });
+    requireAdminPermission(c, "analytics.read");
 
     const totalUsers = await prisma.user.count({ where: { email: { not: "house@internal.vladfsbet" } } });
     const activeUsers = await prisma.user.count({
@@ -1205,12 +1259,32 @@ export function createApp() {
       { stage: "Active Bettors", count: Math.min(activeUsers, Math.max(betsCount, 1)) },
     ];
 
-    const categoryDistribution = [
-      { name: "Megaways & Cascading Slots", share: 44, turnover: "$482,910" },
-      { name: "Provably Fair Originals", share: 31, turnover: "$340,150" },
-      { name: "Live Dealer Studios", share: 15, turnover: "$164,590" },
-      { name: "Sportsbook Fixtures", share: 10, turnover: "$109,720" },
-    ];
+    // Aggregate real category distribution from game rounds
+    const categoryTurnover = await prisma.gameRound.groupBy({
+      by: ["gameId"],
+      _sum: { betAmount: true },
+      _count: { id: true },
+    });
+
+    const gameMap = new Map<string, { category: string; total: Prisma.Decimal }>(); 
+    for (const ct of categoryTurnover) {
+      const game = await prisma.game.findUnique({ where: { id: ct.gameId }, select: { category: true } });
+      if (!game) continue;
+      const cat = game.category;
+      const existing = gameMap.get(cat);
+      const amount = ct._sum.betAmount ?? new Prisma.Decimal(0);
+      gameMap.set(cat, {
+        category: cat,
+        total: existing ? existing.total.add(amount) : amount,
+      });
+    }
+
+    const totalTurnover = Array.from(gameMap.values()).reduce((s, v) => s.add(v.total), new Prisma.Decimal(0));
+    const categoryDistribution = Array.from(gameMap.values()).map((v) => ({
+      name: v.category,
+      share: totalTurnover.gt(0) ? Number(v.total.div(totalTurnover).mul(100).toFixed(1)) : 0,
+      turnover: v.total.toFixed(2),
+    })).sort((a, b) => b.share - a.share);
 
     return c.json({
       overview: {

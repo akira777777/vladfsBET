@@ -13,6 +13,19 @@ export const platformSecureHeaders = secureHeaders({
   xXssProtection: "0",
   referrerPolicy: "strict-origin-when-cross-origin",
   crossOriginResourcePolicy: "same-site",
+  strictTransportSecurity: "max-age=63072000; includeSubDomains; preload",
+  contentSecurityPolicy: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "blob:"],
+    connectSrc: ["'self'"],
+    fontSrc: ["'self'"],
+    objectSrc: ["'none'"],
+    frameAncestors: ["'none'"],
+    baseUri: ["'self'"],
+    formAction: ["'self'"],
+  },
 });
 
 /**

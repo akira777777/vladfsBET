@@ -146,7 +146,51 @@ export async function setResponsibleGamingLimit(db: PrismaClient, input: SetLimi
   const now = new Date();
   const amount = input.amount ? new Prisma.Decimal(input.amount) : null;
 
-  // Deactivate existing active limits of this type and period
+  // Check for existing active limit of same type
+  const existingLimit = await db.responsibleGamingLimit.findFirst({
+    where: {
+      userId: input.userId,
+      type: input.type,
+      periodHours: input.periodHours,
+      active: true,
+    },
+  });
+
+  // Regulatory safeguard: making limits less restrictive requires a 24h cooling-off.
+  // Making limits MORE restrictive takes effect immediately.
+  if (existingLimit && amount && existingLimit.amount) {
+    const isRelaxing = amount.gt(existingLimit.amount);
+    if (isRelaxing) {
+      const coolOffHours = 24;
+      const effectiveAt = new Date(now.getTime() + coolOffHours * 60 * 60 * 1000);
+
+      // Schedule the relaxation — deactivate old limit at the future time
+      // For now, record the new limit with a future startsAt
+      await db.responsibleGamingLimit.updateMany({
+        where: {
+          userId: input.userId,
+          type: input.type,
+          periodHours: input.periodHours,
+          active: true,
+        },
+        data: { endsAt: effectiveAt },
+      });
+
+      return db.responsibleGamingLimit.create({
+        data: {
+          userId: input.userId,
+          type: input.type,
+          amount,
+          minutes: input.minutes,
+          periodHours: input.periodHours,
+          active: true,
+          startsAt: effectiveAt,
+        },
+      });
+    }
+  }
+
+  // Tightening or new limit: apply immediately
   await db.responsibleGamingLimit.updateMany({
     where: {
       userId: input.userId,

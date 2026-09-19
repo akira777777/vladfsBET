@@ -16,3 +16,12 @@ generated
 /*.png
 /*.jpg
 .playwright-mcp/
+
+# Prevent build artifacts in source directories
+packages/*/src/*.js
+packages/*/src/*.d.ts
+services/*/src/*.js
+services/*/src/*.d.ts
+
+# Stray scripts in component trees
+*.py

@@ -37,6 +37,12 @@ export function BetSlip({ selections, onRemoveSelection, onClearAll }: BetSlipPr
 
   const handlePlaceBet = async () => {
     if (!user || selections.length === 0) return;
+
+    if (selections.length > 1) {
+      setErrorMsg("Only single bets are currently supported. Please clear your slip and place one bet at a time.");
+      return;
+    }
+
     setPlacing(true);
     setErrorMsg(null);
     setSuccessMsg(null);

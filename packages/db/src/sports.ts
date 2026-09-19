@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Prisma, PrismaClient, SportBetStatus } from "@prisma/client";
 import { LedgerError, postJournal } from "./ledger";
 
@@ -48,7 +49,18 @@ export async function placeSportBet(db: PrismaClient, input: PlaceBetInput) {
     throw new SportsError("MARKET_SUSPENDED", "Market is currently suspended");
   }
 
-  const betId = `sb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  // Validate client-supplied odds against server market data
+  const selections = (market.selections as Array<{ name: string; odds: string }>) ?? [];
+  const matched = selections.find((s) => s.name === input.selectionName);
+  if (!matched) {
+    throw new SportsError("ODDS_CHANGED", `Selection "${input.selectionName}" not found in market`);
+  }
+  const serverOdds = new Prisma.Decimal(matched.odds);
+  if (!odds.eq(serverOdds)) {
+    throw new SportsError("ODDS_CHANGED", `Odds have changed from ${odds.toFixed(2)} to ${serverOdds.toFixed(2)}`);
+  }
+
+  const betId = randomUUID();
 
   // Post ledger debit for stake
   try {

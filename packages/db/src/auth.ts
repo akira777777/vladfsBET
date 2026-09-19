@@ -355,6 +355,9 @@ export async function changePassword(
   if (newPass.length < 10) {
     throw new AuthError("WEAK_PASSWORD", "New password must be at least 10 characters");
   }
+  if (!/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9]/.test(newPass)) {
+    throw new AuthError("WEAK_PASSWORD", "Password must contain uppercase, lowercase, and numeric characters");
+  }
 
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
   const ok = await verifyPassword(oldPass, user.passwordHash);
@@ -377,6 +380,12 @@ export async function changePassword(
       entity: "User",
       entityId: userId,
     },
+  });
+
+  // Revoke all active sessions — force re-authentication with new password
+  await db.session.updateMany({
+    where: { userId, revokedAt: null },
+    data: { revokedAt: new Date() },
   });
 
   return { ok: true };
