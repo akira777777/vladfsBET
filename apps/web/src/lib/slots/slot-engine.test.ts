@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import {
   createCell,
   evaluateClusters,
@@ -8,67 +9,86 @@ import {
 } from "./slot-engine";
 import { GATES_OF_VLADFS_THEME, getSlotTheme } from "./slot-themes";
 
-function runTests() {
-  console.log("Running 6x5 Cascading Tumble & Megaways Unit Tests...");
+describe("Slot Engine — 6x5 Cascading Tumble & Megaways", () => {
+  it("generates a valid 6×5 grid", () => {
+    const grid = generate6x5Grid();
+    expect(grid).toHaveLength(6);
+    expect(grid[0]).toHaveLength(5);
+    grid.forEach((col) =>
+      col.forEach((cell) => {
+        expect(cell.id).toBeTruthy();
+        expect(cell.key).toBeTruthy();
+      }),
+    );
+  });
 
-  // Test 1: 6x5 Grid Generation
-  const grid6x5 = generate6x5Grid();
-  console.assert(grid6x5.length === 6, `Expected 6 columns, got ${grid6x5.length}`);
-  console.assert(grid6x5[0].length === 5, `Expected 5 rows, got ${grid6x5[0].length}`);
+  it("detects 8+ cluster hits and resolves shattered positions", () => {
+    const nonMatching: SymbolId[] = ["LOW_A", "LOW_K", "LOW_Q", "LOW_J", "LOW_10"];
+    const testGrid = Array.from({ length: 6 }, (_, col) =>
+      Array.from({ length: 5 }, (_, row) =>
+        createCell(nonMatching[(col * 5 + row) % nonMatching.length]),
+      ),
+    );
+    // Place 8 HIGH_1 symbols
+    for (let c = 0; c < 4; c++) {
+      for (let r = 0; r < 2; r++) {
+        testGrid[c][r] = createCell("HIGH_1");
+      }
+    }
 
-  // Test 2: Cluster Pays (8+ matching symbols anywhere)
-  const nonMatchingSymbols: SymbolId[] = ["LOW_A", "LOW_K", "LOW_Q", "LOW_J", "LOW_10"];
-  const testGrid = Array.from({ length: 6 }, (_, col) =>
-    Array.from({ length: 5 }, (_, row) => createCell(nonMatchingSymbols[(col * 5 + row) % nonMatchingSymbols.length]))
-  );
-  // Place 8 HIGH_1 symbols
-  testGrid[0][0] = createCell("HIGH_1");
-  testGrid[0][1] = createCell("HIGH_1");
-  testGrid[1][0] = createCell("HIGH_1");
-  testGrid[1][1] = createCell("HIGH_1");
-  testGrid[2][0] = createCell("HIGH_1");
-  testGrid[2][1] = createCell("HIGH_1");
-  testGrid[3][0] = createCell("HIGH_1");
-  testGrid[3][1] = createCell("HIGH_1");
+    const result = evaluateClusters(testGrid, 10.0, GATES_OF_VLADFS_THEME.symbols);
+    expect(result.clusterHits.length).toBeGreaterThanOrEqual(1);
+    expect(result.clusterHits[0].count).toBe(8);
+    expect(result.shatteredPositions).toHaveLength(8);
+  });
 
-  const clusterEval = evaluateClusters(testGrid, 10.0, GATES_OF_VLADFS_THEME.symbols);
-  console.assert(clusterEval.clusterHits.length >= 1, "Expected at least 1 cluster hit");
-  console.assert(clusterEval.clusterHits[0].count === 8, "Expected 8 matching symbols");
-  console.assert(clusterEval.shatteredPositions.length === 8, "Expected 8 shattered positions");
+  it("resolves multiplier orbs into totalMultiplier and finalWinAmount", () => {
+    const nonMatching: SymbolId[] = ["LOW_A", "LOW_K", "LOW_Q", "LOW_J", "LOW_10"];
+    const testGrid = Array.from({ length: 6 }, (_, col) =>
+      Array.from({ length: 5 }, (_, row) =>
+        createCell(nonMatching[(col * 5 + row) % nonMatching.length]),
+      ),
+    );
+    for (let c = 0; c < 4; c++) {
+      for (let r = 0; r < 2; r++) {
+        testGrid[c][r] = createCell("HIGH_1");
+      }
+    }
+    testGrid[5][0] = createCell("MULTIPLIER_ORB", 25);
 
-  // Test 3: Multiplier Orbs Resolution
-  testGrid[5][0] = createCell("MULTIPLIER_ORB", 25);
-  const tumbleRound = resolveFullTumbleRound(testGrid, 10.0, GATES_OF_VLADFS_THEME.symbols);
-  console.assert(tumbleRound.totalMultiplier >= 25, `Expected total multiplier >= 25, got ${tumbleRound.totalMultiplier}`);
-  console.assert(tumbleRound.finalWinAmount > 0, "Expected positive final win amount");
+    const round = resolveFullTumbleRound(testGrid, 10.0, GATES_OF_VLADFS_THEME.symbols);
+    expect(round.totalMultiplier).toBeGreaterThanOrEqual(25);
+    expect(round.finalWinAmount).toBeGreaterThan(0);
+  });
 
-  // Test 4: Megaways Dynamic Reels Generation (up to 117,649 ways)
-  const megaSpin = generateMegawaysSpin(10.0, GATES_OF_VLADFS_THEME.symbols);
-  console.assert(megaSpin.reelHeights.length === 6, "Expected 6 reels");
-  console.assert(megaSpin.totalWays >= 64 && megaSpin.totalWays <= 117649, `Expected ways within valid range, got ${megaSpin.totalWays}`);
+  it("generates valid Megaways spins with 64–117,649 ways", () => {
+    const mega = generateMegawaysSpin(10.0, GATES_OF_VLADFS_THEME.symbols);
+    expect(mega.reelHeights).toHaveLength(6);
+    expect(mega.totalWays).toBeGreaterThanOrEqual(64);
+    expect(mega.totalWays).toBeLessThanOrEqual(117649);
+  });
 
-  // Test 5: All 6 Gallery Themes Validation
-  const galleryThemes = [
-    { slug: "gates-of-vladfs", engine: "CLUSTER_6X5" },
-    { slug: "cyber-neon-777", engine: "MEGAWAYS" },
-    { slug: "pharaoh-gold-deluxe", engine: "CLUSTER_6X5" },
-    { slug: "sugar-rush-frenzy", engine: "CLUSTER_6X5" },
-    { slug: "dragon-fortune-888", engine: "MEGAWAYS" },
-    { slug: "dead-mans-vault", engine: "CLUSTER_6X5" },
-  ];
+  it("validates all 6 gallery themes with correct engine defaults", () => {
+    const gallery = [
+      { slug: "gates-of-vladfs", engine: "CLUSTER_6X5" },
+      { slug: "cyber-neon-777", engine: "MEGAWAYS" },
+      { slug: "pharaoh-gold-deluxe", engine: "CLUSTER_6X5" },
+      { slug: "sugar-rush-frenzy", engine: "CLUSTER_6X5" },
+      { slug: "dragon-fortune-888", engine: "MEGAWAYS" },
+      { slug: "dead-mans-vault", engine: "CLUSTER_6X5" },
+    ] as const;
 
-  for (const { slug, engine } of galleryThemes) {
-    const t = getSlotTheme(slug);
-    console.assert(t.id === slug, `Theme ${slug} id mismatch, got ${t.id}`);
-    console.assert(t.defaultEngine === engine, `Theme ${slug} engine mismatch, got ${t.defaultEngine}`);
-    console.assert(Boolean(t.symbols.SCATTER), `Theme ${slug} missing SCATTER symbol`);
-    console.assert(Boolean(t.symbols.WILD), `Theme ${slug} missing WILD symbol`);
-  }
+    for (const { slug, engine } of gallery) {
+      const t = getSlotTheme(slug);
+      expect(t.id).toBe(slug);
+      expect(t.defaultEngine).toBe(engine);
+      expect(t.symbols.SCATTER).toBeTruthy();
+      expect(t.symbols.WILD).toBeTruthy();
+    }
+  });
 
-  console.assert(getSlotTheme("neon-cyber-slots").defaultEngine === "MEGAWAYS", "Neon Cyber alias should default to megaways");
-  console.assert(getSlotTheme("sandbox-slots").defaultEngine === "CLUSTER_6X5", "Sandbox should default to cluster tumble");
-
-  console.log("All Modern Slot Engine Tests Passed Successfully! [6/6 Themes Verified]");
-}
-
-runTests();
+  it("resolves theme aliases correctly", () => {
+    expect(getSlotTheme("neon-cyber-slots").defaultEngine).toBe("MEGAWAYS");
+    expect(getSlotTheme("sandbox-slots").defaultEngine).toBe("CLUSTER_6X5");
+  });
+});

@@ -1,8 +1,9 @@
-import { createHash, createHmac, randomBytes, randomInt, randomUUID } from "node:crypto";
+import { randomBytes, randomInt, randomUUID } from "node:crypto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { LedgerError, postJournal } from "./ledger";
 import { checkPlayerEligibleToPlay, checkWagerLimit } from "./rg";
 import { processBonusWagering, recordVipWager } from "./bonuses";
+import { provablyFairFloat, sha256 } from "@vladfsbet/utils";
 
 export class PlayError extends Error {
   constructor(
@@ -31,13 +32,12 @@ function money(value: Prisma.Decimal): string {
   return value.toFixed(8);
 }
 
-// Provably Fair Calculation helpers
+// Provably Fair Calculation - uses @vladfsbet/utils for consistency
+// Returns { serverSeedHash, floatVal } for game settlement
 function generateProvablyFair(serverSeed: string, clientSeed: string, nonce: number) {
-  const serverSeedHash = createHash("sha256").update(serverSeed).digest("hex");
-  const hmac = createHmac("sha256", serverSeed).update(`${clientSeed}:${nonce}`).digest("hex");
-  const intVal = parseInt(hmac.substring(0, 8), 16);
-  const floatVal = intVal / 0x100000000;
-  return { serverSeedHash, floatVal, hmac };
+  const floatVal = provablyFairFloat(serverSeed, clientSeed, nonce);
+  const serverSeedHash = sha256(serverSeed);
+  return { serverSeedHash, floatVal };
 }
 
 // Slot symbols definition
