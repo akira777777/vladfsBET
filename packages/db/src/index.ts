@@ -63,8 +63,18 @@ try {
       datasourceUrl: hostedDatabaseUrl || process.env.DATABASE_URL,
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
-} catch {
-  console.warn("[AI Studio] Database not connected — using mock Prisma client");
+} catch (error) {
+  // Never silently swap in a mock client in production: a failed DB connection
+  // must surface as an error, not as empty query results.
+  const allowMock = process.env.NODE_ENV !== "production" && process.env.USE_MOCK_PRISMA === "true";
+  if (!allowMock) {
+    throw new Error(
+      `[db] Failed to initialize PrismaClient: ${(error as Error).message}. ` +
+        "Set USE_MOCK_PRISMA=true only for explicit, non-production development.",
+      { cause: error },
+    );
+  }
+  console.warn("[db] USE_MOCK_PRISMA=true — using in-memory mock Prisma client (development only)");
   const noOp = {
     findMany: async () => [],
     findFirst: async () => null,

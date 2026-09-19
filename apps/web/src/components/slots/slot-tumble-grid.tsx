@@ -59,6 +59,7 @@ function CollectingOrbShell({
 
   useLayoutEffect(() => {
     if (!active) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resets the fly overlay when collection ends
       setFly(null);
       return;
     }
@@ -167,6 +168,7 @@ export function SlotTumbleGrid({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fall offsets are derived from the prior grid diff
     setFallFrom(next);
     prevGridRef.current = grid;
   }, [grid]);
@@ -208,7 +210,7 @@ export function SlotTumbleGrid({
         clearTimeout(timer2);
       };
     }
-  }, [shatteredPositions]);
+  }, [shatteredPositions, grid, theme.symbols]);
 
   // Memoize debris patterns for shattered positions
   const debrisMap = useMemo(() => {
@@ -266,6 +268,7 @@ export function SlotTumbleGrid({
           shaking ? "animate-tumble-shake" : ""
         }`}
       >
+        {/* eslint-disable-next-line react-hooks/refs -- read-only access to a pre-seeded reel strip ref */}
         {[0, 1, 2, 3, 4, 5].map((colIdx) => (
           <div
             key={`col-${colIdx}`}

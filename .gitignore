@@ -11,3 +11,8 @@ generated
 .vercel
 .env*
 .neon
+
+# Debug artifacts
+/*.png
+/*.jpg
+.playwright-mcp/

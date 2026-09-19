@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Radio, Flame, Shield, ArrowRight, CheckCircle2, TrendingUp } from "lucide-react";
+import { Radio, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 

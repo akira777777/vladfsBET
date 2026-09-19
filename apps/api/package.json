@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "esbuild src/serverless.ts --bundle --platform=node --target=node20 --format=esm --external:@prisma/client --external:@prisma/client/* --external:redis --external:@redis/* --outfile=api/index.js && esbuild src/fetch.ts --bundle --platform=node --target=node20 --format=esm --external:@prisma/client --external:@prisma/client/* --external:redis --external:@redis/* --outfile=api/fetch.js",
     "start": "tsx src/index.ts",
-    "test": "vitest run",
+    "test": "node ../../scripts/run-vitest.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -31,6 +31,6 @@
     "esbuild": "^0.28.2",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.1"
   }
 }

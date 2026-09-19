@@ -1,5 +1,4 @@
 import {
-  PLINKO_PAYOUTS,
   getPlinkoMultipliers,
   calculateMinesMultiplier,
   calculateDiceMultiplier,
@@ -39,7 +38,6 @@ console.log(`  ✓ 3 Mines: 1st gem=${mult1}x, 3rd gem=${mult3}x, 5th gem=${mult
 // 3. Dice Math Tests
 console.log("3. Testing Quantum Dice Multipliers & Win Chances...");
 const dice50Under = calculateDiceMultiplier(50, true);
-const dice25Over = calculateDiceMultiplier(75, false);
 
 if (Math.abs(dice50Under.multiplier - 1.98) > 0.01) {
   throw new Error(`Dice 50% multiplier should be 1.98x, got ${dice50Under.multiplier}`);
@@ -62,7 +60,6 @@ console.log(`  ✓ Limbo low roll=${limboLow}x, high roll=${limboHigh}x`);
 console.log("5. Testing Hilo Dynamic Card Odds...");
 const hiloAce = getHiloOdds(14); // Ace high
 const hiloTwo = getHiloOdds(2);  // Two low
-const hiloSeven = getHiloOdds(7);// Seven mid
 
 if (hiloAce.lowerMultiplier >= hiloAce.higherMultiplier) {
   throw new Error("Lowering on an Ace should have higher win probability / lower payout multiplier");

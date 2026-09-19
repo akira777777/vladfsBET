@@ -22,6 +22,7 @@
     "db:validate": "npm run db:validate -w @vladfsbet/db",
     "db:generate": "node scripts/prisma-generate.mjs",
     "db:migrate": "npm run db:migrate -w @vladfsbet/db",
+    "db:migrate:deploy": "npm run db:migrate:deploy -w @vladfsbet/db",
     "db:seed": "npm run db:seed -w @vladfsbet/db",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
