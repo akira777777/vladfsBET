@@ -15,12 +15,16 @@ import {
   ScrollText,
   Settings,
   LogOut,
+  FileText,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/analytics", label: "Analytics & Funnels", icon: BarChart3 },
+  { href: "/admin/cms", label: "CMS & Banners", icon: FileText },
   { href: "/admin/players", label: "Players", icon: Users },
   { href: "/admin/transactions", label: "Ledger & Cashier", icon: CreditCard },
   { href: "/admin/kyc", label: "KYC Queue", icon: FileCheck },
