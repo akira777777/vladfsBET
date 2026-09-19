@@ -439,8 +439,6 @@ export function CrashGame({ game }: CrashGameProps) {
   };
 
   // Initial boot
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount; handleStartNewRound is intentionally omitted to avoid re-boot loops
-
   useEffect(() => {
     const timer = setTimeout(() => {
       void handleStartNewRound();
@@ -449,6 +447,7 @@ export function CrashGame({ game }: CrashGameProps) {
       clearTimeout(timer);
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount; handleStartNewRound is intentionally omitted to avoid re-boot loops
   }, []);
 
   const canvasRenderRef = useRef<{

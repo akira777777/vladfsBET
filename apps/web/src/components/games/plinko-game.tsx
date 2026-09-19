@@ -212,7 +212,6 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
   };
 
   // Main 2D Physics Loop
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- canvas animation loop intentionally excludes dropBall/recordRound/refreshWallet to avoid re-creating the loop every render
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -480,6 +479,7 @@ export function PlinkoGame({ game }: PlinkoGameProps) {
       observer.disconnect();
       if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- canvas loop intentionally excludes dropBall/recordRound/refreshWallet
   }, [rows, risk, multipliers, highlightedBin, mode, autoConfig.active]);
 
   return (
