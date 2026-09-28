@@ -875,6 +875,67 @@ body {
   animation: goldGlint 2.2s linear infinite;
 }
 
+/* ── 3D Slot Mascot Animations (Zeus, Pharaoh, Cyber Shogun, etc.) ── */
+@keyframes mascotFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.6deg);
+  }
+}
+.animate-mascot-float {
+  animation: mascotFloat 4.2s ease-in-out infinite;
+}
+
+@keyframes mascotStrikeSurge {
+  0% {
+    transform: scale(1) translateY(0);
+    filter: brightness(1) drop-shadow(0 15px 30px rgba(0, 0, 0, 0.9));
+  }
+  25% {
+    transform: scale(1.15) translateY(-14px);
+    filter: brightness(1.4) drop-shadow(0 0 35px rgba(251, 191, 36, 0.95));
+  }
+  70% {
+    transform: scale(1.08) translateY(-8px);
+    filter: brightness(1.2) drop-shadow(0 0 25px rgba(251, 191, 36, 0.7));
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    filter: brightness(1) drop-shadow(0 15px 30px rgba(0, 0, 0, 0.9));
+  }
+}
+.animate-mascot-strike {
+  animation: mascotStrikeSurge 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mascotPedestalSpin {
+  from { transform: rotateX(72deg) rotateZ(0deg); }
+  to { transform: rotateX(72deg) rotateZ(360deg); }
+}
+.animate-pedestal-spin {
+  animation: mascotPedestalSpin 16s linear infinite;
+}
+
+@keyframes mascotPedestalSpinReverse {
+  from { transform: rotateX(72deg) rotateZ(360deg); }
+  to { transform: rotateX(72deg) rotateZ(0deg); }
+}
+.animate-pedestal-spin-reverse {
+  animation: mascotPedestalSpinReverse 10s linear infinite;
+}
+
+@keyframes mascotSpeechPop {
+  0% { transform: scale(0.3) translateY(20px); opacity: 0; }
+  60% { transform: scale(1.1) translateY(-6px); opacity: 1; }
+  85% { transform: scale(0.96) translateY(-2px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+.animate-mascot-speech {
+  animation: mascotSpeechPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
 /* ── Mines Mine Detonation Shockwave ── */
 @keyframes mineShockwave {
   0%   { transform: scale(0.5); opacity: 0.8; }

@@ -1,18 +1,139 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { slotAudio } from "@/lib/slots/slot-audio";
 
 interface SlotMascotProps {
   themeId: string;
   isSpinning: boolean;
   isBonus: boolean;
-  lastWin: number;
+  lastWin?: number;
   scatterCount: number;
   compact?: boolean;
   forceStrike?: boolean;
 }
 
-export function SlotMascot({
+interface MascotData {
+  id: string;
+  name: string;
+  title: string;
+  imageSrc: string;
+  accentColor: string;
+  glowColor: string;
+  strikeQuotes: string[];
+  chargeQuotes: string[];
+  bonusQuote: string;
+  runes: string[];
+}
+
+const MASCOTS: Record<string, MascotData> = {
+  zeus: {
+    id: "zeus",
+    name: "ZEUS",
+    title: "GOD OF THUNDER",
+    imageSrc: "/slots/mascots/zeus.jpg",
+    accentColor: "#38bdf8",
+    glowColor: "rgba(56, 189, 248, 0.7)",
+    strikeQuotes: [
+      "⚡ BY ZEUS'S POWER!",
+      "⚡ DIVINE THUNDER STRIKE!",
+      "🔱 FEEL THE GODLY MULTIPLIER!",
+      "⚡ OLYMPUS BLESSES THIS REEL!",
+    ],
+    chargeQuotes: ["⚡ THUNDER AWAKENS...", "⚡ OLYMPUS HEARS YOU!"],
+    bonusQuote: "🔥 UNLEASH THE MULTIPLIERS!",
+    runes: ["⚡", "🔱", "🏛️", "🦅"],
+  },
+  cyber: {
+    id: "cyber",
+    name: "CYBER SHOGUN",
+    title: "SYSTEM OVERLORD",
+    imageSrc: "/slots/mascots/cyber-boss.jpg",
+    accentColor: "#f472b6",
+    glowColor: "rgba(236, 72, 153, 0.7)",
+    strikeQuotes: [
+      "⚔️ CRITICAL SYSTEM OVERLOAD!",
+      "⚡ NEON OVERDRIVE ACTIVATED!",
+      "💾 MATRIX JACKPOT PROTOCOL!",
+      "⚔️ SLICE THROUGH THE REELS!",
+    ],
+    chargeQuotes: ["⚡ OVERCLOCKING REELS...", "🔮 MATRIX RECONFIGURING..."],
+    bonusQuote: "🔥 CYBER MATRIX UNLOCKED!",
+    runes: ["⚡", "⚔️", "💾", "🔮"],
+  },
+  pharaoh: {
+    id: "pharaoh",
+    name: "AMUN-RA",
+    title: "SUN GOD OF EGYPT",
+    imageSrc: "/slots/mascots/pharaoh.jpg",
+    accentColor: "#f59e0b",
+    glowColor: "rgba(245, 158, 11, 0.7)",
+    strikeQuotes: [
+      "✨ BLESSING OF THE SUN GOD!",
+      "👑 ETERNAL GOLD OF THE NILE!",
+      "🏺 SACRED TOMB UNSEALED!",
+      "✨ GAZE UPON RA'S RICHES!",
+    ],
+    chargeQuotes: ["✨ PYRAMIDS ALIGN...", "🐍 ANUBIS WATCHES..."],
+    bonusQuote: "🔥 PHARAOH'S TREASURE UNSEALED!",
+    runes: ["☀️", "👑", "🐍", "🏺"],
+  },
+  candy: {
+    id: "candy",
+    name: "SUGAR QUEEN",
+    title: "COTTON CANDY REALM",
+    imageSrc: "/slots/mascots/sugar-queen.jpg",
+    accentColor: "#f472b6",
+    glowColor: "rgba(244, 114, 182, 0.7)",
+    strikeQuotes: [
+      "🍭 SWEET EXPLOSION!",
+      "🍬 SUGAR BONANZA DROP!",
+      "✨ DELICIOUS YUMMY HIT!",
+      "🍭 TASTE THE RAINBOW WIN!",
+    ],
+    chargeQuotes: ["🍬 SUGAR RUSH CHARGING...", "🧁 FROSTING CASCADE..."],
+    bonusQuote: "🔥 SUPER SWEET FREE SPINS!",
+    runes: ["🍭", "🍬", "🧁", "🍩"],
+  },
+  dragon: {
+    id: "dragon",
+    name: "GOLDEN DRAGON",
+    title: "EMPEROR OF FORTUNE",
+    imageSrc: "/slots/mascots/dragon.jpg",
+    accentColor: "#ef4444",
+    glowColor: "rgba(239, 68, 68, 0.7)",
+    strikeQuotes: [
+      "🐉 DRAGON BREATH OF WEALTH!",
+      "🔥 HEAVENLY FORTUNE SHOWER!",
+      "🪙 888 IMPERIAL PROSPERITY!",
+      "🐉 AWAKEN THE GOLDEN BEAST!",
+    ],
+    chargeQuotes: ["🐉 CELESTIAL SPIRIT RISES...", "🀄 JADE GATES OPEN..."],
+    bonusQuote: "🔥 DRAGON FEAST SPINS!",
+    runes: ["🐉", "🪙", "🀄", "🔥"],
+  },
+};
+
+function getMascotForTheme(themeId: string): MascotData {
+  if (themeId === "gates-of-vladfs" || themeId === "sandbox-slots") {
+    return MASCOTS.zeus;
+  }
+  if (themeId === "cyber-neon-777" || themeId === "neon-cyber-slots") {
+    return MASCOTS.cyber;
+  }
+  if (themeId === "pharaoh-gold-deluxe" || themeId === "dead-mans-vault") {
+    return MASCOTS.pharaoh;
+  }
+  if (themeId === "sugar-rush-frenzy") {
+    return MASCOTS.candy;
+  }
+  if (themeId.includes("dragon") || themeId.includes("asian") || themeId === "dragon-fortune-888") {
+    return MASCOTS.dragon;
+  }
+  return MASCOTS.zeus;
+}
+
+export const SlotMascot = React.memo(function SlotMascot({
   themeId,
   isSpinning,
   isBonus,
@@ -21,275 +142,287 @@ export function SlotMascot({
   compact = false,
   forceStrike = false,
 }: SlotMascotProps) {
+  const mascot = getMascotForTheme(themeId);
   const charging = scatterCount >= 2;
   const [striking, setStriking] = useState(false);
+  const [quoteIdx, setQuoteIdx] = useState(0);
+  const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; size: number }[]>([]);
+  const nextSparkleId = useRef(0);
+
+  const triggerStrike = useCallback((isManual = false) => {
+    setStriking(true);
+    setQuoteIdx((prev) => (prev + 1) % mascot.strikeQuotes.length);
+
+    if (isManual) {
+      slotAudio.playMultiplierOrbCharge(80);
+    }
+
+    // Spawn 8 burst sparkles
+    const newSparks = Array.from({ length: 8 }, () => {
+      nextSparkleId.current++;
+      return {
+        id: nextSparkleId.current,
+        x: 20 + Math.random() * 60,
+        y: 20 + Math.random() * 60,
+        size: Math.random() * 8 + 6,
+      };
+    });
+    setSparkles((prev) => [...prev.slice(-16), ...newSparks]);
+
+    const timer = setTimeout(() => {
+      setStriking(false);
+    }, 850);
+    return () => clearTimeout(timer);
+  }, [mascot.strikeQuotes.length]);
 
   useEffect(() => {
     if (!forceStrike) return;
-    const raf = requestAnimationFrame(() => setStriking(true));
-    const timer = setTimeout(() => setStriking(false), 700);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(timer);
-    };
-  }, [forceStrike]);
+    const cleanup = triggerStrike(false);
+    return cleanup;
+  }, [forceStrike, triggerStrike]);
 
-  // Render Mascot based on Theme
-  if (themeId === "gates-of-vladfs" || themeId === "sandbox-slots") {
+  // Clean up sparkles periodically
+  useEffect(() => {
+    if (sparkles.length === 0) return;
+    const t = setTimeout(() => {
+      setSparkles((prev) => prev.slice(4));
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [sparkles]);
+
+  // Compact circular mobile badge
+  if (compact) {
     return (
-      <div className={`relative flex flex-col items-center justify-center select-none pointer-events-none ${compact ? "w-9" : "w-48 sm:w-56"}`}>
-        {/* Floating Animation Wrapper */}
-        <div
-          className={`relative flex flex-col items-center transition-all duration-500 ${
-            isSpinning ? "translate-y-[-8px] scale-105" : "animate-[bounce_4s_ease-in-out_infinite]"
-          } ${striking ? "scale-115" : ""}`}
-        >
-          {/* Lightning Aura Glow */}
-          <div
-            className={`absolute -inset-8 rounded-full blur-2xl transition-opacity duration-300 ${
-              striking
-                ? "bg-amber-400/60 opacity-100 animate-pulse"
-                : charging
-                ? "bg-cyan-400/50 opacity-90 animate-ping"
-                : isBonus
-                ? "bg-purple-500/40 opacity-80"
-                : "bg-blue-600/30 opacity-60"
-            }`}
-          />
-
-          {/* ZEUS SVG AVATAR (Pragmatic Style) */}
-          <svg
-            viewBox="0 0 200 240"
-            className={`${compact ? "h-9 w-8" : "h-56 w-44"} drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)] filter transition-transform duration-300`}
-          >
-            <defs>
-              <linearGradient id="zeusGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FFF2A3" />
-                <stop offset="50%" stopColor="#E5A910" />
-                <stop offset="100%" stopColor="#8A5A00" />
-              </linearGradient>
-              <linearGradient id="zeusToga" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="60%" stopColor="#C4D0E5" />
-                <stop offset="100%" stopColor="#6C7A9C" />
-              </linearGradient>
-              <linearGradient id="zeusCape" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#800020" />
-                <stop offset="50%" stopColor="#B3002D" />
-                <stop offset="100%" stopColor="#4A0013" />
-              </linearGradient>
-              <linearGradient id="lightningGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="40%" stopColor="#67E8F9" />
-                <stop offset="100%" stopColor="#0284C7" />
-              </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-
-            {/* Crimson Cape */}
-            <path
-              d="M 50,90 Q 20,150 30,220 Q 90,240 100,220 Q 110,240 170,220 Q 180,150 150,90 Z"
-              fill="url(#zeusCape)"
-              stroke="#E5A910"
-              strokeWidth="2"
-            />
-
-            {/* Muscular Torso & White Marble Toga */}
-            <path
-              d="M 60,95 Q 100,105 140,95 L 145,190 Q 100,210 55,190 Z"
-              fill="url(#zeusToga)"
-            />
-            {/* Golden Belt & Buckle */}
-            <rect x="58" y="160" width="84" height="14" rx="4" fill="url(#zeusGold)" />
-            <circle cx="100" cy="167" r="10" fill="#FFF" stroke="#E5A910" strokeWidth="2" />
-
-            {/* Zeus Head & Beard */}
-            {/* Skin */}
-            <ellipse cx="100" cy="65" rx="28" ry="32" fill="#FAD0AE" />
-            {/* Majestic White Beard */}
-            <path
-              d="M 72,70 Q 60,110 80,140 Q 100,155 120,140 Q 140,110 128,70 Q 100,85 72,70 Z"
-              fill="#FFFFFF"
-              stroke="#D1D5DB"
-              strokeWidth="2"
-            />
-            {/* Mustache */}
-            <path
-              d="M 80,82 Q 100,95 120,82 Q 100,88 80,82 Z"
-              fill="#FFFFFF"
-              stroke="#D1D5DB"
-              strokeWidth="1.5"
-            />
-            {/* Eyes (Electric glowing when active) */}
-            <circle
-              cx="88"
-              cy="60"
-              r="4"
-              fill={striking || charging ? "#67E8F9" : "#1E293B"}
-              filter={striking || charging ? "url(#glow)" : undefined}
-            />
-            <circle
-              cx="112"
-              cy="60"
-              r="4"
-              fill={striking || charging ? "#67E8F9" : "#1E293B"}
-              filter={striking || charging ? "url(#glow)" : undefined}
-            />
-            {/* Glowing Golden Laurel Crown */}
-            <path
-              d="M 68,45 Q 100,25 132,45 Q 120,38 100,38 Q 80,38 68,45 Z"
-              fill="url(#zeusGold)"
-              filter="url(#glow)"
-            />
-            <circle cx="100" cy="38" r="5" fill="#FFF" />
-
-            {/* Right Hand Holding Crackling Lightning Bolt */}
-            <g
-              className={`transition-transform duration-300 origin-[150px_90px] ${
-                striking ? "rotate-[-25deg] scale-125" : charging ? "animate-pulse" : ""
-              }`}
-            >
-              {/* Arm */}
-              <path d="M 140,100 Q 165,110 155,135" stroke="#FAD0AE" strokeWidth="14" strokeLinecap="round" />
-              {/* Lightning Bolt */}
-              <path
-                d="M 175,40 L 148,110 L 165,115 L 135,200 L 155,130 L 138,125 Z"
-                fill="url(#lightningGlow)"
-                stroke="#FFFFFF"
-                strokeWidth="2"
-                filter="url(#glow)"
-              />
-              {/* Crackling Electric Arcs dancing on bolt */}
-              <path
-                d="M 168,55 L 180,68 L 162,80 L 175,95 L 150,130"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="2"
-                strokeLinecap="round"
-                className="animate-electric-arc"
-              />
-              <circle cx="175" cy="40" r="4" fill="#ffffff" className="animate-ping" />
-            </g>
-          </svg>
-
-          {/* Dynamic Dialogue / Shout Bubble with Randomized Divine Quotes */}
-          {striking && !compact && (
-            <div className="absolute -top-10 -left-6 bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400 text-black font-black text-[11px] px-3.5 py-1 rounded-full border-2 border-white shadow-[0_0_24px_rgba(251,191,36,1)] tracking-wider uppercase animate-bounce">
-              ⚡ BY ZEUS&apos;S POWER!
-            </div>
-          )}
-          {charging && !striking && !compact && (
-            <div className="absolute -top-10 -left-6 bg-gradient-to-r from-cyan-400 to-sky-300 text-black font-black text-[10px] px-3 py-1 rounded-full border-2 border-white shadow-[0_0_20px_rgba(6,182,212,0.9)] animate-pulse tracking-wider uppercase">
-              ⚡ THUNDER AWAKENS...
-            </div>
-          )}
-        </div>
+      <div
+        onClick={() => triggerStrike(true)}
+        className="group relative h-9 w-9 shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-amber-400/90 bg-neutral-950 shadow-[0_0_12px_rgba(251,191,36,0.65)] transition-transform active:scale-95 pointer-events-auto"
+        title={`${mascot.name} (${mascot.title}) · Click for blessing!`}
+      >
+        <img
+          src={mascot.imageSrc}
+          alt={mascot.name}
+          className={`h-full w-full object-cover object-top scale-135 transition-transform duration-300 ${
+            striking ? "scale-150 brightness-130" : "group-hover:scale-145"
+          }`}
+        />
+        {charging && (
+          <span className="pointer-events-none absolute inset-0 rounded-full border-2 border-cyan-400 animate-ping opacity-80" />
+        )}
+        {striking && (
+          <span className="pointer-events-none absolute inset-0 rounded-full bg-white/40 animate-pulse" />
+        )}
       </div>
     );
   }
 
-  const kind =
-    themeId === "cyber-neon-777" || themeId === "neon-cyber-slots"
-      ? "cyber"
-      : themeId === "pharaoh-gold-deluxe"
-        ? "pharaoh"
-        : themeId === "sugar-rush-frenzy"
-          ? "candy"
-          : themeId === "dead-mans-vault"
-            ? "vault"
-            : "dragon";
-
-  const label =
-    kind === "cyber"
-      ? "CYBER BOSS"
-      : kind === "pharaoh"
-        ? "PHARAOH"
-        : kind === "candy"
-          ? "SUGAR QUEEN"
-          : kind === "vault"
-            ? "WARDEN"
-            : "GOLD DRAGON";
+  const currentQuote = isBonus
+    ? mascot.bonusQuote
+    : charging && !striking
+    ? mascot.chargeQuotes[0]
+    : mascot.strikeQuotes[quoteIdx];
 
   return (
     <div
-      className={`relative flex flex-col items-center justify-center select-none pointer-events-none ${
-        compact ? "w-9" : "w-40 sm:w-48"
-      }`}
+      onClick={() => triggerStrike(true)}
+      className="group relative flex flex-col items-center justify-end select-none pointer-events-auto cursor-pointer w-52 sm:w-60 h-[400px] sm:h-[480px] transition-all"
+      title={`${mascot.name} · Click for divine blessing!`}
     >
+      {/* Dynamic Floating Character Wrapper */}
       <div
-        className={`relative flex flex-col items-center transition-all duration-500 ${
-          isSpinning ? "scale-105" : ""
-        } ${striking ? "scale-110" : ""}`}
+        className={`relative w-full h-full flex flex-col items-center justify-end transition-all duration-500 ${
+          isSpinning ? "translate-y-[-8px] scale-105" : "animate-mascot-float"
+        } ${striking ? "animate-mascot-strike" : ""}`}
       >
+        {/* ── Radiant Backlight & Energy Aura ── */}
         <div
-          className={`absolute -inset-6 rounded-full blur-2xl transition-opacity duration-300 ${
+          className={`pointer-events-none absolute inset-4 rounded-full blur-3xl transition-all duration-500 ${
             striking
-              ? "bg-amber-400/70 opacity-100 animate-pulse"
+              ? "opacity-100 scale-125"
               : charging
-                ? "bg-cyan-400/50 opacity-90 animate-ping"
-                : isBonus
-                  ? "bg-purple-500/40 opacity-80"
-                  : "bg-purple-600/30 opacity-60"
+              ? "opacity-90 scale-110 animate-pulse"
+              : isBonus
+              ? "opacity-95 scale-115"
+              : "opacity-65 scale-100"
           }`}
+          style={{
+            background: striking
+              ? `radial-gradient(circle, #fde047 0%, ${mascot.accentColor} 50%, transparent 75%)`
+              : charging
+              ? "radial-gradient(circle, #67e8f9 0%, #0284c7 50%, transparent 75%)"
+              : isBonus
+              ? "radial-gradient(circle, #facc15 0%, #ec4899 50%, transparent 75%)"
+              : `radial-gradient(circle, ${mascot.glowColor} 0%, rgba(0,0,0,0) 70%)`,
+          }}
         />
-        <svg
-          viewBox="0 0 160 180"
-          className={`${compact ? "h-9 w-8" : "h-48 w-40"} drop-shadow-[0_10px_24px_rgba(0,0,0,0.8)]`}
-        >
-          {kind === "cyber" && (
-            <>
-              <rect x="40" y="70" width="80" height="90" rx="16" fill="#1e1b4b" stroke="#22d3ee" strokeWidth="3" />
-              <rect x="52" y="30" width="56" height="52" rx="10" fill="#0f172a" stroke="#f472b6" strokeWidth="3" />
-              <circle cx="68" cy="54" r="6" fill={charging || striking ? "#67e8f9" : "#22d3ee"} />
-              <circle cx="92" cy="54" r="6" fill={charging || striking ? "#67e8f9" : "#22d3ee"} />
-              <rect x="62" y="70" width="36" height="6" rx="2" fill="#f472b6" />
-            </>
+
+        {/* ── Volumetric Light Rays (Zeus / Sun Aura) ── */}
+        <div className="pointer-events-none absolute -top-8 w-64 h-64 opacity-40 animate-[spin_30s_linear_infinite]">
+          <div
+            className="w-full h-full rounded-full"
+            style={{
+              background: `conic-gradient(from 0deg, transparent 0deg, ${mascot.accentColor}33 30deg, transparent 60deg, ${mascot.accentColor}33 120deg, transparent 150deg, ${mascot.accentColor}33 210deg, transparent 240deg, ${mascot.accentColor}33 300deg, transparent 330deg)`,
+            }}
+          />
+        </div>
+
+        {/* ── Shockwave Ring on Strike ── */}
+        {striking && (
+          <div
+            className="pointer-events-none absolute inset-6 rounded-full border-2 animate-ping"
+            style={{ borderColor: mascot.accentColor }}
+          />
+        )}
+
+        {/* ── High-Detail 3D Mascot Character Art (Nana Banana Generated) ── */}
+        <div className="relative w-full h-[320px] sm:h-[390px] flex items-center justify-center overflow-visible z-10">
+          <img
+            src={mascot.imageSrc}
+            alt={mascot.name}
+            className={`w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.95)] transition-all duration-300 ${
+              striking ? "brightness-125 contrast-110" : "brightness-105"
+            }`}
+            style={{
+              mixBlendMode: "screen",
+              maskImage: "radial-gradient(ellipse 84% 92% at 50% 50%, black 72%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(ellipse 84% 92% at 50% 50%, black 72%, transparent 100%)",
+            }}
+          />
+
+          {/* Dynamic Electric / Energy Arcs on Mascot Weapon ── */}
+          {striking && (
+            <svg
+              viewBox="0 0 200 240"
+              className="pointer-events-none absolute inset-0 w-full h-full z-20 overflow-visible"
+            >
+              <defs>
+                <filter id="mascotZapGlow">
+                  <feGaussianBlur stdDeviation="3" result="glow" />
+                  <feMerge>
+                    <feMergeNode in="glow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <path
+                d="M 50,40 L 70,80 L 55,100 L 95,140 L 80,165 L 120,210"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3"
+                strokeLinecap="round"
+                filter="url(#mascotZapGlow)"
+                className="animate-electric-arc"
+              />
+              <path
+                d="M 140,50 L 125,95 L 145,115 L 115,165 L 135,185 L 100,225"
+                fill="none"
+                stroke={mascot.accentColor}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                filter="url(#mascotZapGlow)"
+                className="animate-electric-arc"
+              />
+              <circle cx="50" cy="40" r="5" fill="#fff" className="animate-ping" />
+              <circle cx="140" cy="50" r="4" fill="#fff" className="animate-ping" />
+            </svg>
           )}
-          {kind === "pharaoh" && (
-            <>
-              <path d="M30 70 L80 18 L130 70 L118 160 L42 160 Z" fill="#f59e0b" stroke="#fde68a" strokeWidth="3" />
-              <ellipse cx="80" cy="88" rx="28" ry="32" fill="#fcd34d" />
-              <path d="M52 70 Q80 40 108 70" fill="#b45309" />
-              <circle cx="70" cy="88" r="4" fill="#1c1917" />
-              <circle cx="90" cy="88" r="4" fill="#1c1917" />
-            </>
-          )}
-          {kind === "candy" && (
-            <>
-              <circle cx="80" cy="100" r="48" fill="#f472b6" stroke="#fbcfe8" strokeWidth="3" />
-              <circle cx="64" cy="90" r="8" fill="#fff" />
-              <circle cx="96" cy="90" r="8" fill="#fff" />
-              <circle cx="64" cy="90" r="3" fill="#831843" />
-              <circle cx="96" cy="90" r="3" fill="#831843" />
-              <path d="M64 118 Q80 132 96 118" fill="none" stroke="#9d174d" strokeWidth="4" />
-            </>
-          )}
-          {kind === "vault" && (
-            <>
-              <rect x="36" y="40" width="88" height="110" rx="18" fill="#1c1917" stroke="#f59e0b" strokeWidth="4" />
-              <circle cx="80" cy="96" r="22" fill="#292524" stroke="#fbbf24" strokeWidth="3" />
-              <circle cx="80" cy="96" r="6" fill="#f59e0b" />
-            </>
-          )}
-          {kind === "dragon" && (
-            <>
-              <path d="M28 120 Q80 20 132 120 Q110 160 80 168 Q50 160 28 120 Z" fill="#dc2626" stroke="#facc15" strokeWidth="3" />
-              <path d="M50 90 Q80 60 110 90" fill="none" stroke="#fde047" strokeWidth="4" />
-              <circle cx="64" cy="96" r="5" fill="#fde047" />
-              <circle cx="96" cy="96" r="5" fill="#fde047" />
-            </>
-          )}
-        </svg>
-        {!compact && (
-          <span className="mt-1 text-[10px] font-black uppercase tracking-wider text-amber-300">{label}</span>
+
+          {/* Floating Sparkles from Clicks */}
+          {sparkles.map((sp) => (
+            <span
+              key={`mascot-sp-${sp.id}`}
+              className="pointer-events-none absolute rounded-full bg-white animate-ping"
+              style={{
+                left: `${sp.x}%`,
+                top: `${sp.y}%`,
+                width: `${sp.size}px`,
+                height: `${sp.size}px`,
+                boxShadow: `0 0 12px ${mascot.accentColor}, 0 0 24px #fff`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* ── 3D Holographic Summoning Pedestal at Feet ── */}
+        <div className="absolute bottom-6 w-44 sm:w-52 h-10 pointer-events-none flex items-center justify-center z-0">
+          {/* Outer Runic / Tech Ring */}
+          <div
+            className="absolute inset-0 rounded-full border-2 animate-pedestal-spin opacity-80"
+            style={{
+              borderColor: mascot.accentColor,
+              boxShadow: `0 0 24px ${mascot.accentColor}88, inset 0 0 16px ${mascot.accentColor}55`,
+            }}
+          />
+
+          {/* Inner Counter-Rotating Ring */}
+          <div
+            className="absolute w-32 h-6 rounded-full border border-white/80 animate-pedestal-spin-reverse opacity-90"
+            style={{
+              boxShadow: "0 0 12px rgba(255,255,255,0.7)",
+            }}
+          />
+
+          {/* Ground Hover Shadow */}
+          <div
+            className={`w-36 h-4 rounded-full bg-black/90 blur-md transition-all duration-500 ${
+              isSpinning ? "scale-90 opacity-60" : "scale-100 opacity-90"
+            }`}
+          />
+
+          {/* Floating Base Runes */}
+          <div className="absolute -bottom-1 flex items-center gap-4 text-xs opacity-75">
+            {mascot.runes.map((rune, idx) => (
+              <span
+                key={`rune-${idx}`}
+                className="animate-pulse"
+                style={{ animationDelay: `${idx * 250}ms` }}
+              >
+                {rune}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Character Name & Title Pill ── */}
+        <div className="relative z-20 mt-1 flex flex-col items-center">
+          <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/85 border border-white/20 shadow-[0_0_20px_rgba(0,0,0,0.8)] backdrop-blur-md transition-transform group-hover:scale-105">
+            <span
+              className="h-2 w-2 rounded-full animate-ping"
+              style={{ backgroundColor: mascot.accentColor }}
+            />
+            <span className="text-[11px] font-black uppercase tracking-widest text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]">
+              {mascot.name}
+            </span>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground hidden sm:inline border-l border-white/20 pl-2">
+              {isBonus ? "★ SUPERCHARGED ★" : mascot.title}
+            </span>
+          </div>
+        </div>
+
+        {/* ── Dynamic Speech / Shout Bubble ── */}
+        {(striking || charging || isBonus) && (
+          <div
+            className={`absolute -top-6 z-30 flex items-center gap-1.5 px-3.5 py-1 rounded-full border-2 shadow-2xl backdrop-blur-md animate-mascot-speech pointer-events-none ${
+              striking
+                ? "border-amber-300 bg-black/95 shadow-[0_0_30px_rgba(251,191,36,1)]"
+                : charging
+                ? "border-cyan-400 bg-black/90 shadow-[0_0_20px_rgba(6,182,212,0.9)]"
+                : "border-pink-400 bg-black/90 shadow-[0_0_20px_rgba(236,72,153,0.8)]"
+            }`}
+          >
+            <span
+              className={`text-[10px] sm:text-[11px] font-black tracking-wider uppercase ${
+                striking
+                  ? "text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.9)]"
+                  : charging
+                  ? "text-cyan-300 drop-shadow-[0_0_6px_rgba(6,182,212,0.9)]"
+                  : "text-pink-300 drop-shadow-[0_0_6px_rgba(236,72,153,0.9)]"
+              }`}
+            >
+              {currentQuote}
+            </span>
+          </div>
         )}
       </div>
     </div>
   );
-}
+});
