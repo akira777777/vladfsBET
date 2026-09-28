@@ -25,7 +25,7 @@ function Caption({ text, color }: { text: string; color: string }) {
   );
 }
 
-const MultiplierOrb = React.memo(function MultiplierOrb({ val }: { val: number }) {
+export const MultiplierOrb = React.memo(function MultiplierOrb({ val }: { val: number }) {
   const isSupernova = val >= 250;
   const isMega = val >= 50;
   const isHigh = val >= 10;
