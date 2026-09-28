@@ -150,27 +150,45 @@ export function SlotWinCelebration({
 
       {/* Main Celebration Banner Card */}
       <div
-        className={`relative flex flex-col items-center justify-center p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-neutral-900/95 via-neutral-950/95 to-black/95 border-2 ${badgeBorder} max-w-lg w-full mx-4 text-center animate-celebration-zoom`}
+        className={`relative flex flex-col items-center justify-center p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-neutral-900/95 via-neutral-950/95 to-black/95 border-2 ${badgeBorder} max-w-lg w-full mx-4 text-center animate-celebration-zoom ${
+          tier === "EPIC_WIN" ? "animate-rainbow-cycle" : ""
+        }`}
       >
+        {/* Floating Crown/Gem Top Icon */}
+        <div className="absolute -top-7 px-4 py-1 rounded-full bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 border-2 border-white text-black text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(251,191,36,1)] animate-bounce">
+          {tier === "EPIC_WIN"
+            ? "👑 DIVINE JACKPOT 👑"
+            : tier === "ULTRA_WIN"
+              ? "💎 ULTRA LEGENDARY 💎"
+              : tier === "MEGA_WIN"
+                ? "⚡ MEGA STRIKE ⚡"
+                : "★ BIG WINNER ★"}
+        </div>
+
         <h2
-          className={`text-5xl sm:text-7xl font-black tracking-wider uppercase bg-gradient-to-r ${titleColor} bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(250,204,21,0.9)] animate-multiplier-pop`}
+          className={`mt-2 text-5xl sm:text-7xl font-black tracking-wider uppercase bg-gradient-to-r ${titleColor} bg-clip-text text-transparent drop-shadow-[0_0_32px_rgba(250,204,21,1)] animate-multiplier-pop`}
           style={{ animationDelay: "0.15s" }}
         >
           {title}
         </h2>
 
-        <p className="mt-2 text-xs uppercase tracking-widest text-white/60 font-semibold">
-          {ratio.toFixed(1)}x Bet Multiplier
-        </p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs uppercase tracking-widest text-amber-300 font-extrabold bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+            {ratio.toFixed(1)}x Bet Multiplier
+          </span>
+          {ratio >= 50 && (
+            <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">
+              HOT HIT
+            </span>
+          )}
+        </div>
 
         {/* Big Animated Win Amount */}
-        <div className="my-6 py-3 px-6 rounded-2xl bg-black/60 border border-white/10 shadow-inner w-full relative overflow-hidden">
+        <div className="my-6 py-4 px-6 rounded-2xl bg-black/80 border-2 border-yellow-400/60 shadow-[inset_0_0_20px_rgba(251,191,36,0.3)] w-full relative overflow-hidden">
           {/* Background shimmer on final */}
-          {phase === "FINAL" && (
-            <div className="absolute inset-0 animate-win-shimmer pointer-events-none rounded-2xl" />
-          )}
+          <div className="absolute inset-0 animate-win-shimmer pointer-events-none rounded-2xl opacity-60" />
           <span
-            className={`relative z-10 text-4xl sm:text-6xl font-black text-amber-400 tracking-tight tabular-nums drop-shadow-[0_0_18px_rgba(251,191,36,0.95)] transition-all duration-100 ${
+            className={`relative z-10 text-4xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-white to-amber-400 tracking-tight tabular-nums drop-shadow-[0_0_24px_rgba(251,191,36,1)] transition-all duration-100 ${
               flashTick ? "animate-counter-flash scale-105" : ""
             }`}
           >
@@ -178,9 +196,14 @@ export function SlotWinCelebration({
           </span>
         </div>
 
-        <p className="text-xs text-muted-foreground animate-pulse">
-          Click anywhere to collect & continue
-        </p>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-xs text-amber-200/80 font-bold uppercase tracking-wider animate-pulse">
+            👆 Click anywhere to burst coins & collect
+          </p>
+          <span className="text-[10px] text-muted-foreground font-mono">
+            Tap screen for instant bonus fireworks!
+          </span>
+        </div>
       </div>
     </div>
   );

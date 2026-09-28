@@ -101,7 +101,12 @@ function CollectingOrbShell({
               } as React.CSSProperties
             }
           >
-            {children}
+            {/* Comet aura and sparkling tail */}
+            <div className="absolute inset-[-14px] rounded-full bg-gradient-to-r from-amber-400/80 via-yellow-200/90 to-transparent blur-md animate-pulse" />
+            <div className="absolute -inset-2 rounded-full border-2 border-white shadow-[0_0_24px_rgba(251,191,36,1)] animate-ping" />
+            <div className="relative z-10 scale-125">
+              {children}
+            </div>
           </div>,
           document.body,
         )}
@@ -347,6 +352,10 @@ export function SlotTumbleGrid({
                   }`}
                   style={shouldFall ? ({ "--fall-from": `${rowsMoved * 110}%` } as React.CSSProperties) : undefined}
                 >
+                  {shouldFall ? (
+                    <div className="pointer-events-none absolute -bottom-1 inset-x-2 h-1 rounded-full bg-gradient-to-r from-transparent via-amber-300 to-transparent blur-[1px] animate-impact-dust z-20" />
+                  ) : null}
+
                   {isWin && !isShattering && (
                     <div className="absolute inset-0 rounded-xl animate-win-shimmer pointer-events-none z-[1]" />
                   )}
@@ -414,6 +423,95 @@ export function SlotTumbleGrid({
             )}
           </div>
         ))}
+
+        {/* Connected Cluster Winning Laser Web */}
+        {clusterHits.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-30 overflow-visible">
+            <defs>
+              <filter id="clusterLaserGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {clusterHits.map((hit, hIdx) => {
+              if (hit.positions.length < 2) return null;
+              const pts = hit.positions.map((p) => ({
+                x: ((p.col + 0.5) / 6) * 100,
+                y: ((p.row + 0.5) / 5) * 100,
+              }));
+              const pathD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x}% ${pt.y}%`, "");
+              const hitColor = theme.symbols[hit.symbolId]?.glowColor || "#fbbf24";
+              return (
+                <g key={`cluster-line-${hIdx}-${tumbleStepIndex}`}>
+                  {/* Outer Electric Glow Line */}
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke={hitColor}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    filter="url(#clusterLaserGlow)"
+                    opacity="0.9"
+                    className="animate-electric-arc"
+                  />
+                  {/* Inner Rapid Tracer Beam */}
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="animate-laser-tracer"
+                  />
+                  {/* Golden Energy Nodes at Cluster Points */}
+                  {pts.map((pt, pIdx) => (
+                    <circle
+                      key={`pt-${pIdx}`}
+                      cx={`${pt.x}%`}
+                      cy={`${pt.y}%`}
+                      r="4.5"
+                      fill="#ffffff"
+                      stroke={hitColor}
+                      strokeWidth="2"
+                      className="animate-ping"
+                      style={{ animationDuration: "1.4s", animationDelay: `${pIdx * 90}ms` }}
+                    />
+                  ))}
+                </g>
+              );
+            })}
+          </svg>
+        )}
+
+        {/* Prominent Cluster Victory Announcement Badges */}
+        {clusterHits.map((hit, idx) => {
+          const avgCol = hit.positions.reduce((sum, p) => sum + p.col, 0) / Math.max(1, hit.positions.length);
+          const avgRow = hit.positions.reduce((sum, p) => sum + p.row, 0) / Math.max(1, hit.positions.length);
+          const symDef = theme.symbols[hit.symbolId];
+          const hitWin = hit.winAmount * Math.max(1, currentMultiplier);
+          return (
+            <div
+              key={`cluster-badge-${hit.symbolId}-${idx}-${tumbleStepIndex}`}
+              className="pointer-events-none absolute z-40 animate-prize-pill flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-yellow-300 bg-gradient-to-r from-black/95 via-neutral-900/95 to-black/95 shadow-[0_0_25px_rgba(251,191,36,0.9)] backdrop-blur-md"
+              style={{
+                left: `${((avgCol + 0.5) / 6) * 100}%`,
+                top: `${((avgRow + 0.5) / 5) * 100}%`,
+              }}
+            >
+              <span className="text-[11px] font-black uppercase text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)]">
+                {hit.positions.length}x {symDef?.name?.split(" ")[0] || hit.symbolId}
+              </span>
+              <span className="text-[11px] font-black text-white tabular-nums bg-amber-500/30 px-1.5 py-0.5 rounded-md border border-amber-400/50">
+                +{formatMoney(hitWin, currency)}
+              </span>
+            </div>
+          );
+        })}
 
         {/* Floating sparkle particles from winning positions */}
         {winChips.map((chip) => (

@@ -26,32 +26,178 @@ function Caption({ text, color }: { text: string; color: string }) {
 }
 
 function MultiplierOrb({ val }: { val: number }) {
-  const orbTheme =
-    val >= 250
-      ? { ring: "#ef4444", fill1: "#f43f5e", fill2: "#881337", glow: "rgba(244,63,94,0.9)", text: "#ffffff" }
-      : val >= 50
-        ? { ring: "#facc15", fill1: "#fef08a", fill2: "#b45309", glow: "rgba(250,204,21,0.9)", text: "#000000" }
-        : val >= 10
-          ? { ring: "#c084fc", fill1: "#f3e8ff", fill2: "#6b21a8", glow: "rgba(192,132,252,0.9)", text: "#ffffff" }
-          : { ring: "#38bdf8", fill1: "#e0f2fe", fill2: "#0369a1", glow: "rgba(56,189,248,0.9)", text: "#ffffff" };
+  const isSupernova = val >= 250;
+  const isMega = val >= 50;
+  const isHigh = val >= 10;
+
+  const orbTheme = isSupernova
+    ? {
+        ring: "#ef4444",
+        ring2: "#fbbf24",
+        fill1: "#fff1f2",
+        fill2: "#f43f5e",
+        fill3: "#881337",
+        glow: "rgba(244,63,94,0.95)",
+        corona: "rgba(251,191,36,0.85)",
+        text: "#ffffff",
+        badge: "bg-red-600/90 text-white",
+      }
+    : isMega
+      ? {
+          ring: "#f59e0b",
+          ring2: "#fde047",
+          fill1: "#fffbeb",
+          fill2: "#facc15",
+          fill3: "#92400e",
+          glow: "rgba(250,204,21,0.95)",
+          corona: "rgba(245,158,11,0.75)",
+          text: "#1c1917",
+          badge: "bg-amber-400 text-black",
+        }
+      : isHigh
+        ? {
+            ring: "#a855f7",
+            ring2: "#e879f9",
+            fill1: "#faf5ff",
+            fill2: "#c084fc",
+            fill3: "#581c87",
+            glow: "rgba(192,132,252,0.9)",
+            corona: "rgba(168,85,247,0.6)",
+            text: "#ffffff",
+            badge: "bg-purple-600/90 text-white",
+          }
+        : {
+            ring: "#0ea5e9",
+            ring2: "#67e8f9",
+            fill1: "#f0f9ff",
+            fill2: "#38bdf8",
+            fill3: "#0369a1",
+            glow: "rgba(56,189,248,0.9)",
+            corona: "rgba(14,165,233,0.5)",
+            text: "#ffffff",
+            badge: "bg-sky-600/90 text-white",
+          };
+
   const gid = `orbGrad_${val}`;
+  const glowId = `orbGlow_${val}`;
 
   return (
-    <div className="relative flex flex-col items-center justify-center">
-      <div className="absolute inset-0 rounded-full blur-md animate-pulse" style={{ backgroundColor: orbTheme.glow }} />
-      <svg viewBox="0 0 100 100" className="h-12 w-12 sm:h-14 sm:w-14 drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+    <div className={`relative flex flex-col items-center justify-center ${isSupernova ? "animate-rainbow-cycle" : ""}`}>
+      {/* Outer Atmospheric Aura */}
+      <div
+        className="absolute inset-[-4px] rounded-full blur-lg animate-pulse"
+        style={{
+          background: `radial-gradient(circle, ${orbTheme.glow} 0%, ${orbTheme.corona} 50%, transparent 75%)`,
+          animationDuration: isSupernova ? "0.8s" : "1.8s",
+        }}
+      />
+
+      {/* SVG 3D Multiplier Sphere */}
+      <svg
+        viewBox="0 0 100 100"
+        className="h-12 w-12 sm:h-14 sm:w-14 drop-shadow-[0_0_18px_rgba(255,255,255,0.85)] filter"
+      >
         <defs>
-          <radialGradient id={gid} cx="35%" cy="35%" r="65%">
+          {/* 3D Sphere Radial Gradient with specular volume */}
+          <radialGradient id={gid} cx="32%" cy="30%" r="70%">
             <stop offset="0%" stopColor={orbTheme.fill1} />
-            <stop offset="60%" stopColor={orbTheme.ring} />
-            <stop offset="100%" stopColor={orbTheme.fill2} />
+            <stop offset="28%" stopColor={orbTheme.fill2} />
+            <stop offset="72%" stopColor={orbTheme.fill3} />
+            <stop offset="100%" stopColor="#000000" />
           </radialGradient>
+
+          {/* Core Glow Filter */}
+          <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
-        <circle cx="50" cy="50" r="44" fill="none" stroke={orbTheme.ring} strokeWidth="3.5" strokeDasharray="8 6" className="origin-center animate-orb-orbit" />
-        <circle cx="50" cy="50" r="36" fill={`url(#${gid})`} stroke="#ffffff" strokeWidth="2.5" />
+
+        {/* Counter-rotating Outer Notched Ring */}
+        <circle
+          cx="50"
+          cy="50"
+          r="46"
+          fill="none"
+          stroke={orbTheme.ring2}
+          strokeWidth="2"
+          strokeDasharray="14 10"
+          className="origin-center animate-spin"
+          style={{ animationDuration: isSupernova ? "3s" : "6s" }}
+        />
+
+        {/* Inner Fast Orbiting Dashed Energy Ring */}
+        <circle
+          cx="50"
+          cy="50"
+          r="41"
+          fill="none"
+          stroke={orbTheme.ring}
+          strokeWidth="2.8"
+          strokeDasharray="6 4"
+          className="origin-center animate-orb-orbit"
+        />
+
+        {/* Four Orbiting Energy Satellites / Nodes */}
+        <g className="origin-center animate-spin" style={{ animationDuration: "4s" }}>
+          <circle cx="50" cy="5" r="3" fill="#ffffff" filter={`url(#${glowId})`} />
+          <circle cx="95" cy="50" r="3" fill="#ffffff" filter={`url(#${glowId})`} />
+          <circle cx="50" cy="95" r="3" fill="#ffffff" filter={`url(#${glowId})`} />
+          <circle cx="5" cy="50" r="3" fill="#ffffff" filter={`url(#${glowId})`} />
+        </g>
+
+        {/* Main 3D Sphere Body */}
+        <circle
+          cx="50"
+          cy="50"
+          r="34"
+          fill={`url(#${gid})`}
+          stroke="#ffffff"
+          strokeWidth="2"
+        />
+
+        {/* Electric Spark Arcs across the sphere */}
+        <path
+          d="M 28,48 L 42,42 L 38,54 L 56,46 L 52,60 L 68,52"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="animate-electric-arc"
+          opacity="0.85"
+        />
+
+        {/* Specular Highlight Crescent (Glossy Glass Lens Reflection) */}
+        <ellipse
+          cx="42"
+          cy="32"
+          rx="12"
+          ry="6"
+          transform="rotate(-25 42 32)"
+          fill="#ffffff"
+          opacity="0.65"
+        />
+        <circle cx="34" cy="28" r="2.5" fill="#ffffff" opacity="0.9" />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm font-black tracking-tighter sm:text-base" style={{ color: orbTheme.text, textShadow: "0 2px 4px rgba(0,0,0,0.9)" }}>
+
+      {/* Multiplier Value Tag */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span
+          className={`font-mono font-black tracking-tighter ${
+            val >= 100 ? "text-xs sm:text-sm" : "text-sm sm:text-base"
+          }`}
+          style={{
+            color: orbTheme.text,
+            textShadow:
+              orbTheme.text === "#000000"
+                ? "0 0 3px #ffffff, 0 1px 2px rgba(255,255,255,0.8)"
+                : "0 0 6px #000000, 0 2px 4px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.9)",
+          }}
+        >
           {val}x
         </span>
       </div>
@@ -653,22 +799,46 @@ export function SlotSymbolIcon({
     <div
       className={`relative flex items-center justify-center transition-all duration-300 ${dim} ${
         isExploding
-          ? "z-30"
+          ? "z-30 scale-125 filter brightness-150"
           : isWinning
-            ? "z-20 scale-110 animate-win-glow"
+            ? "z-20 scale-115 animate-cluster-aura drop-shadow-[0_0_16px_rgba(250,204,21,0.85)]"
             : isScatterTease
-              ? "z-20 animate-scatter-tease"
+              ? "z-20 scale-110 animate-scatter-anticipation animate-anticipation-heartbeat"
               : id === "WILD" || id === "SCATTER" || id === "MULTIPLIER_ORB"
                 ? "animate-symbol-breathe"
                 : ""
       }`}
     >
+      {/* Winning State: Golden Radiant Sunburst, Prismatic Aura & Sparkle Flares */}
       {isWinning && !isExploding && (
         <>
-          <div className="pointer-events-none absolute -inset-1 z-[1] rounded-2xl border-2 border-yellow-400 bg-yellow-400/20 animate-shatter-ring" />
-          <div className="pointer-events-none absolute inset-0 z-[1] rounded-2xl animate-win-shimmer" />
+          <div
+            className="pointer-events-none absolute -inset-2 rounded-2xl blur-sm animate-pulse z-[0]"
+            style={{
+              background: `radial-gradient(circle, ${def.glowColor || "#facc15"} 0%, transparent 70%)`,
+              opacity: 0.6,
+            }}
+          />
+          <div className="pointer-events-none absolute -inset-1.5 z-[1] rounded-2xl border-2 border-yellow-300/90 shadow-[0_0_24px_rgba(251,191,36,0.95)] animate-cluster-aura" />
+          <div className="pointer-events-none absolute inset-0 z-[2] rounded-xl animate-win-shimmer" />
+
+          {/* 4 Corner Golden Starlets */}
+          <span className="pointer-events-none absolute -top-1 -left-1 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fde047] animate-ping" />
+          <span className="pointer-events-none absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fde047] animate-ping" style={{ animationDelay: "150ms" }} />
+          <span className="pointer-events-none absolute -bottom-1 -left-1 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fde047] animate-ping" style={{ animationDelay: "300ms" }} />
+          <span className="pointer-events-none absolute -bottom-1 -right-1 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fde047] animate-ping" style={{ animationDelay: "450ms" }} />
         </>
       )}
+
+      {/* Scatter Anticipation Tease Aura */}
+      {isScatterTease && !isExploding && (
+        <>
+          <div className="pointer-events-none absolute -inset-2 rounded-2xl bg-cyan-400/25 blur-md animate-pulse z-[0]" />
+          <div className="pointer-events-none absolute -inset-1 z-[1] rounded-2xl border-2 border-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.9)] animate-electric-arc" />
+        </>
+      )}
+
+      {/* Symbol Graphics */}
       {id === "MULTIPLIER_ORB" ? (
         <MultiplierOrb val={multiplierValue || 2} />
       ) : (

@@ -67,38 +67,91 @@ function StrikeOverlay({
   if (category === "CYBERPUNK") {
     return (
       <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
+        {/* Holographic matrix scanlines & laser blades */}
+        <div className="absolute inset-0 animate-holo-scan" />
         <div
-          className="absolute left-[8%] top-[-10%] h-[140%] w-10 origin-center rounded-full blur-[1px] animate-scan-slash"
+          className="absolute left-[12%] top-[-10%] h-[140%] w-12 origin-center rounded-full blur-[1px] animate-scan-slash"
           style={{
             background: `linear-gradient(180deg, transparent, ${accent}, #22d3ee, transparent)`,
-            boxShadow: `0 0 24px ${accent}`,
+            boxShadow: `0 0 32px ${accent}`,
           }}
         />
-        <div className="absolute inset-0 bg-fuchsia-400/20 animate-lightning-flash" />
+        <div
+          className="absolute right-[18%] top-[-20%] h-[150%] w-8 origin-center rounded-full blur-[1px] animate-scan-slash"
+          style={{
+            background: `linear-gradient(180deg, transparent, #f43f5e, #a855f7, transparent)`,
+            boxShadow: `0 0 28px #f43f5e`,
+            animationDelay: "80ms",
+          }}
+        />
+        <div className="absolute inset-0 bg-fuchsia-400/25 animate-lightning-flash" />
       </div>
     );
   }
   return (
     <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden">
-      <svg viewBox="0 0 200 240" className="absolute inset-0 h-full w-full animate-lightning-strike">
-        <path
-          d="M108 8 L72 96 L102 96 L78 232 L148 88 L112 88 Z"
-          fill={accent}
-          stroke="#fff"
-          strokeWidth="3"
-          filter="url(#boltGlow)"
-        />
+      {/* Blinding Thunder & Multi-Branched Zeus Lightning */}
+      <svg viewBox="0 0 400 300" className="absolute inset-0 h-full w-full animate-lightning-strike" preserveAspectRatio="none">
         <defs>
-          <filter id="boltGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+          <filter id="boltGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge>
+              <feMergeNode in="blur" />
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
+
+        {/* Main Central Lightning Trunk */}
+        <path
+          d="M 320,0 L 250,75 L 285,82 L 180,180 L 210,185 L 120,300"
+          fill="none"
+          stroke={accent}
+          strokeWidth="6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#boltGlow)"
+        />
+        <path
+          d="M 320,0 L 250,75 L 285,82 L 180,180 L 210,185 L 120,300"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Secondary Left Fork */}
+        <path
+          d="M 250,75 L 170,120 L 195,130 L 90,210"
+          fill="none"
+          stroke={accent}
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#boltGlow)"
+        />
+        <path
+          d="M 250,75 L 170,120 L 195,130 L 90,210"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+
+        {/* Secondary Right Fork */}
+        <path
+          d="M 180,180 L 245,215 L 230,230 L 290,300"
+          fill="none"
+          stroke={accent}
+          strokeWidth="3"
+          strokeLinecap="round"
+          filter="url(#boltGlow)"
+        />
       </svg>
-      <div className="absolute inset-0 bg-sky-100/25 animate-lightning-flash" />
+      {/* Blinding Screen Flash */}
+      <div className="absolute inset-0 bg-sky-200/35 animate-lightning-flash" />
     </div>
   );
 }
@@ -130,6 +183,19 @@ export function SlotCabinetStage({
       } ${anticipating ? "brightness-90" : ""} ${punch || hit ? "animate-grid-punch" : ""}`}
       style={{ boxShadow: spinning ? `0 0 36px ${theme.glowColor}` : undefined }}
     >
+      {/* Volumetric Atmospheric God Rays */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden z-[2]">
+        <div
+          className="absolute -top-10 -left-10 w-[140%] h-[120%] animate-god-rays"
+          style={{
+            background:
+              theme.category === "CYBERPUNK"
+                ? "radial-gradient(ellipse at 20% 0%, rgba(34,211,238,0.18), transparent 60%)"
+                : "radial-gradient(ellipse at 80% 0%, rgba(251,191,36,0.22), transparent 65%)",
+          }}
+        />
+      </div>
+
       <div
         className="pointer-events-none absolute inset-0 animate-atmosphere-drift"
         style={{

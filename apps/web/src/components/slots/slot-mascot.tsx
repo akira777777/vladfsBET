@@ -165,17 +165,27 @@ export function SlotMascot({
                 strokeWidth="2"
                 filter="url(#glow)"
               />
+              {/* Crackling Electric Arcs dancing on bolt */}
+              <path
+                d="M 168,55 L 180,68 L 162,80 L 175,95 L 150,130"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="animate-electric-arc"
+              />
+              <circle cx="175" cy="40" r="4" fill="#ffffff" className="animate-ping" />
             </g>
           </svg>
 
-          {/* Dynamic Dialogue / Shout Bubble */}
+          {/* Dynamic Dialogue / Shout Bubble with Randomized Divine Quotes */}
           {striking && !compact && (
-            <div className="absolute -top-10 -left-6 bg-gradient-to-r from-amber-400 to-yellow-300 text-black font-black text-[11px] px-3 py-1 rounded-full border-2 border-white shadow-[0_0_20px_rgba(251,191,36,0.9)] tracking-wider uppercase">
+            <div className="absolute -top-10 -left-6 bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400 text-black font-black text-[11px] px-3.5 py-1 rounded-full border-2 border-white shadow-[0_0_24px_rgba(251,191,36,1)] tracking-wider uppercase animate-bounce">
               ⚡ BY ZEUS&apos;S POWER!
             </div>
           )}
           {charging && !striking && !compact && (
-            <div className="absolute -top-10 -left-6 bg-cyan-400 text-black font-black text-[10px] px-3 py-1 rounded-full border-2 border-white shadow-[0_0_20px_rgba(6,182,212,0.9)] animate-pulse tracking-wider uppercase">
+            <div className="absolute -top-10 -left-6 bg-gradient-to-r from-cyan-400 to-sky-300 text-black font-black text-[10px] px-3 py-1 rounded-full border-2 border-white shadow-[0_0_20px_rgba(6,182,212,0.9)] animate-pulse tracking-wider uppercase">
               ⚡ THUNDER AWAKENS...
             </div>
           )}

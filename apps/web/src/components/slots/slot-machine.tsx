@@ -813,21 +813,37 @@ export function SlotMachine({ initialSlug = "gates-of-vladfs" }: SlotMachineProp
           </div>
 
           {/* Center Multiplier / Tumble Status */}
-          <div ref={multiplierHudRef} className="flex min-h-[2rem] flex-col items-center">
+          <div ref={multiplierHudRef} className="relative flex min-h-[2.2rem] flex-col items-center justify-center">
             {accumulatedMultiplier > 1 ? (
               <div
                 key={`mult-hud-${accumulatedMultiplier}`}
-                className={`flex items-center gap-1.5 rounded-full bg-yellow-400/20 border border-yellow-400/60 shadow-[0_0_20px_rgba(251,191,36,0.8)] animate-multiplier-pop ${
-                  inFreeSpins ? "px-6 py-2" : "px-4 py-1"
-                }`}
+                className={`relative flex items-center gap-2 rounded-full border-2 transition-all duration-300 animate-multiplier-pop ${
+                  accumulatedMultiplier >= 250
+                    ? "bg-gradient-to-r from-red-600/40 via-amber-500/40 to-pink-600/40 border-yellow-300 shadow-[0_0_35px_rgba(239,68,68,0.9)] animate-rainbow-cycle"
+                    : accumulatedMultiplier >= 50
+                      ? "bg-gradient-to-r from-amber-500/30 via-yellow-400/40 to-amber-500/30 border-yellow-300 shadow-[0_0_30px_rgba(250,204,21,0.9)] animate-cluster-aura"
+                      : accumulatedMultiplier >= 10
+                        ? "bg-gradient-to-r from-purple-600/30 via-fuchsia-500/30 to-purple-600/30 border-purple-400 shadow-[0_0_24px_rgba(168,85,247,0.8)]"
+                        : "bg-yellow-400/20 border-yellow-400/70 shadow-[0_0_20px_rgba(251,191,36,0.8)]"
+                } ${inFreeSpins ? "px-6 py-2" : "px-4 py-1.5"}`}
               >
-                <Zap className={`text-yellow-300 fill-yellow-300 ${inFreeSpins ? "h-6 w-6" : "h-4 w-4"}`} />
-                <span className={`font-mono font-black text-yellow-300 ${inFreeSpins ? "text-lg sm:text-2xl" : "text-sm sm:text-base"}`}>
-                  {accumulatedMultiplier}X ACCUMULATED MULTIPLIER
+                {/* Shockwave expanding ring on each new multiplier */}
+                <div className="pointer-events-none absolute inset-0 rounded-full border-2 border-white animate-shockwave-expand" />
+                <Zap
+                  className={`text-yellow-300 fill-yellow-300 animate-bounce ${
+                    inFreeSpins ? "h-6 w-6" : "h-4 w-4"
+                  }`}
+                />
+                <span
+                  className={`font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-white to-amber-300 tracking-wider drop-shadow-[0_0_12px_rgba(251,191,36,0.9)] ${
+                    inFreeSpins ? "text-lg sm:text-2xl" : "text-sm sm:text-base"
+                  }`}
+                >
+                  {accumulatedMultiplier}X MULTIPLIER
                 </span>
               </div>
             ) : (
-              <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400 animate-pulse">
+              <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400 animate-pulse drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]">
                 ★ MAX WIN UP TO {theme.maxWin} ★
               </span>
             )}

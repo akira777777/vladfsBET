@@ -31,3 +31,12 @@
 - [x] 22. Fix provably-fair dialog default seed hash fallback (no more empty string hash; added seed commitment & verifier links)
 - [x] 23. Fix ledger `withSerializable` to safely handle existing `TransactionClient` instances
 - [x] 24. Standardize `provably-fair.test.ts` into a valid Vitest suite so full suite runs and passes cleanly
+
+## Phase 5: Slots Visual Enhancements & Next-Gen Animations
+- [x] 25. 3D Multiplier Orbs: glass sphere specular shading, dual counter-rotating orbital nodes, and lightning arcs
+- [x] 26. Winning cluster effects: SVG electric webbing, 4-corner golden starlets, and floating prize pill badges
+- [x] 27. Megaways dynamic laser paylines: tracing laser beams connecting winning positions across reels
+- [x] 28. Zeus mascot & cabinet VFX: multi-branched lightning strikes, electric arcs on Zeus's bolt, and volumetric god rays
+- [x] 29. Celebration screen overhaul: 3D faceted crystal gemstones, dual corner confetti cannons, click bursts, and rainbow aura
+- [x] 30. Ground impact dust on falling tumble symbols and tiered Multiplier HUD with shockwave rings
+

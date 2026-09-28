@@ -11,7 +11,7 @@ interface Particle {
   vRotation: number;
   size: number;
   color: string;
-  type: "COIN" | "CONFETTI" | "SPARKLE" | "STAR";
+  type: "COIN" | "CONFETTI" | "SPARKLE" | "STAR" | "GEM";
   alpha: number;
   decay: number;
 }
@@ -31,6 +31,14 @@ const CONFETTI_COLORS = [
   "#a855f7", // Purple
   "#06b6d4", // Cyan
   "#ffffff", // White
+];
+
+const GEM_COLORS = [
+  { fill: "#38bdf8", stroke: "#e0f2fe" }, // Diamond / Sapphire
+  { fill: "#ef4444", stroke: "#fecaca" }, // Ruby
+  { fill: "#10b981", stroke: "#a7f3d0" }, // Emerald
+  { fill: "#a855f7", stroke: "#f3e8ff" }, // Amethyst
+  { fill: "#fbbf24", stroke: "#fef08a" }, // Topaz
 ];
 
 export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) {
@@ -54,22 +62,27 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
     window.addEventListener("resize", handleResize);
 
     const particles: Particle[] = [];
-    const maxParticles = tier === "EPIC_WIN" ? 180 : tier === "MEGA_WIN" ? 120 : 80;
+    const maxParticles = tier === "EPIC_WIN" ? 220 : tier === "ULTRA_WIN" ? 170 : tier === "MEGA_WIN" ? 130 : 90;
 
-    // Spawn a particle
+    // Spawn normal falling particle
     const spawnParticle = (initial = false): Particle => {
       const typeChoice = Math.random();
       const type: Particle["type"] =
-        typeChoice < 0.4 ? "COIN" : typeChoice < 0.7 ? "CONFETTI" : "STAR";
+        typeChoice < 0.35 ? "COIN" : typeChoice < 0.55 ? "GEM" : typeChoice < 0.8 ? "CONFETTI" : "STAR";
 
       return {
         x: initial ? Math.random() * width : Math.random() * width,
-        y: initial ? Math.random() * height * 0.7 : -20,
+        y: initial ? Math.random() * height * 0.7 : -25,
         vx: (Math.random() - 0.5) * (tier === "EPIC_WIN" ? 8 : 4),
-        vy: Math.random() * 4 + (type === "COIN" ? 4 : 2),
+        vy: Math.random() * 4 + (type === "COIN" || type === "GEM" ? 3.5 : 2),
         rotation: Math.random() * 360,
         vRotation: (Math.random() - 0.5) * 8,
-        size: type === "COIN" ? Math.random() * 8 + 10 : Math.random() * 6 + 6,
+        size:
+          type === "COIN"
+            ? Math.random() * 8 + 11
+            : type === "GEM"
+              ? Math.random() * 6 + 9
+              : Math.random() * 6 + 6,
         color:
           type === "COIN"
             ? "#facc15"
@@ -80,15 +93,77 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
       };
     };
 
+    // Cannon burst from bottom corners
+    const spawnCannonParticle = (side: "LEFT" | "RIGHT"): Particle => {
+      const typeChoice = Math.random();
+      const type: Particle["type"] =
+        typeChoice < 0.4 ? "COIN" : typeChoice < 0.65 ? "GEM" : typeChoice < 0.85 ? "CONFETTI" : "STAR";
+      const isLeft = side === "LEFT";
+      const vx = isLeft ? Math.random() * 9 + 4 : -(Math.random() * 9 + 4);
+      const vy = -(Math.random() * 11 + 10);
+
+      return {
+        x: isLeft ? 10 : width - 10,
+        y: height - 10,
+        vx,
+        vy,
+        rotation: Math.random() * 360,
+        vRotation: (Math.random() - 0.5) * 12,
+        size: type === "COIN" ? Math.random() * 6 + 10 : Math.random() * 6 + 7,
+        color:
+          type === "COIN"
+            ? "#facc15"
+            : CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+        type,
+        alpha: 1,
+        decay: Math.random() * 0.002 + 0.001,
+      };
+    };
+
+    // Interactive user click burst
+    const handleCanvasClick = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      for (let i = 0; i < 28; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 9 + 3;
+        particles.push({
+          x: clickX,
+          y: clickY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 3,
+          rotation: Math.random() * 360,
+          vRotation: (Math.random() - 0.5) * 14,
+          size: Math.random() * 8 + 8,
+          color: Math.random() < 0.5 ? "#facc15" : "#ffffff",
+          type: Math.random() < 0.5 ? "COIN" : "STAR",
+          alpha: 1,
+          decay: 0.008,
+        });
+      }
+    };
+    canvas.addEventListener("click", handleCanvasClick);
+
     // Pre-populate particles
     for (let i = 0; i < maxParticles; i++) {
       particles.push(spawnParticle(true));
     }
 
     let animId: number;
+    let cannonCounter = 0;
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
+
+      // Periodically fire corner cannons for big celebrations
+      if (tier === "EPIC_WIN" || tier === "ULTRA_WIN" || tier === "MEGA_WIN") {
+        cannonCounter++;
+        if (cannonCounter % 4 === 0 && particles.length < maxParticles + 40) {
+          particles.push(spawnCannonParticle(Math.random() < 0.5 ? "LEFT" : "RIGHT"));
+        }
+      }
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
@@ -98,10 +173,10 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
         p.alpha -= p.decay;
 
         // Gravity
-        p.vy += 0.12;
+        p.vy += 0.14;
 
         // Reset if off-screen
-        if (p.y > height + 30 || p.alpha <= 0) {
+        if (p.y > height + 35 || p.alpha <= 0) {
           particles[i] = spawnParticle(false);
           continue;
         }
@@ -115,7 +190,7 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
           // 3D spinning coin with depth and specular rim
           const flipScale = Math.cos(p.rotation * 0.06);
           const absScale = Math.max(0.12, Math.abs(flipScale));
-          
+
           // Outer gold rim
           ctx.beginPath();
           ctx.ellipse(0, 0, p.size, p.size * absScale, 0, 0, Math.PI * 2);
@@ -136,14 +211,40 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
           if (absScale > 0.8) {
             ctx.beginPath();
             ctx.arc(p.size * 0.3, -p.size * absScale * 0.3, p.size * 0.2, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
             ctx.fill();
           }
+        } else if (p.type === "GEM") {
+          // 3D Faceted Crystal Gemstone
+          const gemTheme = GEM_COLORS[Math.floor(p.size) % GEM_COLORS.length];
+          const half = p.size;
+          ctx.beginPath();
+          ctx.moveTo(0, -half);
+          ctx.lineTo(half * 0.85, -half * 0.35);
+          ctx.lineTo(half * 0.65, half);
+          ctx.lineTo(-half * 0.65, half);
+          ctx.lineTo(-half * 0.85, -half * 0.35);
+          ctx.closePath();
+          ctx.fillStyle = gemTheme.fill;
+          ctx.fill();
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = gemTheme.stroke;
+          ctx.stroke();
+
+          // Inner facet shine
+          ctx.beginPath();
+          ctx.moveTo(0, -half * 0.6);
+          ctx.lineTo(half * 0.4, -half * 0.1);
+          ctx.lineTo(0, half * 0.5);
+          ctx.lineTo(-half * 0.4, -half * 0.1);
+          ctx.closePath();
+          ctx.fillStyle = "rgba(255,255,255,0.45)";
+          ctx.fill();
         } else if (p.type === "STAR") {
           // 4-point Diamond Twinkle
           ctx.fillStyle = p.color;
           ctx.shadowColor = p.color;
-          ctx.shadowBlur = 8;
+          ctx.shadowBlur = 10;
           ctx.beginPath();
           ctx.moveTo(0, -p.size * 1.4);
           ctx.quadraticCurveTo(0, 0, p.size * 1.4, 0);
@@ -171,6 +272,7 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
+      canvas.removeEventListener("click", handleCanvasClick);
     };
   }, [active, tier]);
 
@@ -179,7 +281,7 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none z-40"
+      className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer z-40"
     />
   );
 }

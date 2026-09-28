@@ -205,6 +205,102 @@ export function SlotMegawaysGrid({
         })}
 
 
+        {/* Connecting Megaways Laser Paylines */}
+        {revealed && !anySpinning && result?.wayHits && result.wayHits.length > 0 && (
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-30 overflow-visible">
+            <defs>
+              <filter id="megaLaserGlow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            {result.wayHits.map((way, wIdx) => {
+              if (way.positions.length < 2) return null;
+              // Sort positions by column to draw left-to-right line
+              const sorted = [...way.positions].sort((a, b) => a.col - b.col);
+              const pts = sorted.map((p) => {
+                const colH = reelHeights[p.col] || 4;
+                return {
+                  x: ((p.col + 0.5) / 6) * 100,
+                  y: ((p.row + 0.5) / colH) * 100,
+                };
+              });
+              const pathD = pts.reduce((acc, pt, i) => `${acc} ${i === 0 ? "M" : "L"} ${pt.x}% ${pt.y}%`, "");
+              const hitColor = theme.symbols[way.symbolId]?.glowColor || "#fbbf24";
+
+              return (
+                <g key={`way-line-${wIdx}`}>
+                  {/* Outer Laser Glow */}
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke={hitColor}
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    filter="url(#megaLaserGlow)"
+                    opacity="0.85"
+                    className="animate-electric-arc"
+                  />
+                  {/* Inner Rapid Laser Pulse */}
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="animate-laser-tracer"
+                  />
+                  {/* Glowing nodes */}
+                  {pts.map((pt, pIdx) => (
+                    <circle
+                      key={`mpt-${pIdx}`}
+                      cx={`${pt.x}%`}
+                      cy={`${pt.y}%`}
+                      r="4"
+                      fill="#ffffff"
+                      stroke={hitColor}
+                      strokeWidth="2"
+                      className="animate-ping"
+                      style={{ animationDuration: "1.2s", animationDelay: `${pIdx * 80}ms` }}
+                    />
+                  ))}
+                </g>
+              );
+            })}
+          </svg>
+        )}
+
+        {/* Megaways Victory Floating Badges */}
+        {revealed && !anySpinning && result?.wayHits && result.wayHits.map((way, idx) => {
+          const avgCol = way.positions.reduce((sum, p) => sum + p.col, 0) / Math.max(1, way.positions.length);
+          const p0 = way.positions[0];
+          const colH = reelHeights[p0?.col || 0] || 4;
+          const avgRow = way.positions.reduce((sum, p) => sum + p.row, 0) / Math.max(1, way.positions.length);
+          const symDef = theme.symbols[way.symbolId];
+
+          return (
+            <div
+              key={`way-badge-${idx}`}
+              className="pointer-events-none absolute z-40 animate-prize-pill flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-yellow-400 bg-black/90 shadow-[0_0_24px_rgba(251,191,36,0.9)] backdrop-blur-md"
+              style={{
+                left: `${((avgCol + 0.5) / 6) * 100}%`,
+                top: `${((avgRow + 0.5) / colH) * 100}%`,
+              }}
+            >
+              <span className="text-[10px] font-black uppercase text-amber-300">
+                {way.count}OAK · {way.ways} WAYS
+              </span>
+              <span className="text-[10px] font-black text-white bg-amber-500/30 px-1.5 py-0.5 rounded border border-amber-400/50">
+                {symDef?.name?.split(" ")[0] || way.symbolId}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
