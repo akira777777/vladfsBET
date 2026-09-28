@@ -33,7 +33,7 @@ const MASCOTS: Record<string, MascotData> = {
     title: "GOD OF THUNDER",
     imageSrc: "/slots/mascots/zeus.jpg",
     accentColor: "#38bdf8",
-    glowColor: "rgba(56, 189, 248, 0.7)",
+    glowColor: "rgba(56, 189, 248, 0.75)",
     strikeQuotes: [
       "⚡ BY ZEUS'S POWER!",
       "⚡ DIVINE THUNDER STRIKE!",
@@ -50,7 +50,7 @@ const MASCOTS: Record<string, MascotData> = {
     title: "SYSTEM OVERLORD",
     imageSrc: "/slots/mascots/cyber-boss.jpg",
     accentColor: "#f472b6",
-    glowColor: "rgba(236, 72, 153, 0.7)",
+    glowColor: "rgba(236, 72, 153, 0.75)",
     strikeQuotes: [
       "⚔️ CRITICAL SYSTEM OVERLOAD!",
       "⚡ NEON OVERDRIVE ACTIVATED!",
@@ -67,7 +67,7 @@ const MASCOTS: Record<string, MascotData> = {
     title: "SUN GOD OF EGYPT",
     imageSrc: "/slots/mascots/pharaoh.jpg",
     accentColor: "#f59e0b",
-    glowColor: "rgba(245, 158, 11, 0.7)",
+    glowColor: "rgba(245, 158, 11, 0.75)",
     strikeQuotes: [
       "✨ BLESSING OF THE SUN GOD!",
       "👑 ETERNAL GOLD OF THE NILE!",
@@ -84,7 +84,7 @@ const MASCOTS: Record<string, MascotData> = {
     title: "COTTON CANDY REALM",
     imageSrc: "/slots/mascots/sugar-queen.jpg",
     accentColor: "#f472b6",
-    glowColor: "rgba(244, 114, 182, 0.7)",
+    glowColor: "rgba(244, 114, 182, 0.75)",
     strikeQuotes: [
       "🍭 SWEET EXPLOSION!",
       "🍬 SUGAR BONANZA DROP!",
@@ -101,7 +101,7 @@ const MASCOTS: Record<string, MascotData> = {
     title: "EMPEROR OF FORTUNE",
     imageSrc: "/slots/mascots/dragon.jpg",
     accentColor: "#ef4444",
-    glowColor: "rgba(239, 68, 68, 0.7)",
+    glowColor: "rgba(239, 68, 68, 0.75)",
     strikeQuotes: [
       "🐉 DRAGON BREATH OF WEALTH!",
       "🔥 HEAVENLY FORTUNE SHOWER!",
@@ -149,6 +149,22 @@ export const SlotMascot = React.memo(function SlotMascot({
   const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number; size: number }[]>([]);
   const nextSparkleId = useRef(0);
 
+  // 3D Mouse Parallax state
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to +1
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2; // -1 to +1
+    setTilt({ x, y });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0 });
+  }, []);
+
   const triggerStrike = useCallback((isManual = false) => {
     setStriking(true);
     setQuoteIdx((prev) => (prev + 1) % mascot.strikeQuotes.length);
@@ -157,13 +173,13 @@ export const SlotMascot = React.memo(function SlotMascot({
       slotAudio.playMultiplierOrbCharge(80);
     }
 
-    // Spawn 8 burst sparkles
-    const newSparks = Array.from({ length: 8 }, () => {
+    // Spawn 10 burst sparkles around character
+    const newSparks = Array.from({ length: 10 }, () => {
       nextSparkleId.current++;
       return {
         id: nextSparkleId.current,
-        x: 20 + Math.random() * 60,
-        y: 20 + Math.random() * 60,
+        x: 15 + Math.random() * 70,
+        y: 15 + Math.random() * 70,
         size: Math.random() * 8 + 6,
       };
     });
@@ -185,8 +201,8 @@ export const SlotMascot = React.memo(function SlotMascot({
   useEffect(() => {
     if (sparkles.length === 0) return;
     const t = setTimeout(() => {
-      setSparkles((prev) => prev.slice(4));
-    }, 1200);
+      setSparkles((prev) => prev.slice(5));
+    }, 1000);
     return () => clearTimeout(t);
   }, [sparkles]);
 
@@ -196,13 +212,17 @@ export const SlotMascot = React.memo(function SlotMascot({
       <div
         onClick={() => triggerStrike(true)}
         className="group relative h-9 w-9 shrink-0 cursor-pointer overflow-hidden rounded-full border-2 border-amber-400/90 bg-neutral-950 shadow-[0_0_12px_rgba(251,191,36,0.65)] transition-transform active:scale-95 pointer-events-auto"
-        title={`${mascot.name} (${mascot.title}) · Click for blessing!`}
+        title={`${mascot.name} (${mascot.title}) · Tap for blessing!`}
       >
         <img
           src={mascot.imageSrc}
           alt={mascot.name}
           className={`h-full w-full object-cover object-top scale-135 transition-transform duration-300 ${
-            striking ? "scale-150 brightness-130" : "group-hover:scale-145"
+            striking
+              ? "scale-160 brightness-135 animate-mascot-charge"
+              : isSpinning
+              ? "scale-145 brightness-110"
+              : "group-hover:scale-145"
           }`}
         />
         {charging && (
@@ -221,28 +241,48 @@ export const SlotMascot = React.memo(function SlotMascot({
     ? mascot.chargeQuotes[0]
     : mascot.strikeQuotes[quoteIdx];
 
+  // Dynamic Movement Class:
+  // - striking: explosive attack lunge forward
+  // - charging: rapid vibrating power charge
+  // - isSpinning: leaning forward watching the reels
+  // - idle: living organic breathing loop
+  const movementClass = striking
+    ? "animate-mascot-strike"
+    : charging
+    ? "animate-mascot-charge"
+    : isSpinning
+    ? "animate-mascot-lean"
+    : "animate-mascot-breathe";
+
   return (
     <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       onClick={() => triggerStrike(true)}
-      className="group relative flex flex-col items-center justify-end select-none pointer-events-auto cursor-pointer w-52 sm:w-60 h-[400px] sm:h-[480px] transition-all"
-      title={`${mascot.name} · Click for divine blessing!`}
+      className="group relative flex flex-col items-center justify-end select-none pointer-events-auto cursor-pointer w-52 sm:w-64 h-[420px] sm:h-[490px] transition-all perspective-[1000px]"
+      title={`${mascot.name} · Click to command the God!`}
     >
-      {/* Dynamic Floating Character Wrapper */}
+      {/* ── Living 3D Floating Character Body ── */}
       <div
-        className={`relative w-full h-full flex flex-col items-center justify-end transition-all duration-500 ${
-          isSpinning ? "translate-y-[-8px] scale-105" : "animate-mascot-float"
-        } ${striking ? "animate-mascot-strike" : ""}`}
+        className={`relative w-full h-full flex flex-col items-center justify-end transition-all duration-300 ${movementClass}`}
+        style={{
+          transform: !striking && !charging
+            ? `rotateY(${tilt.x * 12}deg) rotateX(${-tilt.y * 8}deg)`
+            : undefined,
+          transformStyle: "preserve-3d",
+        }}
       >
         {/* ── Radiant Backlight & Energy Aura ── */}
         <div
-          className={`pointer-events-none absolute inset-4 rounded-full blur-3xl transition-all duration-500 ${
+          className={`pointer-events-none absolute inset-2 rounded-full blur-3xl transition-all duration-500 ${
             striking
-              ? "opacity-100 scale-125"
+              ? "opacity-100 scale-135"
               : charging
-              ? "opacity-90 scale-110 animate-pulse"
+              ? "opacity-95 scale-120 animate-pulse"
               : isBonus
-              ? "opacity-95 scale-115"
-              : "opacity-65 scale-100"
+              ? "opacity-95 scale-120"
+              : "opacity-70 scale-105"
           }`}
           style={{
             background: striking
@@ -255,8 +295,8 @@ export const SlotMascot = React.memo(function SlotMascot({
           }}
         />
 
-        {/* ── Volumetric Light Rays (Zeus / Sun Aura) ── */}
-        <div className="pointer-events-none absolute -top-8 w-64 h-64 opacity-40 animate-[spin_30s_linear_infinite]">
+        {/* ── Volumetric Sunburst Light Rays ── */}
+        <div className="pointer-events-none absolute -top-8 w-68 h-68 opacity-45 animate-[spin_28s_linear_infinite]">
           <div
             className="w-full h-full rounded-full"
             style={{
@@ -265,21 +305,33 @@ export const SlotMascot = React.memo(function SlotMascot({
           />
         </div>
 
+        {/* ── Orbiting 3D Energy Spheres (circling the mascot) ── */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="animate-mascot-orb-1 w-3.5 h-3.5 rounded-full bg-white shadow-[0_0_12px_#38bdf8,0_0_24px_#fff]" />
+          <div className="animate-mascot-orb-2 w-2.5 h-2.5 rounded-full bg-amber-300 shadow-[0_0_10px_#f59e0b,0_0_20px_#fde047]" />
+        </div>
+
         {/* ── Shockwave Ring on Strike ── */}
         {striking && (
           <div
-            className="pointer-events-none absolute inset-6 rounded-full border-2 animate-ping"
+            className="pointer-events-none absolute inset-4 rounded-full border-2 animate-ping"
             style={{ borderColor: mascot.accentColor }}
           />
         )}
 
         {/* ── High-Detail 3D Mascot Character Art (Nana Banana Generated) ── */}
-        <div className="relative w-full h-[320px] sm:h-[390px] flex items-center justify-center overflow-visible z-10">
+        <div className="relative w-full h-[340px] sm:h-[410px] flex items-center justify-center overflow-visible z-10">
           <img
             src={mascot.imageSrc}
             alt={mascot.name}
             className={`w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.95)] transition-all duration-300 ${
-              striking ? "brightness-125 contrast-110" : "brightness-105"
+              striking
+                ? "brightness-130 contrast-115 scale-105"
+                : charging
+                ? "brightness-120"
+                : isSpinning
+                ? "brightness-110"
+                : "brightness-105"
             }`}
             style={{
               mixBlendMode: "screen",
@@ -288,45 +340,78 @@ export const SlotMascot = React.memo(function SlotMascot({
             }}
           />
 
-          {/* Dynamic Electric / Energy Arcs on Mascot Weapon ── */}
+          {/* ── Living Eyes Glow Flare ── */}
+          <div
+            className={`pointer-events-none absolute top-[19%] left-[49%] -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full blur-[2px] transition-all duration-300 ${
+              striking || charging ? "opacity-100 scale-150" : isSpinning ? "opacity-90 scale-120" : "animate-mascot-eye-flare opacity-70"
+            }`}
+            style={{
+              background: `radial-gradient(circle, #ffffff 0%, ${mascot.accentColor} 60%, transparent 100%)`,
+              boxShadow: `0 0 16px ${mascot.accentColor}, 0 0 32px #ffffff`,
+            }}
+          />
+
+          {/* ── Crackling Lightning Bolt Fired Towards the Slot Reels ── */}
           {striking && (
             <svg
-              viewBox="0 0 200 240"
-              className="pointer-events-none absolute inset-0 w-full h-full z-20 overflow-visible"
+              viewBox="0 0 400 300"
+              className="pointer-events-none absolute -left-28 sm:-left-36 top-10 w-[420px] sm:w-[500px] h-[300px] z-30 overflow-visible"
             >
               <defs>
-                <filter id="mascotZapGlow">
-                  <feGaussianBlur stdDeviation="3" result="glow" />
+                <filter id="mascotLightningZap">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
                   <feMerge>
-                    <feMergeNode in="glow" />
+                    <feMergeNode in="blur" />
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
               </defs>
+
+              {/* Main Lightning Bolt Spear heading directly left onto the slot reels */}
               <path
-                d="M 50,40 L 70,80 L 55,100 L 95,140 L 80,165 L 120,210"
+                d="M 280,110 L 220,135 L 180,95 L 120,150 L 70,110 L 0,165"
                 fill="none"
                 stroke="#ffffff"
-                strokeWidth="3"
+                strokeWidth="4"
                 strokeLinecap="round"
-                filter="url(#mascotZapGlow)"
+                filter="url(#mascotLightningZap)"
                 className="animate-electric-arc"
               />
               <path
-                d="M 140,50 L 125,95 L 145,115 L 115,165 L 135,185 L 100,225"
+                d="M 280,110 L 220,135 L 180,95 L 120,150 L 70,110 L 0,165"
                 fill="none"
                 stroke={mascot.accentColor}
+                strokeWidth="8"
+                strokeLinecap="round"
+                opacity="0.6"
+                filter="url(#mascotLightningZap)"
+              />
+
+              {/* Secondary Branching Lightning Arcs */}
+              <path
+                d="M 220,135 L 200,190 L 150,215"
+                fill="none"
+                stroke="#67e8f9"
                 strokeWidth="2.5"
                 strokeLinecap="round"
-                filter="url(#mascotZapGlow)"
                 className="animate-electric-arc"
               />
-              <circle cx="50" cy="40" r="5" fill="#fff" className="animate-ping" />
-              <circle cx="140" cy="50" r="4" fill="#fff" className="animate-ping" />
+              <path
+                d="M 120,150 L 105,75 L 50,55"
+                fill="none"
+                stroke="#facc15"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className="animate-electric-arc"
+              />
+
+              {/* Impact Flash at reel contact point */}
+              <circle cx="0" cy="165" r="14" fill="#ffffff" className="animate-ping" />
+              <circle cx="280" cy="110" r="10" fill="#fde047" className="animate-ping" />
             </svg>
           )}
 
-          {/* Floating Sparkles from Clicks */}
+          {/* Floating Sparkles from Clicks / Tumbles */}
           {sparkles.map((sp) => (
             <span
               key={`mascot-sp-${sp.id}`}
@@ -344,9 +429,9 @@ export const SlotMascot = React.memo(function SlotMascot({
 
         {/* ── 3D Holographic Summoning Pedestal at Feet ── */}
         <div className="absolute bottom-6 w-44 sm:w-52 h-10 pointer-events-none flex items-center justify-center z-0">
-          {/* Outer Runic / Tech Ring */}
+          {/* Outer Runic Ring */}
           <div
-            className="absolute inset-0 rounded-full border-2 animate-pedestal-spin opacity-80"
+            className="absolute inset-0 rounded-full border-2 animate-pedestal-spin opacity-85"
             style={{
               borderColor: mascot.accentColor,
               boxShadow: `0 0 24px ${mascot.accentColor}88, inset 0 0 16px ${mascot.accentColor}55`,
@@ -361,10 +446,10 @@ export const SlotMascot = React.memo(function SlotMascot({
             }}
           />
 
-          {/* Ground Hover Shadow */}
+          {/* Dynamic Ground Hover Shadow */}
           <div
             className={`w-36 h-4 rounded-full bg-black/90 blur-md transition-all duration-500 ${
-              isSpinning ? "scale-90 opacity-60" : "scale-100 opacity-90"
+              isSpinning || striking ? "scale-90 opacity-60" : "scale-105 opacity-90"
             }`}
           />
 
