@@ -293,7 +293,7 @@ export function SlotMegawaysGrid({
               }}
             >
               <span className="text-[10px] font-black uppercase text-amber-300">
-                {way.count}OAK · {way.ways} WAYS
+                {way.matchCount}OAK · {way.waysCount} WAYS
               </span>
               <span className="text-[10px] font-black text-white bg-amber-500/30 px-1.5 py-0.5 rounded border border-amber-400/50">
                 {symDef?.name?.split(" ")[0] || way.symbolId}
