@@ -156,7 +156,7 @@ function StrikeOverlay({
   );
 }
 
-export function SlotCabinetStage({
+export const SlotCabinetStage = React.memo(function SlotCabinetStage({
   theme,
   spinning,
   inFreeSpins,
@@ -293,4 +293,4 @@ export function SlotCabinetStage({
       </div>
     </div>
   );
-}
+});

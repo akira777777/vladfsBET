@@ -12,7 +12,7 @@ interface SlotWinCelebrationProps {
   onComplete: () => void;
 }
 
-export function SlotWinCelebration({
+export const SlotWinCelebration = React.memo(function SlotWinCelebration({
   winAmount,
   betAmount,
   currency,
@@ -207,4 +207,4 @@ export function SlotWinCelebration({
       </div>
     </div>
   );
-}
+});

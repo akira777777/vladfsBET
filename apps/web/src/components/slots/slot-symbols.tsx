@@ -25,7 +25,7 @@ function Caption({ text, color }: { text: string; color: string }) {
   );
 }
 
-function MultiplierOrb({ val }: { val: number }) {
+const MultiplierOrb = React.memo(function MultiplierOrb({ val }: { val: number }) {
   const isSupernova = val >= 250;
   const isMega = val >= 50;
   const isHigh = val >= 10;
@@ -203,9 +203,9 @@ function MultiplierOrb({ val }: { val: number }) {
       </div>
     </div>
   );
-}
+});
 
-function ThemeArt({
+const ThemeArt = React.memo(function ThemeArt({
   id,
   category,
   name,
@@ -776,9 +776,9 @@ function ThemeArt({
       </span>
     </div>
   );
-}
+});
 
-export function SlotSymbolIcon({
+export const SlotSymbolIcon = React.memo(function SlotSymbolIcon({
   id,
   multiplierValue,
   theme,
@@ -846,4 +846,4 @@ export function SlotSymbolIcon({
       )}
     </div>
   );
-}
+});

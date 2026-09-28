@@ -21,7 +21,7 @@ function megaStrip(theme: SlotTheme): SymbolId[] {
   return [...unique, ...unique];
 }
 
-export function SlotMegawaysGrid({
+export const SlotMegawaysGrid = React.memo(function SlotMegawaysGrid({
   result,
   theme,
   isSpinning,
@@ -304,4 +304,4 @@ export function SlotMegawaysGrid({
       </div>
     </div>
   );
-}
+});

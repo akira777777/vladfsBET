@@ -120,7 +120,7 @@ function makeLoopStrip(theme: SlotTheme): SymbolId[] {
   return [...unique, ...unique];
 }
 
-export function SlotTumbleGrid({
+export const SlotTumbleGrid = React.memo(function SlotTumbleGrid({
   grid,
   theme,
   isTumbling,
@@ -548,4 +548,4 @@ export function SlotTumbleGrid({
       </div>
     </div>
   );
-}
+});

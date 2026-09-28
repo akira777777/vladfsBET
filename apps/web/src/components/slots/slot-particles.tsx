@@ -41,7 +41,7 @@ const GEM_COLORS = [
   { fill: "#fbbf24", stroke: "#fef08a" }, // Topaz
 ];
 
-export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) {
+export const SlotParticles = React.memo(function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -125,10 +125,13 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
       const rect = canvas.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
+      const maxCap = maxParticles + 50;
+      if (particles.length > maxCap) return;
+      const count = Math.min(24, maxCap - particles.length);
 
-      for (let i = 0; i < 28; i++) {
+      for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 9 + 3;
+        const speed = Math.random() * 8 + 3;
         particles.push({
           x: clickX,
           y: clickY,
@@ -153,27 +156,30 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
 
     let animId: number;
     let cannonCounter = 0;
+    let lastTime = performance.now();
 
-    const render = () => {
+    const render = (now: number) => {
+      const dt = Math.min(Math.max((now - lastTime) / 16.67, 0.4), 2.2);
+      lastTime = now;
       ctx.clearRect(0, 0, width, height);
 
       // Periodically fire corner cannons for big celebrations
       if (tier === "EPIC_WIN" || tier === "ULTRA_WIN" || tier === "MEGA_WIN") {
         cannonCounter++;
-        if (cannonCounter % 4 === 0 && particles.length < maxParticles + 40) {
+        if (cannonCounter % 5 === 0 && particles.length < maxParticles + 30) {
           particles.push(spawnCannonParticle(Math.random() < 0.5 ? "LEFT" : "RIGHT"));
         }
       }
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rotation += p.vRotation;
-        p.alpha -= p.decay;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rotation += p.vRotation * dt;
+        p.alpha -= p.decay * dt;
 
-        // Gravity
-        p.vy += 0.14;
+        // Gravity scaled by delta time
+        p.vy += 0.14 * dt;
 
         // Reset if off-screen
         if (p.y > height + 35 || p.alpha <= 0) {
@@ -284,4 +290,4 @@ export function SlotParticles({ active, tier = "BIG_WIN" }: SlotParticlesProps) 
       className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer z-40"
     />
   );
-}
+});
